@@ -30,6 +30,7 @@ trials = 5
 # size of network
 N = 2
 
+
 #parameters to track and their order
 tracking_parameters = ["name", "init_flux", "starting_fitness", "end_fitness"]
 
