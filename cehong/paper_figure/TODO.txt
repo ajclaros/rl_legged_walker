@@ -1,0 +1,24 @@
+
+
+1. generate data for 100 runs of networks of size 2-10 (DONE)
+2. plot a visualization aggregating all of them together       (DONE)
+
+These two alone would probably suffice in addition to a single plot on one network size 10 that is trained to perform very well.
+
+3. Generate comparison data from HC
+
+This would be training the HC using mutations of BOTH the weights AND the biases!
+
+The other thing that would be a great comparison (optional for this paper) would be to 
+generate data for hill climbers in the same fashion as a point of comparison
+the data for the HC might need to have the measure of the Beer's fitness to be meaningfully similar
+since the RL would have been running for a while to remove transients.
+
+4. Plot the aggregated data for the RL in comparison to the HC
+probably needs to have a different view, possibly just showing the scores at a few locations
+
+It would be OK to do the same with RW, but I suspect HC alone would be the most useful/meaningful
+
+
+5. Try some different visualizations, possibly using violin or boxplots at different timesteps (i.e. every 1000 steps)
+to more easily compare te different sizes

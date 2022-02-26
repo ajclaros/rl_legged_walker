@@ -1,0 +1,43 @@
+{
+    "size": 2,
+    "voltages": [
+        0.0,
+        0.0
+    ],
+    "time_constants": [
+        1.0,
+        1.0
+    ],
+    "biases": [
+        4.2759597146207815,
+        -9.198027942862872
+    ],
+    "inner_weights": [
+        [
+            5.886259597787885,
+            16.0
+        ],
+        [
+            -16.0,
+            3.3366949337351337
+        ]
+    ],
+    "outputs": [
+        0.0,
+        0.0
+    ],
+    "inputs": [
+        0.0,
+        0.0
+    ],
+    "weight_range": 16,
+    "bias_range": 16,
+    "tc_min": 1,
+    "tc_max": 1,
+    "sensors": null,
+    "motors": null,
+    "inv_time_constants": [
+        1.0,
+        1.0
+    ]
+}
