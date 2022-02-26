@@ -14,16 +14,16 @@ from fitnessFunction import fitnessFunction
 import pandas as pd
 
 
+save_path = "./data/data.csv"
 param_list = {
     "window_size": [4000],
-    "point": [0.2], #the starting fitnesses: "starting point"
+    "point": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6], #the starting fitnesses: "starting point"
     "learn_rate": [0.008],
     "conv_rate": [0.004],
     "min_period": [300],
     "max_period": [400],
-    "init_flux": [0.35],
-    "duration":[8000]
-
+    "init_flux": [0.1, 0.2, 0.3, 0.4],
+    "duration":[1000]
 }
 #times to try each element in the permutation of parameters
 trials = 5
@@ -60,7 +60,7 @@ def get_data(path):
     else:
         df = None
     return df
-df = get_data("./data/data.csv")
+df = get_data(save_path)
 
 # itertools creates a list of all permutations for each list in the dictionary
 # https://stackoverflow.com/questions/24594313/permutations-of-list-of-lists
@@ -130,4 +130,4 @@ for x in itertools.product(*param_list.values()):
                 df = df.append(pd.Series(row), ignore_index=True)
 
 csv = df.fillna(value=np.nan)
-csv.to_csv("./data/data.csv")
+csv.to_csv("save_path")
