@@ -20,6 +20,7 @@ param_list = {
     "learn_rate": [0.008],
 
     "conv_rate": [0.004],
+
     "min_period": [300],
     "max_period": [400],
     "init_flux": [0.35],
