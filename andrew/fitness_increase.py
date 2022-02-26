@@ -21,7 +21,7 @@ param_list = {
     "conv_rate": [0.004],
     "min_period": [300],
     "max_period": [400],
-    "init_flux": [0.25, 0.3],
+    "init_flux": [0.35],
     "duration":[8000]
 
 }
