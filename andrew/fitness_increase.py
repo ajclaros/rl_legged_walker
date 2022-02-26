@@ -18,9 +18,7 @@ param_list = {
     "window_size": [4000],
     "point": [0.2], #the starting fitnesses: "starting point"
     "learn_rate": [0.008],
-
     "conv_rate": [0.004],
-
     "min_period": [300],
     "max_period": [400],
     "init_flux": [0.35],
