@@ -12,6 +12,7 @@ import datetime
 from datalogger import DataLogger
 from fitnessFunction import fitnessFunction
 import pandas as pd
+import seaborn as sns
 
 
 save_path = "./data/data.csv"
@@ -22,14 +23,13 @@ param_list = {
     "conv_rate": [0.004],
     "min_period": [300],
     "max_period": [400],
-    "init_flux": [0.1, 0.2, 0.3, 0.4],
+    "init_flux": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
     "duration":[1000]
 }
 #times to try each element in the permutation of parameters
-trials = 5
+trials = 10
 # size of network
 N = 2
-
 
 #parameters to track and their order
 tracking_parameters = ["name", "init_flux", "starting_fitness", "end_fitness"]
@@ -131,4 +131,15 @@ for x in itertools.product(*param_list.values()):
                 df = df.append(pd.Series(row), ignore_index=True)
 
 csv = df.fillna(value=np.nan)
-csv.to_csv("save_path")
+csv.to_csv(save_path)
+
+cmap = cm.get_cmap('tab20').colors
+init_flux= [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+csv = csv[csv['duration']==1000]
+sns.catplot(y='end_fitness', x='point', hue='init_flux', kind='box', data=csv, legend=False)
+plt.legend(loc='lower right', title='initial flux')
+plt.tight_layout()
+plt.show()
+
+for i, (group, data) in enumerate(csv.groupby(['point', 'init_flux'])):
+    print(data)

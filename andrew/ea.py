@@ -20,15 +20,14 @@ class Microbial():
         self.gen = 0
 
 
-    def showFitness(self):
-        plt.plot(self.bestHistory, label='best history', color='r')
-        plt.plot(self.avgHistory, label='average history', color='k')
+    def showFitness(self, label = ""):
+        plt.plot(self.bestHistory, label=label+' best history')
+        plt.plot(self.avgHistory, label=label+' average history')
         plt.xlabel("Generations")
         plt.ylabel("Fitness")
         plt.legend()
         plt.title("Microbial: Best and average fitness")
         plt.savefig("{}.png".format(datetime.datetime.strftime(datetime.datetime.now(),"%Y-%m-%d-%h-%m")))
-        plt.show()
 
     def fitStats(self):
         bestind = self.pop[np.argmax(self.fitness)]
@@ -44,8 +43,9 @@ class Microbial():
 
     def run(self):
         # Calculate all fitness once
+        print("init agent:")
         for i in range(self.popsize):
-            #print("agent: {}".format(i))
+            print(f"{i}", end = ' ', flush=False)
             self.fitness[i] = self.fitnessFunction(self.pop[i])
         # Evolutionary loop
         for g in range(self.generations):
@@ -54,6 +54,8 @@ class Microbial():
 
             # Report statistics every generation
             self.fitStats()
+            print("Evaluations:")
+            print(f"min:{min(self.fitness)}|max:{max(self.fitness)}")
             for i in range(self.popsize):
                 # Step 1: Pick 2 individuals
                 a = np.random.randint(0,self.popsize-1)
@@ -95,8 +97,8 @@ class Generational():
         self.gen = 0
 
     def showFitness(self):
-        plt.plot(self.bestHistory, label='best history', color='b')
-        plt.plot(self.avgHistory, label='avg history', color='m')
+        plt.plot(self.bestHistory, label='best history')
+        plt.plot(self.avgHistory, label='avg history')
         plt.xlabel("Generations")
         plt.ylabel("Fitness")
         plt.title("Generational: Best and average fitness")
