@@ -49,13 +49,13 @@ class Microbial():
             self.fitness[i] = self.fitnessFunction(self.pop[i])
         # Evolutionary loop
         for g in range(self.generations):
-            print("generation: {}".format(g))
+            print("\ngeneration: {}".format(g))
             self.gen = g
 
             # Report statistics every generation
             self.fitStats()
-            print("Evaluations:")
-            print(f"min:{min(self.fitness)}|max:{max(self.fitness)}")
+            #print("Evaluations:")
+            #print(f"mean:{np.mean(self.fitness)}|max:{max(self.fitness)}")
             for i in range(self.popsize):
                 # Step 1: Pick 2 individuals
                 a = np.random.randint(0,self.popsize-1)

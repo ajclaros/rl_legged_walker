@@ -12,6 +12,7 @@ from matplotlib import cm
 import os
 import time
 from matplotlib.colors import ListedColormap
+import concurrent.futures #multiprocessing
 
 
 np.seterr(all='warn')
@@ -53,7 +54,7 @@ def fitnessFunction(genotype):
                                                         #update neurons based on speed of movement (cx(t)-cx(t-1))/dt
     # Calculate the fitness based on distance covered over the duration of time
 #    fit = legged.cx/duration
-    return legged.cx
+    return legged.cx/duration
 
 
 popsize = 25
@@ -61,11 +62,12 @@ genesize = N*N + 2*N
 recombProb = 0.5
 mutatProb = 0.01
 demesize = 2
-generations = 100
+generations = 30
 
 
 
 
+init_flux = 0.1
 def learningFunction(genotype):
     weights = genotype[0:N*N]
     learner = WalkingTask(size=2,
@@ -76,12 +78,12 @@ def learningFunction(genotype):
                           running_window_mode=True,
                           running_window_size=4000,
                           performance_update_rate=0.05,
-                          init_flux_amp= 0.4,
+                          init_flux_amp= init_flux,
                           max_flux_amp=40,
                           flux_period_min=300,
                           flux_period_max=400,
                           flux_conv_rate=0.004, learn_rate=0.008,
-                          bias_init_flux_amp=0.4,
+                          bias_init_flux_amp=init_flux,
                           bias_max_flux_amp=40,
                           bias_flux_period_min=300,
                           bias_flux_period_max=400,
@@ -93,38 +95,39 @@ def learningFunction(genotype):
     learner.initializeState(np.zeros(N))
     body = leggedwalker.LeggedAgent()
     learner.simulate(body, learning_start=4000, trackpercent=1.00)
-    return body.cx
+    return body.cx/duration
 
-ga = ea.Microbial(learningFunction, popsize, genesize, recombProb, mutatProb, demesize, generations)
-ga.run()
-#ga.showFitness(label = 'learn+evo')
-ga2 = ea.Microbial(fitnessFunction, popsize, genesize, recombProb, mutatProb, demesize, generations)
-ga2.run()
-#ga2.showFitness(label = 'evo')
 
-plt.plot(ga.bestHistory, label = 'evo+learn', color='r', ls='-')
-plt.plot(ga2.bestHistory, label = 'evo', color='r', ls=':')
-plt.plot(ga.avgHistory, label = 'evo+learn', color='k', ls='-')
-plt.plot(ga2.avgHistory, label = 'evo', color='k', ls=':')
-plt.xlabel("Generations")
-plt.ylabel("Fitness")
-plt.title("Microbial: Best and average fitness")
-plt.legend()
-plt.show()
-
-#    af, bf, bi = ga.fitStats()
-#    ga.save("./data/learn-pop25/{}".format(i))
-#    results['learnavg'].append(ga.avgHistory)
-#    results['learnbest'].append(ga.bestHistory)
-#    if i==0:
-#        ax.plot(ga.bestHistory, label="best learning", color='cadetblue', linestyle = 'solid')
-#        ax.plot(ga.avgHistory, color='steelblue', linestyle = 'solid', label='avg learning')
-#    else:
-#        ax.plot(ga.bestHistory, color='cadetblue', linestyle='solid')
-#ax.plot(np.mean(results['evobest'], axis=0), color='red', linestyle='dashed', linewidth=4, label='avg best evo')
-#ax.plot(np.mean(results['evoavg'], axis=0), color='orangered', linestyle='dashed', linewidth=4, label='avg-avg evo')
-#ax.plot(np.mean(results['learnbest'], axis=0), color='blue', linestyle='solid', linewidth=4, label ='avg best learn')
-#ax.plot(np.mean(results['learnavg'], axis=0), color='deepskyblue', linestyle='solid', linewidth=4, label='avg-avg learn')
+#create dictionary of 10 parallel processes
+#each process is alternating between evo and evo+learn
+#num_process = 4
+#function = {'evo': fitnessFunction, 'learn':learningFunction}
+#function_keys = list(function.keys())
+#genetic = {function_keys[i%2]+f'{i//2}':ea.Microbial(function[function_keys[i%2]], popsize, genesize, recombProb, mutatProb, demesize, generations) for i in range(num_process)}
+#with concurrent.futures.ProcessPoolExecutor() as executor:
+#    s = [executor.submit(genetic[function_keys[i%2]+f"{i//2}"].run) for i in range(num_process)]
+#    for p in s:
+#        print('done')
+#style = ['-', ':']
+#
+#results = dict()
+#for i in range(2):
+#    results[function_keys[i%2]+'best'] = []
+#    results[function_keys[i%2]+'avg'] = []
+#
+#
+#for i in range(num_process):
+#    plt.plot(genetic[function_keys[i%2]+f"{i//2}"].bestHistory, label=function_keys[i%2], color='r', ls = style[i%2])
+#    results[function_keys[i%2]+'best'].append(genetic[function_keys[i%2]+f"{i//2}"].bestHistory)
+#    plt.plot(genetic[function_keys[i%2]+f"{i//2}"].avgHistory, label=function_keys[i%2], color='k', ls = style[i%2])
+#    results[function_keys[i%2]+'avg'].append(genetic[function_keys[i%2]+f"{i//2}"].avgHistory)
+#plt.plot(np.mean(results['evobest']), label='avgEvoBest', color='c', ls=':')
+#plt.plot(np.mean(results['evoavg']), label='avgEvoAvg', color='y', ls=':')
+#plt.plot(np.mean(results['learnbest']), label='avgLearnBest', color='c', ls='-')
+#plt.plot(np.mean(results['learnavg']), label='avgLearnAvg', color='y', ls='-')
+#plt.xlabel("Generations")
+#plt.ylabel("Fitness")
+#plt.title(f"Microbial: Best and average fitness\nBest evo+learn \ninit flux:{init_flux}\nT:{duration}s")
 #plt.legend()
-#plt.savefig("./images/learning-250-evo.png".format(i))
 #plt.show()
+#

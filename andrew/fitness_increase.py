@@ -28,8 +28,6 @@ param_list = {
 }
 #times to try each element in the permutation of parameters
 trials = 10
-# size of network
-N = 2
 
 #parameters to track and their order
 tracking_parameters = ["name", "init_flux", "starting_fitness", "end_fitness"]
@@ -38,12 +36,15 @@ tracking_parameters = ["name", "init_flux", "starting_fitness", "end_fitness"]
 for key in param_list.keys():
     if key not in tracking_parameters:
         tracking_parameters.append(key)
+
+
+# size of network
+N = 2
+
 # row to be appended at end of each iteration
 row = dict()
-
 # if log data is true: saves to "./data/durations/point/{end_fitness}.npy"
 log_data = False
-
 def get_data(path):
     """
     1. Reads in csv if exists, else data=None
@@ -66,8 +67,10 @@ df = get_data(save_path)
 # itertools creates a list of all permutations for each list in the dictionary
 # https://stackoverflow.com/questions/24594313/permutations-of-list-of-lists
 for x in itertools.product(*param_list.values()):
-    # x is an element of the full permutation of all lists
-    # creates new dictionary for specific instance of values
+
+    # x is an element from the full permutation of all lists
+
+    # creates dictionary for specific instance of values
     params = {}
     for i, key in enumerate(param_list.keys()):
         params[key] = x[i]
@@ -133,7 +136,6 @@ for x in itertools.product(*param_list.values()):
 csv = df.fillna(value=np.nan)
 csv.to_csv(save_path)
 
-cmap = cm.get_cmap('tab20').colors
 init_flux= [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 csv = csv[csv['duration']==1000]
 sns.catplot(y='end_fitness', x='point', hue='init_flux', kind='box', data=csv, legend=False)
