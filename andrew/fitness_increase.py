@@ -122,6 +122,7 @@ for x in itertools.product(*param_list.values()):
                 learner.simulate(body, learning_start = 4000, trackpercent=1.00)
             end_fitness = fitnessFunction(learner.recoverParameters())
             if log_data:
+                # if data is being saves, save the end fiteness
                 datalogger.data["end_fitness"] = end_fitness
                 datalogger.save("./data/starting_fitness/{params['point']}/endfit-{int(np.round(end_fitness, 5)*100000)}")
 
