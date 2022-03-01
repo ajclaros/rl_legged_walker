@@ -13,7 +13,7 @@ duration = 220.0
 stepsize = 0.1
 #time = np.arange(0.0, duration, stepsize)
 
-def fitnessFunction(genotype):
+def fitnessFunction(genotype, duration=220.0):
     # Create the agent's body
     legged = leggedwalker.LeggedAgent()
     # Create the nervous system

@@ -2,6 +2,7 @@ import leggedwalker
 from jason import ctrnn
 import numpy as np
 from jason.rl_ctrnn import RL_CTRNN
+from fitnessFunction import fitnessFunction
 
 class WalkingTask(RL_CTRNN):
 
@@ -103,7 +104,7 @@ class WalkingTask(RL_CTRNN):
                 + self.performance_update_rate * performance
         return performance
 
-    def simulate(self, body, datalogger=None, track=False, trackpercent = 0.5, learning_start = None):
+    def simulate(self, body, datalogger=None, track=False, trackpercent = 0.5, learning_start = None, logfitness=False):
 
         if datalogger:
             datalogger.data['startgenome'] = self.recoverParameters()
@@ -124,7 +125,16 @@ class WalkingTask(RL_CTRNN):
             datalogger.data['runningAveragePerformances'] = np.zeros(len(self.time))
             datalogger.data['neuralOutputs'] = np.zeros((len(self.time), self.size))
             datalogger.data['rewardHist']= np.zeros((self.time.size))
+            if logfitness:
+                datalogger.data['trackFitness'] = np.zeros((self.time.size))
+
+
         for i,t in enumerate(self.time):
+
+            if i %(self.time.size*trackpercent) == 0:# and i!=0:
+                print("{}% completed...".format(i/self.time.size *100))
+                if logfitness:
+                    datalogger.data['trackFitness'][self.time_step] = fitnessFunction(self.recoverParameters())
             if datalogger:
                 datalogger.data['weightHist'][self.time_step] = self.inner_weights
                 datalogger.data['biasHist'][self.time_step] = self.biases
@@ -137,7 +147,6 @@ class WalkingTask(RL_CTRNN):
                 reward = self.default_reward_func(body, learning=False)
                 self.update_weights_and_flux_amp_with_reward(reward)
             else:
-
                 reward = self.default_reward_func(body, learning=True)
                 self.update_weights_and_flux_amp_with_reward(reward)
             #print(reward)
@@ -154,8 +163,6 @@ class WalkingTask(RL_CTRNN):
                 datalogger.data['extendedBiasHist'][self.time_step] = self.extended_biases
                 datalogger.data['feedback'][self.time_step] = body.anglefeedback()
 
-            if i %(self.time.size*trackpercent) == 0 and i!=0:
-                print("{}% completed...".format(i/self.time.size *100))
 
             if self.running_window_mode:
                 # rotate everything forward
