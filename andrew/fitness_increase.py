@@ -25,7 +25,7 @@ param_list = {
     "conv_rate": [0.004],
     "min_period": [300],
     "max_period": [400],
-    "init_flux": [2.5], #[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+    "init_flux": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
     "duration":[1000]
 }
 #times to try each element in the permutation of parameters
@@ -164,6 +164,6 @@ time = np.arange(0,999.1, 0.1)
 plt.plot(time , x, color='r', label='fitness');plt.title(f'startingfit:{starting_fitness}\nendfit:{end_fitness}')
 time = np.arange(0,1000, 0.1)
 plt.plot(time , z, color='b', label='fitness')
-plt.axvline(time[datalogger.data['learningStart']], color='k', label='learning start')
+plt.axvline(time[datalogger.data['runningAverage']], color='k', label='learning start')
 plt.legend()
 plt.show()
