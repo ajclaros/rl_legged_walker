@@ -18,18 +18,22 @@ import os
 
 
 save_path = "./data/data.csv"
+
+# save data in ./data/starting_fitness/{point}/end-fitness{end_fitness}.npy
+log_data = False
+track_percent= 0.001#save every (x * 100)%
+#times to try each element in the permutation of parameters
+trials = 1
 param_list = {
     "window_size": [4000],
-    "point": [0.1], #[0.1, 0.2, 0.3, 0.4, 0.5, 0.6], #the starting fitnesses: "starting point"
+    "point": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6], #the starting fitnesses: "starting point"
     "learn_rate": [0.008],
     "conv_rate": [0.004],
     "min_period": [300],
     "max_period": [400],
-    "init_flux": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-    "duration":[1000]
+    "init_flux": [0.25, 0.5, 0.75, 1.0, 1.25, 1.50, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75, 4.0], #], 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+    "duration":[1500]
 }
-#times to try each element in the permutation of parameters
-trials = 1
 
 #parameters to track and their order
 tracking_parameters = ["name", "init_flux", "starting_fitness", "end_fitness"]
@@ -38,15 +42,12 @@ tracking_parameters = ["name", "init_flux", "starting_fitness", "end_fitness"]
 for key in param_list.keys():
     if key not in tracking_parameters:
         tracking_parameters.append(key)
-
-
 # size of network
 N = 2
 
 # row to be appended at end of each iteration
 row = dict()
 # if log data is true: saves to "./data/durations/point/{end_fitness}.npy"
-log_data = True
 def get_data(path):
     """
     1. Reads in csv if exists, else data=None
@@ -82,8 +83,8 @@ for x in itertools.product(*param_list.values()):
     starting_genomes = os.listdir(f"./perturbations/{params['point']}")
     print(f"\n\nlocation: {params['point']}")
     for i, filename in enumerate(starting_genomes):
-        if i>0:
-            break
+        #if i>0:
+        #    break
         print(f"name:{filename}:")
         for key in params.keys():
             if key in tracking_parameters:
@@ -122,14 +123,16 @@ for x in itertools.product(*param_list.values()):
             if log_data:
                 datalogger = DataLogger()
                 datalogger.data.update({key:params[key] for key in tracking_parameters if key in params.keys()})
-                learner.simulate(body, learning_start = 4000, datalogger=datalogger, trackpercent=.001, logfitness=True)
+                learner.simulate(body, learning_start = 4000, datalogger=datalogger, trackpercent=track_percent, logfitness=True)
             else:
                 learner.simulate(body, learning_start = 4000, trackpercent=1.00)
             end_fitness = fitnessFunction(learner.recoverParameters())
             if log_data:
                 # if data is being saves, save the end fiteness
+                datalogger.data['trackPercent']= track_percent
                 datalogger.data["end_fitness"] = end_fitness
-                datalogger.save(f"./data/startingfitness/{params['point']}/endfit-{int(np.round(end_fitness, 5)*100000)}")
+                #datalogger.save(f"./data/startingfitness/{params['point']}/endfit-{int(np.round(end_fitness, 5)*100000)}")
+                datalogger.save(f"./data/startingfitness/0.2/endfit-{int(np.round(end_fitness, 5)*100000)}")
 
             row["name"] = filename.split(".")[0]
             row["end_fitness"] = end_fitness
@@ -142,28 +145,19 @@ for x in itertools.product(*param_list.values()):
 csv = df.fillna(value=np.nan)
 #csv.to_csv(save_path)
 
-#visualize(datalogger.data)
+def vis_frozen_fitness(datalogger, track_percent):
+    #messy, but works and generalizes to any tracked percent
+    data = datalogger.data
+    duration = data['duration']
+    scale = track_percent *duration*10# scale window search size
+    spotty_fitness = data['trackFitness']
+    filled_fitness = np.lib.stride_tricks.sliding_window_view(spotty_fitness, int(scale)).sum(axis=1)
+    smaller_time = np.arange(0, filled_fitness.size/10,0.1)
+    time = np.arange(0, data['duration'], 0.1)
+    plt.plot(time, spotty_fitness,)
+    plt.plot(smaller_time, filled_fitness)
+    plt.show()
 
-#init_flux= [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    
 
-#csv = csv[csv['duration']==1000]
-#sns.catplot(y='end_fitness', x='point', hue='init_flux', kind='box', data=csv, legend=False)
-#plt.legend(loc='lower right', title='initial flux')
-#plt.tight_layout()
-#plt.show()
-
-#for i, (group, data) in enumerate(csv.groupby(['point', 'init_flux'])):
-#    print(data)f
-#
-
-track=0
-z = datalogger.data['trackFitness']
-x = np.lib.stride_tricks.sliding_window_view(z, 10).sum(axis=1)
-
-time = np.arange(0,999.1, 0.1)
-plt.plot(time , x, color='r', label='fitness');plt.title(f'startingfit:{starting_fitness}\nendfit:{end_fitness}')
-time = np.arange(0,1000, 0.1)
-plt.plot(time , z, color='b', label='fitness')
-plt.axvline(time[datalogger.data['runningAverage']], color='k', label='learning start')
-plt.legend()
-plt.show()
+vis_frozen_fitness(datalogger, track_percent)

@@ -104,7 +104,7 @@ class WalkingTask(RL_CTRNN):
                 + self.performance_update_rate * performance
         return performance
 
-    def simulate(self, body, datalogger=None, track=False, trackpercent = 0.5, learning_start = None, logfitness=False):
+    def simulate(self, body, datalogger=None, track=False, trackpercent = 1.00, learning_start = None, logfitness=False):
 
         if datalogger:
             datalogger.data['startgenome'] = self.recoverParameters()
@@ -128,10 +128,9 @@ class WalkingTask(RL_CTRNN):
             if logfitness:
                 datalogger.data['trackFitness'] = np.zeros((self.time.size))
 
-
         for i,t in enumerate(self.time):
 
-            if i %(self.time.size*trackpercent) == 0:# and i!=0:
+            if i %(self.time.size*trackpercent) == 0 and trackpercent<1.00:# and i!=0:
                 print("{}% completed...".format(i/self.time.size *100))
                 if logfitness:
                     datalogger.data['trackFitness'][self.time_step] = fitnessFunction(self.recoverParameters())
@@ -145,7 +144,6 @@ class WalkingTask(RL_CTRNN):
 
             if self.time_step<learning_start:
                 reward = self.default_reward_func(body, learning=False)
-                self.update_weights_and_flux_amp_with_reward(reward)
             else:
                 reward = self.default_reward_func(body, learning=True)
                 self.update_weights_and_flux_amp_with_reward(reward)
