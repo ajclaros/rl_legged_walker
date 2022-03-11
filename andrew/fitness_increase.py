@@ -17,7 +17,7 @@ from dataloggervis import visualize
 import os
 
 
-save_path = "./data/data.csv"
+save_path = "./data/data5.csv"
 
 # save data in ./data/starting_fitness/{point}/end-fitness{end_fitness}.npy
 log_data = False
@@ -26,13 +26,13 @@ track_percent= 0.001#save every (x * 100)%
 trials = 1
 param_list = {
     "window_size": [4000],
-    "point": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6], #the starting fitnesses: "starting point"
+    "point": [0.1], #the starting fitnesses: "starting point"
     "learn_rate": [0.008],
     "conv_rate": [0.004],
     "min_period": [300],
     "max_period": [400],
-    "init_flux": [0.25, 0.5, 0.75, 1.0, 1.25, 1.50, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75, 4.0], #], 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-    "duration":[1500]
+    "init_flux": [0.25], #], 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+    "duration":[2000]
 }
 
 #parameters to track and their order
@@ -93,8 +93,8 @@ for x in itertools.product(*param_list.values()):
 #        print(f"init_flux:{params['init_flux']}\ntrial:")
 
         # load in perturbed genome
-#        start = np.load(f"./perturbations/{params['point']}/{filename}")
-        start = np.load(f"./perturbations/{params['point']}/p-6-7816.npy")
+        start = np.load(f"./perturbations/{params['point']}/{filename}")
+#        start = np.load(f"./perturbations/{params['point']}/p-6-7816.npy")
         starting_fitness = fitnessFunction(start)
         row["starting_fitness"] = starting_fitness
         for i in range(trials):
@@ -141,6 +141,9 @@ for x in itertools.product(*param_list.values()):
                 df = pd.DataFrame(pd.Series(row)).T
             else:
                 df = df.append(pd.Series(row), ignore_index=True)
+
+        csv = df.fillna(value=np.nan)
+        csv.to_csv(save_path)
 
 csv = df.fillna(value=np.nan)
 #csv.to_csv(save_path)

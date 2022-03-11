@@ -5,7 +5,9 @@ import dataloggervis as dv
 from matplotlib import cm, colors
 from collections import deque
 from fitnessFunction import fitnessFunction
-
+import seaborn as sns
+from matplotlib.collections import LineCollection
+from matplotlib.colors import ListedColormap, BoundaryNorm
 MAP= 'rainbow'
 colormap = plt.get_cmap(MAP)
 
@@ -37,35 +39,12 @@ def plotWeightsBiases(data, show=False):
     ax.plot(time, data['extendedBiasHist'].T[0], color=cmap[9])
     ax.plot(time, data['biasHist'].T[1], color=cmap[10], label="bias_1")
     ax.plot(time, data['extendedBiasHist'].T[1], color=cmap[11])
-    if show:
-        plt.show()
-def plotNeuralOutputs(data, show=False):
-    cmap= cm.jet
-    learning_start = int(data['learningStart'])
-    duration = data['duration']
-    norm= colors.Normalize(vmin=0,  vmax=learning_start/10)
-    sm = plt.cm.ScalarMappable(norm=norm, cmap = cmap)
-    fig, ax = plt.subplots(ncols=2)
-    time = np.arange(0,learning_start/10, 0.1)
-    c = np.linspace(0,learning_start/10, len(data['neuralOutputs'][:int(learning_start)]))
-    fig.colorbar(sm, ticks=np.linspace(0, learning_start/10, 10), ax=ax[0])
-    ax[0].scatter(data['neuralOutputs'].T[0][:learning_start], data['neuralOutputs'].T[1][:learning_start], c=c, cmap='jet')
-    ax[0].set_xlabel("Neuron 0")
-    ax[0].set_ylabel("Neuron 1")
-    ax[0].set_title("Before Learning")
-    norm= colors.Normalize(vmin=learning_start/10,  vmax=duration)
-    sm = plt.cm.ScalarMappable(norm=norm, cmap = cmap)
-    c = np.linspace(learning_start/10, duration,len(data['neuralOutputs'][data['learningStart']:]))
-    ax[1].scatter(data['neuralOutputs'].T[0][learning_start:], data['neuralOutputs'].T[1][learning_start:], c=c, cmap='jet')
-    ax[1].set_title("After Learning")
-    ax[1].set_xlabel("Neuron 0")
-    ax[1].set_ylabel("Neuron 1")
-    fig.colorbar(sm, ticks=np.linspace(learning_start/10, duration, 10), ax=ax[1])
-    plt.suptitle("Neural Outputs")
+
     if show:
         plt.show()
 
-def vis_frozen_fitness(data , show= False):
+def vis_frozen_fitness(data, show=False): 
+    fig, ax = plt.subplots(figsize= (3,3))
     #messy, but works and generalizes to any tracked percent
     track_percent = data['trackPercent']
     duration = data['duration']
@@ -74,9 +53,43 @@ def vis_frozen_fitness(data , show= False):
     filled_fitness = np.lib.stride_tricks.sliding_window_view(spotty_fitness, int(scale)).sum(axis=1)
     smaller_time = np.arange(0, filled_fitness.size/10,0.1)
     time = np.arange(0, data['duration'], 0.1)
-    plt.plot(time, data['runningAverage'])
-    plt.plot(smaller_time, filled_fitness)
+    ax.plot(time, data['runningAverage'])
+    ax.plot(smaller_time, filled_fitness)
+    ax.title.set_text("Runnning Average Performance\nvs.\nFrozen Fitness")
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Fitness/Running Average Performance")
     if show:
+        plt.savefig("./images/frozenfitness.png", bbox_inches='tight', dpi=600)
+def plot_NeuralOutputs(data, show=False):
+    fig, ax = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(6,3))
+    points = np.array(data['neuralOutputs'][:data['learningStart']].T).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+    time = np.arange(0, data['learningStart']/10, 0.1)
+    # Create a continuous norm to map from data points to colors
+    norm = plt.Normalize(time.min(), time.max())
+    lc = LineCollection(segments, cmap='rainbow', norm=norm, linewidths=20)
+    # Set the values used for colormapping
+    lc.set_array(time)
+    lc.set_linewidth(4)
+    line = ax[0].add_collection(lc)
+    fig.colorbar(line, ax=ax[0])
+    points = np.array(data['neuralOutputs'][data['learningStart']:].T).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+    time = np.arange(data['learningStart']/10, data['duration'], 0.1)
+    # Create a continuous norm to map from data points to colors
+    norm = plt.Normalize(time.min(), time.max())
+    lc = LineCollection(segments, cmap='rainbow', norm=norm, linewidths=20)
+    # Set the values used for colormapping
+    lc.set_array(time)
+    lc.set_linewidth(4)
+    line = ax[1].add_collection(lc)
+    fig.colorbar(line, ax=ax[1])
+    ax[0].set_xlabel('Neuron 0')
+    ax[0].set_ylabel('Neuron 1')
+    ax[1].set_xlabel('Neuron 0')
+    ax[1].set_ylabel('Neuron 1')
+    plt.suptitle("Neural Outputs")
+    if show==True:
+        plt.savefig("./images/neuraloutputs.png", dpi=600, bbox_inches='tight')
         plt.show()
-
 vis_frozen_fitness(data, show=True)

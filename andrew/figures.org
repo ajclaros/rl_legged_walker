@@ -1,0 +1,45 @@
+#+TITLE: Figures
+
+#+BEGIN_SRC jupyter-python :session py :exports both
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from matplotlib import cm
+import os
+li = []
+listfiles = os.listdir('./data/')
+for files in listfiles:
+    if '.csv' in files:
+        li.append(pd.read_csv(f"./data/{files}", index_col=0))
+
+data= pd.concat(li, axis=0, ignore_index=True)
+
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC jupyter-python :session py :exports both
+x = data.groupby(['init_flux', 'point'], as_index=False)['end_fitness'].mean()
+
+#sns.catplot(x='point', y='end_fitness', hue="init_flux", data=data, kind='box')
+g = sns.relplot(x="point", y="end_fitness", hue="init_flux", data=x, kind='line', markers=['o']*16, legend=False, style='init_flux', dashes=False, palette=sns.color_palette("tab20", as_cmap=True))#points = [(x+1)*.25 for x in range(16)]
+#handles, labels  =  ax.get_legend_handles_labels()
+plt.legend(title='init_flux', loc='center right', labels=[0.25*(i+1) for i in range(16)],
+           bbox_to_anchor=(0.21, 0.0, 1.0, 1))
+#ax.legend(handles, ['Yes', 'No'], loc='lower right')
+g.set(xlabel='Starting point',
+       ylabel='End Fitness',
+       title='Fluctuation size on starting fitness')
+sns.set(rc={"figure.figsize":(2, 3)})
+params = {'legend.fontsize': 11,
+          'legend.labelspacing':0.64,
+          'legend.handlelength': 1}
+plt.rcParams.update(params)
+#plt.plot([0.1,1],[0.1,1], color='k')
+plt.savefig("./images/figure3.png", dpi=300, bbox_inches='tight')
+plt.show()
+#+END_SRC
+
+#+RESULTS:
+[[file:./.ob-jupyter/9b86c45d04ccf28d230a227fed9eb73bac92e410.png]]
