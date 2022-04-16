@@ -16,6 +16,7 @@ files = os.listdir('./data/startingfitness/0.2/')
 for name in files:
     data = np.load(f"./data/startingfitness/0.2/{name}")
     if data['duration']==4000:
+        print(name)
         break
 #data =np.load(f"./data/startingfitness/0.2/{files[0]}")
 weight_hist =data['weightHist']
@@ -24,8 +25,7 @@ c = np.linspace(0,400,len(weight_hist[: data['learningStart']]))
 
 def plotWeightsBiases(data, show=False):
     cmap = plt.get_cmap('tab20').colors
-
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8,4))
     time = np.arange(0, data['duration'], 0.1)
     ax.plot(time, data['extendedWeightHist'].T[0,0],         color=cmap[0], label='w_00')
     ax.plot(time, data['weightHist'].T[0,0],                 color=cmap[1 ])
@@ -39,8 +39,10 @@ def plotWeightsBiases(data, show=False):
     ax.plot(time, data['extendedBiasHist'].T[0], color=cmap[9])
     ax.plot(time, data['biasHist'].T[1], color=cmap[10], label="bias_1")
     ax.plot(time, data['extendedBiasHist'].T[1], color=cmap[11])
-
+    ax.title.set_text("Weight and Bias change during Trial")
     if show:
+        plt.legend()
+        plt.savefig("/home/ifrit/Research/lab/alife-submission/weight-bias.png")
         plt.show()
 
 def vis_frozen_fitness(data, show=False): 
@@ -59,7 +61,9 @@ def vis_frozen_fitness(data, show=False):
     ax.set_xlabel("Time")
     ax.set_ylabel("Fitness/Running Average Performance")
     if show:
-        plt.savefig("./images/frozenfitness.png", bbox_inches='tight', dpi=600)
+        plt.show()
+#        plt.savefig("./images/frozenfitness.png", bbox_inches='tight', dpi=600)
+
 def plot_NeuralOutputs(data, show=False):
     fig, ax = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(6,3))
     points = np.array(data['neuralOutputs'][:data['learningStart']].T).T.reshape(-1, 1, 2)
@@ -92,4 +96,18 @@ def plot_NeuralOutputs(data, show=False):
     if show==True:
         plt.savefig("./images/neuraloutputs.png", dpi=600, bbox_inches='tight')
         plt.show()
-vis_frozen_fitness(data, show=True)
+def frozen_fitness(data, show=True):
+    time = np.arange(0, data['duration'], 0.1)
+    fig, ax = plt.subplots(figsize=(8,4))
+    ax.plot(time, data['runningAverage'], label='Average Performance')
+    ax.plot(time, data['trackFitness'], label='Frozen Fitness')
+    if show:
+        ax.title.set_text("Performance vs. Fitness")
+        plt.legend()
+        plt.savefig("/home/ifrit/Research/lab/alife-submission/fitness-perf.png")
+        plt.show()
+#frozen_fitness(data, show=True)
+#vis_frozen_fitness(data, show=True)
+time = np.arange(0, 4000, 0.1)
+frozen_fitness(data, show=True)
+plotWeightsBiases(data, show=True)

@@ -2,7 +2,7 @@
 import leggedwalker
 import numpy as np
 from jason.ctrnn import CTRNN
-N = 2 # Number of neurons in the nervous system
+#N = 2 # Number of neurons in the nervous system
 WR = 16    # Weight range - maps from [-1, 1] to: [-16,16]
 BR = 16    # Bias range - maps from [-1, 1] to: [-16,16]
 TR = 5.0   # Time range - maps from [-1, 1] to: [-5, 5]
@@ -13,7 +13,7 @@ duration = 220.0
 stepsize = 0.1
 #time = np.arange(0.0, duration, stepsize)
 
-def fitnessFunction(genotype, duration=220.0):
+def fitnessFunction(genotype, duration=220.0, N=2):
     # Create the agent's body
     legged = leggedwalker.LeggedAgent()
     # Create the nervous system

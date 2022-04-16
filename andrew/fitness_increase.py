@@ -20,22 +20,22 @@ import os
 save_path = "./data/data5.csv"
 
 # save data in ./data/starting_fitness/{point}/end-fitness{end_fitness}.npy
-log_data = False
-track_percent= 0.001#save every (x * 100)%
-#times to try each element in the permutation of parameters
+log_data = True
+track_percent = 0.1  # save every (x * 100)%
+# times to try each element in the permutation of parameters
 trials = 1
 param_list = {
     "window_size": [4000],
-    "point": [0.1], #the starting fitnesses: "starting point"
+    "point": [0.1],  # the starting fitnesses: "starting point"
     "learn_rate": [0.008],
     "conv_rate": [0.004],
     "min_period": [300],
     "max_period": [400],
-    "init_flux": [0.25], #], 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-    "duration":[2000]
+    "init_flux": [2.75],  # ], 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+    "duration": [2000],
 }
 
-#parameters to track and their order
+# parameters to track and their order
 tracking_parameters = ["name", "init_flux", "starting_fitness", "end_fitness"]
 
 # track everything
@@ -46,6 +46,7 @@ for key in param_list.keys():
 N = 2
 
 # row to be appended at end of each iteration
+#
 row = dict()
 # if log data is true: saves to "./data/durations/point/{end_fitness}.npy"
 def get_data(path):
@@ -57,14 +58,21 @@ def get_data(path):
     """
     if os.path.exists(path):
         df = pd.read_csv(path, index_col=0)
-        [tracking_parameters.append(col) for col in df.columns if col not in tracking_parameters]
+        [
+            tracking_parameters.append(col)
+            for col in df.columns
+            if col not in tracking_parameters
+        ]
         for col in tracking_parameters:
             if col not in df.columns:
                 df[col] = np.NAN
+
         df = df[[col for col in tracking_parameters]]
     else:
         df = pd.DataFrame(columns=tracking_parameters)
     return df
+
+
 df = get_data(save_path)
 
 
@@ -83,60 +91,87 @@ for x in itertools.product(*param_list.values()):
     starting_genomes = os.listdir(f"./perturbations/{params['point']}")
     print(f"\n\nlocation: {params['point']}")
     for i, filename in enumerate(starting_genomes):
-        #if i>0:
-        #    break
+        if i > 0:
+            break
         print(f"name:{filename}:")
+
         for key in params.keys():
             if key in tracking_parameters:
                 print(f"{key}:{params[key]}", end=" ", flush=False)
         print(" ")
-#        print(f"init_flux:{params['init_flux']}\ntrial:")
+        #        print(f"init_flux:{params['init_flux']}\ntrial:")
 
         # load in perturbed genome
         start = np.load(f"./perturbations/{params['point']}/{filename}")
-#        start = np.load(f"./perturbations/{params['point']}/p-6-7816.npy")
+        #        start = np.load(f"./perturbations/{params['point']}/p-6-7816.npy")
         starting_fitness = fitnessFunction(start)
         row["starting_fitness"] = starting_fitness
         for i in range(trials):
             print(f"{i}", end=" ", flush=False)
-            learner = WalkingTask(size=N, duration=params["duration"], stepsize=0.1,
-                                  reward_func=None,
-                                  performance_func=None,
-                                  running_window_mode=True,
-                                  running_window_size= params["window_size"],
-                                  performance_update_rate=0.05,
-                                  init_flux_amp=params["init_flux"], max_flux_amp=40,
-                                  flux_period_min=params["min_period"],
-                                  flux_period_max=params["max_period"],
-                                  flux_conv_rate=params["conv_rate"],
-                                  learn_rate=params["learn_rate"],
-                                  bias_init_flux_amp=params["init_flux"], bias_max_flux_amp=40,
-                                  bias_flux_period_min=params["min_period"],
-                                  bias_flux_period_max=params["max_period"],
-                                  bias_flux_conv_rate=params["conv_rate"])
-            weights = start[0:N*N]
+            learner = WalkingTask(
+                size=N,
+                duration=params["duration"],
+                stepsize=0.1,
+                reward_func=None,
+                performance_func=None,
+                running_window_mode=True,
+                running_window_size=params["window_size"],
+                performance_update_rate=0.05,
+                init_flux_amp=params["init_flux"],
+                max_flux_amp=40,
+                flux_period_min=params["min_period"],
+                flux_period_max=params["max_period"],
+                flux_conv_rate=params["conv_rate"],
+                learn_rate=params["learn_rate"],
+                bias_init_flux_amp=params["init_flux"],
+                bias_max_flux_amp=40,
+                bias_flux_period_min=params["min_period"],
+                bias_flux_period_max=params["max_period"],
+                bias_flux_conv_rate=params["conv_rate"],
+            )
+            weights = start[0 : N * N]
             learner.setWeights(weights.reshape((N, N)))
-            learner.setBiases(start[N*N:N*N+N])
-            learner.setTimeConstants(start[N*N+N:])
+            learner.setBiases(start[N * N : N * N + N])
+            learner.setTimeConstants(start[N * N + N :])
             learner.initializeState(np.zeros(N))
             body = leggedwalker.LeggedAgent()
             if log_data:
                 datalogger = DataLogger()
-                datalogger.data.update({key:params[key] for key in tracking_parameters if key in params.keys()})
-                learner.simulate(body, learning_start = 4000, datalogger=datalogger, trackpercent=track_percent, logfitness=True)
+                datalogger.data.update(
+                    {
+                        key: params[key]
+                        for key in tracking_parameters
+                        if key in params.keys()
+                    }
+                )
+                learner.simulate(
+                    body,
+                    learning_start=4000,
+                    datalogger=datalogger,
+                    trackpercent=track_percent,
+                    logfitness=True,
+                )
             else:
-                learner.simulate(body, learning_start = 4000, trackpercent=1.00)
+                learner.simulate(body, learning_start=4000, trackpercent=1.00)
             end_fitness = fitnessFunction(learner.recoverParameters())
             if log_data:
                 # if data is being saves, save the end fiteness
-                datalogger.data['trackPercent']= track_percent
+                datalogger.data["trackPercent"] = track_percent
                 datalogger.data["end_fitness"] = end_fitness
-                #datalogger.save(f"./data/startingfitness/{params['point']}/endfit-{int(np.round(end_fitness, 5)*100000)}")
-                datalogger.save(f"./data/startingfitness/0.2/endfit-{int(np.round(end_fitness, 5)*100000)}")
+                # datalogger.save(f"./data/startingfitness/{params['point']}/endfit-{int(np.round(end_fitness, 5)*100000)}")
+                datalogger.save(
+                    f"./data/startingfitness/0.2/endfit-{int(np.round(end_fitness, 5)*100000)}"
+                )
 
             row["name"] = filename.split(".")[0]
             row["end_fitness"] = end_fitness
-            row.update({key: params[key] for key in tracking_parameters if key in params.keys()})
+            row.update(
+                {
+                    key: params[key]
+                    for key in tracking_parameters
+                    if key in params.keys()
+                }
+            )
             if df is None:
                 df = pd.DataFrame(pd.Series(row)).T
             else:
@@ -146,21 +181,22 @@ for x in itertools.product(*param_list.values()):
         csv.to_csv(save_path)
 
 csv = df.fillna(value=np.nan)
-#csv.to_csv(save_path)
+# csv.to_csv(save_path)
+
 
 def vis_frozen_fitness(datalogger, track_percent):
-    #messy, but works and generalizes to any tracked percent
+    # messy, but works and generalizes to any tracked percent
     data = datalogger.data
-    duration = data['duration']
-    scale = track_percent *duration*10# scale window search size
-    spotty_fitness = data['trackFitness']
-    filled_fitness = np.lib.stride_tricks.sliding_window_view(spotty_fitness, int(scale)).sum(axis=1)
-    smaller_time = np.arange(0, filled_fitness.size/10,0.1)
-    time = np.arange(0, data['duration'], 0.1)
-    plt.plot(time, spotty_fitness,)
+    duration = data["duration"]
+    scale = track_percent * duration * 10  # scale window search size
+    spotty_fitness = data["trackFitness"]
+    filled_fitness = np.lib.stride_tricks.sliding_window_view(
+        spotty_fitness, int(scale)
+    ).sum(axis=1)
+    smaller_time = np.arange(0, filled_fitness.size / 10, 0.1)
+    time = np.arange(0, data["duration"], 0.1)
+    plt.plot(
+        time, spotty_fitness,
+    )
     plt.plot(smaller_time, filled_fitness)
     plt.show()
-
-    
-
-vis_frozen_fitness(datalogger, track_percent)

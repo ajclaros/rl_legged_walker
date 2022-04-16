@@ -130,10 +130,12 @@ class WalkingTask(RL_CTRNN):
 
         for i,t in enumerate(self.time):
 
+            if datalogger:
+                datalogger.data['trackFitness'][self.time_step] = datalogger.data['trackFitness'][self.time_step-1]
             if i %(self.time.size*trackpercent) == 0 and trackpercent<1.00:# and i!=0:
                 print("{}% completed...".format(i/self.time.size *100))
                 if logfitness:
-                    datalogger.data['trackFitness'][self.time_step] = fitnessFunction(self.recoverParameters())
+                    datalogger.data['trackFitness'][self.time_step] = fitnessFunction(self.recoverParameters(), N=self.size)
             if datalogger:
                 datalogger.data['weightHist'][self.time_step] = self.inner_weights
                 datalogger.data['biasHist'][self.time_step] = self.biases
