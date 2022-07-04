@@ -39,3 +39,10 @@ def fitnessFunction(genotype, duration=220.0, N=2):
     # Calculate the fitness based on distance covered over the duration of time
     fit = legged.cx/duration
     return fit
+
+
+
+
+
+
+

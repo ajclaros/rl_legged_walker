@@ -77,7 +77,7 @@ class WalkingTask(RL_CTRNN):
         # Current instantaneous performance vs. the current running average (NOT the previous instantaneous performance)
         if not learning:
             return 0
-        return performance - running_average_performance
+        return  performance - running_average_performance
 
     def default_performance_func(self, body):
         self.distance_hist[self.time_step] = body.cx
@@ -141,6 +141,7 @@ class WalkingTask(RL_CTRNN):
                 datalogger.data['biasHist'][self.time_step] = self.biases
 
             self.setInputs(np.array([body.anglefeedback()] * self.size))
+            #self.setInputs(np.array([0.0] * self.size))
             self.step(self.stepsize)
             body.step1(self.stepsize, self.outputs)
 

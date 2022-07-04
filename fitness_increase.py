@@ -160,7 +160,7 @@ for x in itertools.product(*param_list.values()):
                 datalogger.data["end_fitness"] = end_fitness
                 # datalogger.save(f"./data/startingfitness/{params['point']}/endfit-{int(np.round(end_fitness, 5)*100000)}")
                 datalogger.save(
-                    f"./data/startingfitness/0.2/endfit-{int(np.round(end_fitness, 5)*100000)}"
+                    f"./data/startingfitness/endfit-{int(np.round(end_fitness, 5)*100000)}"
                 )
 
             row["name"] = filename.split(".")[0]

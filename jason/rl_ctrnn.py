@@ -112,8 +112,9 @@ class RL_CTRNN( CTRNN ):
         self.flux_amp = min( max(self.flux_amp, 0), self.max_flux_amp )   # Keep fluctation amplitude between 0 and max_flux_amp (10)
         # 0 at center, +1 above center, -1, below center
         if self.bias_flux_mode:
-            self.bias_flux_amp -= self.bias_flux_conv_rate * reward
-            self.bias_flux_amp = min( max(self.bias_flux_amp, 0), self.bias_max_flux_amp )   # Keep fluctation amplitude between 0 and max_flux_amp (10)
+            if abs(reward)>0.1:
+                self.bias_flux_amp -= self.bias_flux_conv_rate * reward
+                self.bias_flux_amp = min( max(self.bias_flux_amp, 0), self.bias_max_flux_amp )   # Keep fluctation amplitude between 0 and max_flux_amp (10)
         inner_flux_center_displacements = self.flux_amp * np.sin(self.inner_flux_moments / self.inner_flux_periods * 2 * math.pi )
         if self.bias_flux_mode:
             bias_inner_flux_center_displacements = self.bias_flux_amp * np.sin(self.bias_inner_flux_moments / self.bias_inner_flux_periods * 2 * math.pi )

@@ -12,11 +12,12 @@ MAP= 'rainbow'
 colormap = plt.get_cmap(MAP)
 
 cmap= cm.viridis
-files = os.listdir('./data/startingfitness/0.2/')
-for name in files:
-    data = np.load(f"./data/startingfitness/0.2/{name}")
-    if data['duration']==4000:
-        print(name)
+files = os.listdir('./data/startingfitness/')
+for i, name in enumerate(files):
+    if 'git' in name:
+        continue
+    data = np.load(f"./data/startingfitness/{name}")
+    if i==0:
         break
 #data =np.load(f"./data/startingfitness/0.2/{files[0]}")
 weight_hist =data['weightHist']
@@ -42,7 +43,7 @@ def plotWeightsBiases(data, show=False):
     ax.title.set_text("Weight and Bias change during Trial")
     if show:
         plt.legend()
-        plt.savefig("/home/ifrit/Research/lab/alife-submission/weight-bias.png")
+        plt.savefig("./images/weight-bias.png")
         plt.show()
 
 def vis_frozen_fitness(data, show=False): 
@@ -104,7 +105,7 @@ def frozen_fitness(data, show=True):
     if show:
         ax.title.set_text("Performance vs. Fitness")
         plt.legend()
-        plt.savefig("/home/ifrit/Research/lab/alife-submission/fitness-perf.png")
+        plt.savefig("./images/fitness-perf.png")
         plt.show()
 #frozen_fitness(data, show=True)
 #vis_frozen_fitness(data, show=True)
