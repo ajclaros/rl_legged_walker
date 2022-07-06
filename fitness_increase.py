@@ -19,12 +19,11 @@ import os
 
 
 save_path = "./data/data5.csv"
-save_csv = False
+save_csv = True
 # size of network
 N = 2
 # save data in ./data/starting_fitness/{point}/end-fitness{end_fitness}.npy
 log_data = True
-
 # parameters to track and their order to save into csv
 tracking_parameters = ["name", "init_flux", "starting_fitness", "end_fitness"]
 
