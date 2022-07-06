@@ -94,7 +94,6 @@ for x in itertools.product(*param_list.values()):
     params = {}
     for i, key in enumerate(param_list.keys()):
         params[key] = x[i]
-    print(params.keys())
 
 
     # list of filenames for perturbed genomes
