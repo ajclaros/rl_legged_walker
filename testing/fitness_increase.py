@@ -164,7 +164,7 @@ for x in itertools.product(*param_list.values()):
                 print(f"endFitness: {end_fitness}")
             if log_data:
                 # if data is being saves, save the end fiteness
-                if logfitness:
+                if log_fitness:
                     datalogger.data["trackPercent"] = track_percent
                 datalogger.data["end_fitness"] = end_fitness
                 # datalogger.save(f"./data/startingfitness/{params['point']}/endfit-{int(np.round(end_fitness, 5)*100000)}")
