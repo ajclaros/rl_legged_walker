@@ -13,10 +13,11 @@ log_data = True
 #if verbose in [0.0, 1.0], also prints out the % of trial completed
 #also prints out end fitness after each trial
 #if verbose>=1, only prints out end fitness
-verbose = -1
+verbose =  1.0
 #if true, prints end fitness after every trial
 
 starting_genome =np.array([0.99388489,  -0.19977217,   0.80557307,  0.66176187, -0.41946752,  0.00756486, -0.72451768, -0.50670193])
+#starting_genome+=0.5
 # times to try each element in the permutation of parameters
 trials = 10
 param_list = {
@@ -27,9 +28,11 @@ param_list = {
     "min_period": [300],
     "max_period": [400],
     "init_flux": [2.75],  # ], 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-    "max_flux": [10],
+    "max_flux": [20],
     "duration": [2000],
-    "size": [2]
+    "size": [2],
+    "generator_type":["RPG"],
+    "prob":[0.5]
 }
 
 # parameters to track and their order to save into npz file
@@ -73,5 +76,7 @@ for x in itertools.product(*param_list.values()):
               params["conv_rate"],
               starting_genome,
               log_data,
-              verbose
+              verbose,
+              generator_type=params['generator_type'],
+              prob=params['prob']
               )

@@ -101,7 +101,8 @@ class WalkingTask(RL_CTRNN):
                 + self.performance_update_rate * performance
         return performance
 
-    def simulate(self, body, datalogger=None, track=False,learning_start = None, verbose=0.1):
+    def simulate(self, body, datalogger=None, track=False,learning_start = None, verbose=0.1, generator_type='RPG', configuration = [0], prob=None):
+
         if datalogger:
             datalogger.data['startgenome'] = self.recoverParameters()
             datalogger.data['size'] = self.size
@@ -114,14 +115,21 @@ class WalkingTask(RL_CTRNN):
             #verbose=0.1, runs fitnessFunction 10 at equal intervals
             if i %(self.time.size*verbose) == 0 and verbose>=0 and verbose<1.0:
                 print("{}% completed...".format(i/self.time.size *100))
-            self.setInputs(np.array([body.anglefeedback()] * self.size))
+
+            if generator_type=='RPG':
+                self.setInputs(np.array([body.anglefeedback()] * self.size))
+            elif generator_type=='MPG':
+                if np.random.binomial(1, prob):
+                    self.setInputs(np.array([body.anglefeedback()] * self.size))
+            else:
+                self.setInputs(np.array([0] * self.size))
             self.step(self.stepsize)
-            body.step1(self.stepsize, self.outputs)
+            body.stepN(self.stepsize, self.outputs, configuration)
             if self.time_step<learning_start:
                 reward = self.default_reward_func(body, learning=False)
             else:
                 reward = self.default_reward_func(body, learning=True)
-                self.update_weights_and_flux_amp_with_reward(reward)
+                self.update_weights_and_flux_amp_with_reward(reward+np.random.normal(0,0.01))
             if self.running_window_mode:
                 self.sliding_window = np.roll(self.sliding_window, 1)
                 self.sliding_window[0] = self.performance_hist[self.time_step]

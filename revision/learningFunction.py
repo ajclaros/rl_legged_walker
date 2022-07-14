@@ -12,7 +12,7 @@ def learn(duration, size, windowsize, init_flux, max_flux,
           min_period, max_period, conv_rate, learn_rate,
           bias_init_flux, bias_max_flux, bias_min_period,
           bias_max_period, bias_conv_rate, starting_genome, log_data,
-          verbose):
+          verbose, generator_type='RPG', configuration=[0], prob=0.0):
 
     learner = WalkingTask(
             duration=duration,
@@ -44,7 +44,10 @@ def learn(duration, size, windowsize, init_flux, max_flux,
             body,
             learning_start=windowsize,
             datalogger=datalogger,
-            verbose=verbose
+            verbose=verbose,
+            generator_type=generator_type,
+            configuration=configuration,
+            prob=prob
         )
     else:
         learner.simulate(body, learning_start=4000, verbose=verbose)
