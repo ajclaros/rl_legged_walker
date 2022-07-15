@@ -32,7 +32,7 @@ param_list = {
     "duration": [2000],
     "size": [2],
     "generator_type":["RPG"],
-    "prob":[0.5]
+    "prob": [0.5]
 }
 
 # parameters to track and their order to save into npz file
@@ -60,7 +60,8 @@ for x in itertools.product(*param_list.values()):
     for i in range(trials):
         print(f" {i}", end=" ", flush=False)
         #weights and biases are initialized the same way
-        learn(params["duration"],
+        learn(starting_genome,
+              params["duration"],
               params["size"],
               params["window_size"],
               params["init_flux"],
@@ -74,7 +75,6 @@ for x in itertools.product(*param_list.values()):
               params["min_period"],
               params["max_period"],
               params["conv_rate"],
-              starting_genome,
               log_data,
               verbose,
               generator_type=params['generator_type'],

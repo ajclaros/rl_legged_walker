@@ -8,11 +8,11 @@ from datalogger import DataLogger
 from fitnessFunction import fitnessFunction
 from pathlib import Path
 
-def learn(duration, size, windowsize, init_flux, max_flux,
-          min_period, max_period, conv_rate, learn_rate,
-          bias_init_flux, bias_max_flux, bias_min_period,
-          bias_max_period, bias_conv_rate, starting_genome, log_data,
-          verbose, generator_type='RPG', configuration=[0], prob=0.0):
+def learn(starting_genome, duration=2000, size=2, windowsize=4000, init_flux=2.75, max_flux=10,
+          min_period=300, max_period=400, conv_rate=0.004, learn_rate=0.004,
+          bias_init_flux=2.75, bias_max_flux=10, bias_min_period=300,
+          bias_max_period=400, bias_conv_rate=0.004, log_data=False,
+          verbose=1.00, generator_type='RPG', configuration=[0], prob=0.0):
 
     learner = WalkingTask(
             duration=duration,
@@ -57,7 +57,7 @@ def learn(duration, size, windowsize, init_flux, max_flux,
 
     if verbose>0:
         start_fitness = fitnessFunction(starting_genome)
-        print(f"startFitness: {starting_fitness}\nendFitness: {end_fitness}")
+        print(f"startFitness: {start_fitness}\nendFitness: {end_fitness}")
     if log_data:
         # if data is being saves, save the end fiteness
         datalogger.data["end_fitness"] = end_fitness
