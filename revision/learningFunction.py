@@ -8,20 +8,20 @@ from datalogger import DataLogger
 from fitnessFunction import fitnessFunction
 from pathlib import Path
 
-def learn(starting_genome, duration=2000, size=2, windowsize=4000, init_flux=2.75, max_flux=10,
+def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1, init_flux=2.75, max_flux=10,
           min_period=300, max_period=400, conv_rate=0.004, learn_rate=0.004,
           bias_init_flux=2.75, bias_max_flux=10, bias_min_period=300,
           bias_max_period=400, bias_conv_rate=0.004, log_data=False,
-          verbose=1.00, generator_type='RPG', configuration=[0], prob=0.0):
+          verbose=1.00, generator_type='RPG', configuration=[0], prob=0.0, tracking_parameters=None):
 
     learner = WalkingTask(
             duration=duration,
             size=size,
-            stepsize=0.1,
+            stepsize=stepsize,
             running_window_mode=True,
             running_window_size=windowsize,
             init_flux_amp= init_flux,
-            max_flux_amp=40,
+            max_flux_amp=max_flux,
             flux_period_min=min_period,
             flux_period_max=max_period,
             flux_conv_rate=conv_rate,
@@ -40,6 +40,19 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, init_flux=2.7
     body = leggedwalker.LeggedAgent()
     if log_data:
         datalogger = DataLogger()
+        for var in tracking_parameters:
+            if "weight" in var:
+                datalogger.data[var] = np.zeros(
+                    (int(duration/stepsize), size, size)
+                )
+                print(var)
+                print(datalogger.data[var])
+            elif "bias" in var:
+                datalogger.data[var] = np.zeros((int(duration/stepsize), size))
+            else:
+                datalogger.data[var] = np.zeros(int(duration/stepsize))
+
+
         learner.simulate(
             body,
             learning_start=windowsize,
@@ -51,8 +64,6 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, init_flux=2.7
         )
     else:
         learner.simulate(body, learning_start=4000, verbose=verbose)
-
-
     end_fitness = fitnessFunction(learner.recoverParameters())
 
     if verbose>0:

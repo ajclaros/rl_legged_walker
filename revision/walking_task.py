@@ -6,15 +6,15 @@ from fitnessFunction import fitnessFunction
 
 class WalkingTask(RL_CTRNN):
 
-    def __init__(self, size, duration=1000.0, stepsize=0.01,
+    def __init__(self, size=2, duration=2000.0, stepsize=0.01,
                  reward_func=None, performance_func=None,
-                 running_window_mode=False, running_window_size=1000,
+                 running_window_mode=True, running_window_size=4000,
                  performance_update_rate=0.005, performance_bias=0.007,
-                 init_flux_amp=1, max_flux_amp=10, flux_period_min=2,
-                 flux_period_max=10, flux_conv_rate=0.001, learn_rate=1.0,
-                 bias_init_flux_amp=1.0, bias_max_flux_amp=0,
-                 bias_flux_period_min=0,
-                 bias_flux_period_max=10, bias_flux_conv_rate=0.1,
+                 init_flux_amp=2.75, max_flux_amp=10, flux_period_min=300,
+                 flux_period_max=400, flux_conv_rate=0.004, learn_rate=0.008,
+                 bias_init_flux_amp=2.75, bias_max_flux_amp=10,
+                 bias_flux_period_min=300,
+                 bias_flux_period_max=400, bias_flux_conv_rate=0.004,
                  WR= 16.0, BR=16.0, TR=5.0, TA=6.0
                  ):
         super().__init__(size,
@@ -108,7 +108,6 @@ class WalkingTask(RL_CTRNN):
             datalogger.data['size'] = self.size
             datalogger.data['duration'] = self.duration
             datalogger.data['stepsize'] = self.stepsize
-            datalogger.data['performanceHist'] = np.zeros((self.time.size))
         for i,t in enumerate(self.time):
 
             #if logfitness==Tree, runs fitnessfunction every given percentage:
@@ -136,6 +135,16 @@ class WalkingTask(RL_CTRNN):
                 self.running_average_performances[self.time_step] = np.mean(self.sliding_window)
             else:
                 self.running_average_performances[self.time_step] = self.running_average_performances[self.time_step-1] * (1-self.performance_update_rate) + self.performance_update_rate * self.performance_hist[self.time_step]
+            if datalogger:
+                for key in datalogger.data.keys():
+                    if key in ["startgenome", "size", "duration", "stepsize"]:
+                        continue
+                    if "hist" in key:
+                        print(key)
+                        datalogger.data[key][self.time_step] = self.__dict__[key][self.time_step]
+                    else:
+                        print(key)
+                        datalogger.data[key][self.time_step] = self.__dict__[key]
             self.time_step += 1
 
         self.time_step = 0

@@ -13,7 +13,7 @@ class CTRNN():
         self.size = size                                # number of neurons in the network (N)
         self.voltages = np.zeros(size)                  # neuron activation vector
         self.time_constants = np.ones(size)             # time-constant vector
-        self.biases = np.zeros(size)                    # bias vector
+        self.inner_biases = np.zeros(size)                    # bias vector
         self.weights_arr = np.zeros((size, size))     # inner weight matrix NxN
         self.outputs = np.zeros(size)                   # neuron output vector
         self.inputs = np.zeros(size)
@@ -35,7 +35,7 @@ class CTRNN():
     def reset(self):
         self.voltages = np.zeros(self.size)
         self.time_constants = np.ones(self.size)
-        self.biases = np.zeros(self.size)
+        self.inner_biases = np.zeros(self.size)
         self.inner_weights = np.zeros((self.size, self.size))
         self.outputs = np.zeros(self.size)
 
@@ -56,7 +56,7 @@ class CTRNN():
         self.inv_time_constants = 1.0/self.time_constants
 
     def setBiases(self, biases):
-        self.biases = biases *self.BR
+        self.inner_biases = biases *self.BR
 
     def setWeights(self, inner_weights):
         self.inner_weights = inner_weights * self.WR
@@ -66,23 +66,23 @@ class CTRNN():
 
     def randomize_parameters(self):
         self.inner_weights = np.random.uniform(-self.weight_range, self.weight_range,size=(self.size,self.size))
-        self.biases = np.random.uniform(-self.bias_range, self.bias_range,size=(self.size))
+        self.inner_biases = np.random.uniform(-self.bias_range, self.bias_range,size=(self.size))
         self.time_constants = np.random.uniform(self.tc_min, self.tc_max, size=(self.size))
         self.inv_time_constants = 1.0/self.time_constants
 
     def initializeState(self,v):
         self.voltages = v
         self.inv_time_constants = 1.0/self.time_constants
-        self.outputs = sigmoid( self.voltages + self.biases)
+        self.outputs = sigmoid( self.voltages + self.inner_biases)
 
     def recoverParameters(self):
-        return np.append(self.inner_weights.reshape(self.inner_weights.size)/self.WR, [self.biases/self.BR, (self.time_constants-self.TA)/self.TR])
+        return np.append(self.inner_weights.reshape(self.inner_weights.size)/self.WR, [self.inner_biases/self.BR, (self.time_constants-self.TA)/self.TR])
 
     #step without input - used for oscillator task
     def step(self,dt):
         netinput = self.inputs + np.dot(self.inner_weights.T, self.outputs)
         self.voltages += dt * (self.inv_time_constants * (-self.voltages + netinput))
-        self.outputs = sigmoid(self.voltages+self.biases)
+        self.outputs = sigmoid(self.voltages+self.inner_biases)
 
     def getBounds(self):
         return [self.size, self.weight_range, self.bias_range, self.tc_min, self.tc_max]
@@ -101,7 +101,7 @@ class CTRNN():
                 genes[k] =  self.inner_weights[i][j] / self.weight_range
                 k+=1
         for i in range(self.size):
-            genes[k] = self.biases[i] / self.bias_range
+            genes[k] = self.inner_biases[i] / self.bias_range
             k+=1
         for i in range(self.size):
             if self.tc_max == self.tc_min:
@@ -119,7 +119,7 @@ class CTRNN():
                 self.inner_weights[i][j] = genotype[k]*self.weight_range
                 k += 1
         for i in range(self.size):
-            self.biases[i] = genotype[k]*self.bias_range
+            self.inner_biases[i] = genotype[k]*self.bias_range
             k += 1
         for i in range(self.size):
             if self.tc_max == self.tc_min:

@@ -1,0 +1,15 @@
+#comment out ignored variables with "#"
+#names in this file are the class variables of WalkingTask and RLCTRNN
+
+
+#voltages
+#outputs
+#inputs
+#flux_amp
+#bias_flux_amp
+inner_weights
+inner_biases
+#extended_weights
+#extended_biases
+distance_hist
+performance_hist

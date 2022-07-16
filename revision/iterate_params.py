@@ -17,6 +17,15 @@ verbose =  1.0
 #if true, prints end fitness after every trial
 
 starting_genome =np.array([0.99388489,  -0.19977217,   0.80557307,  0.66176187, -0.41946752,  0.00756486, -0.72451768, -0.50670193])
+tracking_parameters = []
+with open("tracking_parameters.txt", "r") as f:
+    for line in f:
+        if "#" in line or line=="\n":
+            continue
+        tracking_parameters.append(line.replace("\n", ""))
+print(tracking_parameters)
+
+
 #starting_genome+=0.5
 # times to try each element in the permutation of parameters
 trials = 10
@@ -36,8 +45,6 @@ param_list = {
 }
 
 # parameters to track and their order to save into npz file
-tracking_parameters = ["name", "init_flux", "starting_fitness", "end_fitness"]
-
 # itertools creates a list of all permutations for each list in the dictionary
 # https://stackoverflow.com/questions/24594313/permutations-of-list-of-lists
 
@@ -78,5 +85,6 @@ for x in itertools.product(*param_list.values()):
               log_data,
               verbose,
               generator_type=params['generator_type'],
-              prob=params['prob']
+              prob=params['prob'],
+              tracking_parameters=tracking_parameters
               )
