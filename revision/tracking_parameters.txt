@@ -3,20 +3,20 @@
 
 
 
-#voltages
 inner_weights
 biases
+extended_weights
+extended_biases
 #outputs
 #inputs
 #flux_amp
+#voltages
 #inv_time_constants
 #inner_flux_periods
 #inner_flux_moments
 #bias_flux_amp
 #bias_inner_flux_periods
 #bias_inner_flux_moments
-extended_weights
-extended_biases
-distance_hist
 performance_hist
 running_average_performances
+#distance_hist

@@ -101,13 +101,10 @@ class WalkingTask(RL_CTRNN):
                 + self.performance_update_rate * performance
         return performance
 
-    def simulate(self, body, datalogger=None, track=False,learning_start = None, verbose=0.1, generator_type='RPG', configuration = [0], prob=None):
+    def simulate(self, body, datalogger=None, track=False,learning_start = None, verbose=0.1, generator_type='RPG', configuration = [0], tolerance=None):
 
         if datalogger:
             datalogger.data['startgenome'] = self.recoverParameters()
-            datalogger.data['size'] = self.size
-            datalogger.data['duration'] = self.duration
-            datalogger.data['stepsize'] = self.stepsize
         for i,t in enumerate(self.time):
 
             #if logfitness==Tree, runs fitnessfunction every given percentage:
@@ -126,10 +123,10 @@ class WalkingTask(RL_CTRNN):
             body.stepN(self.stepsize, self.outputs, configuration)
             if self.time_step<learning_start:
                 reward = self.default_reward_func(body, learning=False)
-                self.update_weights_and_flux_amp_with_reward(reward+np.random.normal(0,0.01))
+                self.update_weights_and_flux_amp_with_reward(reward, tolerance)
             else:
                 reward = self.default_reward_func(body, learning=True)
-                self.update_weights_and_flux_amp_with_reward(reward+np.random.normal(0,0.01))
+                self.update_weights_and_flux_amp_with_reward(reward, tolerance)
             if self.running_window_mode:
                 self.sliding_window = np.roll(self.sliding_window, 1)
                 self.sliding_window[0] = self.performance_hist[self.time_step]
@@ -138,15 +135,20 @@ class WalkingTask(RL_CTRNN):
                 self.running_average_performances[self.time_step] = self.running_average_performances[self.time_step-1] * (1-self.performance_update_rate) + self.performance_update_rate * self.performance_hist[self.time_step]
             if datalogger:
                 for key in datalogger.data.keys():
-                    if key in ["startgenome", "size", "duration", "stepsize"]:
+                    if key in ["startgenome"]:
                         continue
-                    elif "hist" in key:
+                    elif "hist" in key or 'running' in key:
                         datalogger.data[key][self.time_step] = self.__dict__[key][self.time_step]
                     else:
-                        print(key)
                         datalogger.data[key][self.time_step] = self.__dict__[key]
             self.time_step += 1
 
         self.time_step = 0
         if datalogger:
+            print("learning_Start")
+            print(learning_start)
+            datalogger.data['learning_start'] = learning_start
+            datalogger.data['size'] = self.size
+            datalogger.data['duration'] = self.duration
+            datalogger.data['stepsize'] = self.stepsize
             datalogger.data["performanceHist"] = self.performance_hist

@@ -12,7 +12,7 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
           min_period=300, max_period=400, conv_rate=0.004, learn_rate=0.004,
           bias_init_flux=2.75, bias_max_flux=10, bias_min_period=300,
           bias_max_period=400, bias_conv_rate=0.004, log_data=False,
-          verbose=1.00, generator_type='RPG', configuration=[0], prob=0.0, tracking_parameters=None):
+          verbose=1.00, generator_type='RPG', configuration=[0], tolerance=None, tracking_parameters=None):
 
     learner = WalkingTask(
             duration=duration,
@@ -57,7 +57,7 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
             verbose=verbose,
             generator_type=generator_type,
             configuration=configuration,
-            prob=prob
+            tolerance=tolerance
         )
     else:
         learner.simulate(body, learning_start=4000, verbose=verbose)
@@ -69,5 +69,7 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
     if log_data:
         # if data is being saves, save the end fiteness
         datalogger.data["end_fitness"] = end_fitness
+        if "tolerance" in tracking_parameters:
+            datalogger.data['tolerance'] = tolerance
         filepath = Path(f"./data/{generator_type}-end_fit-{int(np.round(end_fitness,5)*100000)}")
         datalogger.save(filepath)

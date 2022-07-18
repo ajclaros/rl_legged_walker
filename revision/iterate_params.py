@@ -5,6 +5,7 @@ from datalogger import DataLogger
 from fitnessFunction import fitnessFunction
 from pathlib import Path
 from learningFunction import learn
+from walking_task import WalkingTask
 
 
 #if true will save npz file in data folder with the end fitness as filename
@@ -17,7 +18,7 @@ verbose =  1.0
 #if true, prints end fitness after every trial
 
 starting_genome =np.array([0.99388489,  -0.19977217,   0.80557307,  0.66176187, -0.41946752,  0.00756486, -0.72451768, -0.50670193])
-starting_genome += 0.3
+starting_genome -= 0.3
 tracking_parameters = []
 with open("tracking_parameters.txt", "r") as f:
     for line in f:
@@ -41,8 +42,8 @@ param_list = {
     "max_flux": [20],
     "duration": [2000],
     "size": [2],
-    "generator_type":["RPG"],
-    "prob": [0.5]
+    "generator_type":["CPG"],
+    "tolerance": [0.0, 0.5]
 }
 
 # parameters to track and their order to save into npz file
@@ -86,7 +87,8 @@ for x in itertools.product(*param_list.values()):
               log_data=log_data,
               verbose=verbose,
               generator_type=params['generator_type'],
-              prob=params['prob'],
+              tolerance=params['tolerance'],
               tracking_parameters=tracking_parameters
+
               )
 

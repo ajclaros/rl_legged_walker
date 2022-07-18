@@ -1,13 +1,13 @@
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-files = os.listdir()
+files = os.listdir("data")
+files = [name for name in files if ".npz" in name ]
 data= ""
 generator_type = "RPG"
-for name in files:
-    if generator_type and "npz" in name:
-        print(name)
-        data= np.load(f"{name}")
+for i, name in enumerate(files):
+    if i==0:
+        data= np.load(f"./data/{name}")
 
 
 def plotWeightsBiases(data, show=False):
@@ -22,14 +22,15 @@ def plotWeightsBiases(data, show=False):
     ax.plot(time, data['inner_weights'].T[1,0],                 color=cmap[5 ])
     ax.plot(time, data['extended_weights'].T[1,1],         color=cmap[6], label='w_11')
     ax.plot(time, data['inner_weights'].T[1,1],                 color=cmap[7 ])
-    ax.plot(time, data['inner_biases'].T[0], color=cmap[8], label='bias_0')
+    ax.plot(time, data['biases'].T[0], color=cmap[8], label='bias_0')
     ax.plot(time, data['extended_biases'].T[0], color=cmap[9])
-    ax.plot(time, data['inner_biases'].T[1], color=cmap[10], label="bias_1")
+    ax.plot(time, data['biases'].T[1], color=cmap[10], label="bias_1")
     ax.plot(time, data['extended_biases'].T[1], color=cmap[11])
+    ax.axvline(data['learning_start']*data['stepsize'], color='k', lw='1')
     ax.title.set_text("Weight and Bias change during Trial")
     if show:
         plt.legend()
-        plt.savefig("./images/weight-bias.png")
+        plt.savefig("./data/images/weight-bias.png")
         plt.show()
 
 plotWeightsBiases(data, show=True)

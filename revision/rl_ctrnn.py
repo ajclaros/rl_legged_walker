@@ -101,17 +101,20 @@ class RL_CTRNN( CTRNN ):
         super().randomize_parameters()
     
     # Provided an external reward signal, update weights and fluctuations accordingly
-    def update_weights_and_flux_amp_with_reward(self, reward ):
+    def update_weights_and_flux_amp_with_reward(self, reward, tolerance):
         # Change in amplitude is based on reward signal and convergence rate
         # Page 2, Equation 4:    dA  = -B * R(t)   
         # Reward positive => amp decreases.    Reward negative => amp increases
         # Shift amplitude by percentage of the current self.max_flux_amp   multipled by the reward
         #                               0.1  *     10.0          *  generally small value
-        self.flux_amp -= self.flux_conv_rate * reward
-        self.flux_amp = min( max(self.flux_amp, 0), self.max_flux_amp )   # Keep fluctation amplitude between 0 and max_flux_amp (10)
+        #
+
+        if abs(reward)>=tolerance:
+            self.flux_amp -= self.flux_conv_rate * reward
+            self.flux_amp = min( max(self.flux_amp, 0), self.max_flux_amp )   # Keep fluctation amplitude between 0 and max_flux_amp (10)
         # 0 at center, +1 above center, -1, below center
         if self.bias_flux_mode:
-            if abs(reward)>0.1:
+            if abs(reward)>=tolerance:
                 self.bias_flux_amp -= self.bias_flux_conv_rate * reward
                 self.bias_flux_amp = min( max(self.bias_flux_amp, 0), self.bias_max_flux_amp )   # Keep fluctation amplitude between 0 and max_flux_amp (10)
         inner_flux_center_displacements = self.flux_amp * np.sin(self.inner_flux_moments / self.inner_flux_periods * 2 * math.pi )
