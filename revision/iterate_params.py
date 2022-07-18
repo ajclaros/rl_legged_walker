@@ -17,6 +17,7 @@ verbose =  1.0
 #if true, prints end fitness after every trial
 
 starting_genome =np.array([0.99388489,  -0.19977217,   0.80557307,  0.66176187, -0.41946752,  0.00756486, -0.72451768, -0.50670193])
+starting_genome += 0.3
 tracking_parameters = []
 with open("tracking_parameters.txt", "r") as f:
     for line in f:
@@ -28,7 +29,7 @@ print(tracking_parameters)
 
 #starting_genome+=0.5
 # times to try each element in the permutation of parameters
-trials = 10
+trials = 1
 param_list = {
     "window_size": [4000],
     "point": [0.1],  # the starting fitnesses: "starting point"
@@ -68,23 +69,24 @@ for x in itertools.product(*param_list.values()):
         print(f" {i}", end=" ", flush=False)
         #weights and biases are initialized the same way
         learn(starting_genome,
-              params["duration"],
-              params["size"],
-              params["window_size"],
-              params["init_flux"],
-              params["max_flux"],
-              params["min_period"],
-              params["max_period"],
-              params["conv_rate"],
-              params["learn_rate"],
-              params["init_flux"],
-              params["max_flux"],
-              params["min_period"],
-              params["max_period"],
-              params["conv_rate"],
-              log_data,
-              verbose,
+              duration = params["duration"],
+              size = params["size"],
+              windowsize=params["window_size"],
+              init_flux=params["init_flux"],
+              max_flux=params["max_flux"],
+              min_period=params["min_period"],
+              max_period=params["max_period"],
+              conv_rate=params["conv_rate"],
+              learn_rate=params["learn_rate"],
+              bias_init_flux=params["init_flux"],
+              bias_max_flux=params["max_flux"],
+              bias_min_period=params["min_period"],
+              bias_max_period=params["max_period"],
+              bias_conv_rate=params["conv_rate"],
+              log_data=log_data,
+              verbose=verbose,
               generator_type=params['generator_type'],
               prob=params['prob'],
               tracking_parameters=tracking_parameters
               )
+

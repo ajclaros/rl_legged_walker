@@ -126,6 +126,7 @@ class WalkingTask(RL_CTRNN):
             body.stepN(self.stepsize, self.outputs, configuration)
             if self.time_step<learning_start:
                 reward = self.default_reward_func(body, learning=False)
+                self.update_weights_and_flux_amp_with_reward(reward+np.random.normal(0,0.01))
             else:
                 reward = self.default_reward_func(body, learning=True)
                 self.update_weights_and_flux_amp_with_reward(reward+np.random.normal(0,0.01))
@@ -139,8 +140,7 @@ class WalkingTask(RL_CTRNN):
                 for key in datalogger.data.keys():
                     if key in ["startgenome", "size", "duration", "stepsize"]:
                         continue
-                    if "hist" in key:
-                        print(key)
+                    elif "hist" in key:
                         datalogger.data[key][self.time_step] = self.__dict__[key][self.time_step]
                     else:
                         print(key)

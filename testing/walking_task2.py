@@ -111,20 +111,20 @@ class WalkingTask(RL_CTRNN):
             datalogger.data['size'] = self.size
             datalogger.data['duration'] = self.duration
             datalogger.data['stepsize'] = self.stepsize
-            #datalogger.data['weightHist'] = np.zeros((self.time.size, self.size, self.size))
-            #datalogger.data['biasHist'] = np.zeros((self.time.size, self.size))
-            #datalogger.data['distanceHist'] = np.zeros((self.time.size))
+            datalogger.data['weightHist'] = np.zeros((self.time.size, self.size, self.size))
+            datalogger.data['biasHist'] = np.zeros((self.time.size, self.size))
+            datalogger.data['distanceHist'] = np.zeros((self.time.size))
             datalogger.data['performanceHist'] = np.zeros((self.time.size))
-            #datalogger.data['biasesArr'] = np.zeros((self.time.size, self.size))
-            #datalogger.data['fluxAmpArr'] = np.zeros((self.time.size))
-            #datalogger.data['extendedWeightHist'] = np.zeros((self.time.size, self.size, self.size))
-            #datalogger.data['extendedBiasHist'] = np.zeros((self.time.size, self.size))
-            #datalogger.data['ampPeriodArr'] = np.zeros((self.time.size, self.size, self.size))
-            #datalogger.data['biasesPeriodArr'] = np.zeros((self.time.size, self.size, self.size))
-            #datalogger.data['feedback'] = np.zeros((self.time.size))
-            #datalogger.data['runningAveragePerformances'] = np.zeros(len(self.time))
-            #datalogger.data['neuralOutputs'] = np.zeros((len(self.time), self.size))
-            #datalogger.data['rewardHist']= np.zeros((self.time.size))
+            datalogger.data['biasesArr'] = np.zeros((self.time.size, self.size))
+            datalogger.data['fluxAmpArr'] = np.zeros((self.time.size))
+            datalogger.data['extendedWeightHist'] = np.zeros((self.time.size, self.size, self.size))
+            datalogger.data['extendedBiasHist'] = np.zeros((self.time.size, self.size))
+            datalogger.data['ampPeriodArr'] = np.zeros((self.time.size, self.size, self.size))
+            datalogger.data['biasesPeriodArr'] = np.zeros((self.time.size, self.size, self.size))
+            datalogger.data['feedback'] = np.zeros((self.time.size))
+            datalogger.data['runningAveragePerformances'] = np.zeros(len(self.time))
+            datalogger.data['neuralOutputs'] = np.zeros((len(self.time), self.size))
+            datalogger.data['rewardHist']= np.zeros((self.time.size))
             if logfitness:
                 datalogger.data['trackFitness'] = np.zeros((self.time.size))
         for i,t in enumerate(self.time):
@@ -133,14 +133,13 @@ class WalkingTask(RL_CTRNN):
             if logfitness:
                 datalogger.data['trackFitness'][self.time_step] = datalogger.data['trackFitness'][self.time_step-1]
             if i %(self.time.size*trackpercent) == 0 and trackpercent>=0:# and i!=0:
-                print("hell")
                 print("{}% completed...".format(i/self.time.size *100))
                 if logfitness:
                     datalogger.data['trackFitness'][self.time_step] = fitnessFunction(self.recoverParameters(), N=self.size)
 
-            #if datalogger:
-            #    datalogger.data['weightHist'][self.time_step] = self.inner_weights
-            #    datalogger.data['biasHist'][self.time_step] = self.biases
+            if datalogger:
+                datalogger.data['weightHist'][self.time_step] = self.inner_weights
+                datalogger.data['biasHist'][self.time_step] = self.biases
 
             self.setInputs(np.array([body.anglefeedback()] * self.size))
             self.step(self.stepsize)
@@ -148,21 +147,21 @@ class WalkingTask(RL_CTRNN):
 
             if self.time_step<learning_start:
                 reward = self.default_reward_func(body, learning=False)
+                self.update_weights_and_flux_amp_with_reward(reward)
             else:
                 reward = self.default_reward_func(body, learning=True)
                 self.update_weights_and_flux_amp_with_reward(reward)
-            #print(reward)
 
-            #if datalogger:
-            #    datalogger.data['rewardHist'][self.time_step] = reward
-            #    datalogger.data['neuralOutputs'][self.time_step] = self.outputs
-            #    datalogger.data['biasesArr'][self.time_step] = self.bias_flux_amp
-            #    datalogger.data['fluxAmpArr'][self.time_step] = self.flux_amp
-            #   datalogger.data['ampPeriodArr'][self.time_step] = self.inner_flux_periods
-            #    datalogger.data['biasesPeriodArr'][self.time_step]= self.bias_inner_flux_periods
-            #    datalogger.data['extendedWeightHist'][self.time_step] = self.extended_weights
-            #    datalogger.data['extendedBiasHist'][self.time_step] = self.extended_biases
-            #    datalogger.data['feedback'][self.time_step] = body.anglefeedback()
+            if datalogger:
+                datalogger.data['rewardHist'][self.time_step] = reward
+                datalogger.data['neuralOutputs'][self.time_step] = self.outputs
+                datalogger.data['biasesArr'][self.time_step] = self.bias_flux_amp
+                datalogger.data['fluxAmpArr'][self.time_step] = self.flux_amp
+                datalogger.data['ampPeriodArr'][self.time_step] = self.inner_flux_periods
+                datalogger.data['biasesPeriodArr'][self.time_step]= self.bias_inner_flux_periods
+                datalogger.data['extendedWeightHist'][self.time_step] = self.extended_weights
+                datalogger.data['extendedBiasHist'][self.time_step] = self.extended_biases
+                datalogger.data['feedback'][self.time_step] = body.anglefeedback()
 
 
             if self.running_window_mode:
@@ -179,8 +178,8 @@ class WalkingTask(RL_CTRNN):
         self.time_step = 0
         if datalogger:
             datalogger.data["performanceHist"] = self.performance_hist
-            #datalogger.data["distanceHist"] = self.distance_hist
-            #datalogger.data["runningAverage"] = self.running_average_performances
-            #datalogger.data['endGenome'] = self.recoverParameters()
-            #datalogger.data['duration'] = self.duration
-            #datalogger.data['learningStart'] = learning_start
+            datalogger.data["distanceHist"] = self.distance_hist
+            datalogger.data["runningAverage"] = self.running_average_performances
+            datalogger.data['endGenome'] = self.recoverParameters()
+            datalogger.data['duration'] = self.duration
+            datalogger.data['learningStart'] = learning_start

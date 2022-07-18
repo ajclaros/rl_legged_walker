@@ -42,7 +42,7 @@ track_percent = -1 #0.1
 print_end_fitness = False
 
 # times to try each element in the permutation of parameters
-trials = 10
+trials = 1
 param_list = {
     "window_size": [4000],
     "point": [0.1],  # the starting fitnesses: "starting point"
@@ -169,7 +169,7 @@ for x in itertools.product(*param_list.values()):
                 datalogger.data["end_fitness"] = end_fitness
                 # datalogger.save(f"./data/startingfitness/{params['point']}/endfit-{int(np.round(end_fitness, 5)*100000)}")
                 datalogger.save(
-                    f"./data/startingfitness/{params['point']}/endfit-{int(np.round(end_fitness, 5)*100000)}"
+                    f"./data/startingfitness/endfit-{int(np.round(end_fitness, 5)*100000)}"
                 )
 
             row["name"] = filename.split(".")[0]

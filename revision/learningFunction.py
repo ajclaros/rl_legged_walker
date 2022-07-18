@@ -30,7 +30,7 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
             bias_max_flux_amp=bias_max_flux,
             bias_flux_period_min=min_period,
             bias_flux_period_max=max_period,
-            bias_flux_conv_rate=conv_rate,
+            bias_flux_conv_rate=conv_rate
         )
     weights = starting_genome[0 : size* size]
     learner.setWeights(weights.reshape((size, size)))
@@ -45,14 +45,11 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
                 datalogger.data[var] = np.zeros(
                     (int(duration/stepsize), size, size)
                 )
-                print(var)
-                print(datalogger.data[var])
-            elif "bias" in var:
+
+            elif "bias" in var or "voltage":
                 datalogger.data[var] = np.zeros((int(duration/stepsize), size))
             else:
                 datalogger.data[var] = np.zeros(int(duration/stepsize))
-
-
         learner.simulate(
             body,
             learning_start=windowsize,
@@ -72,5 +69,5 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
     if log_data:
         # if data is being saves, save the end fiteness
         datalogger.data["end_fitness"] = end_fitness
-        filepath = Path(f"./data/end_fit-{int(np.round(end_fitness,5)*100000)}")
+        filepath = Path(f"./data/{generator_type}-end_fit-{int(np.round(end_fitness,5)*100000)}")
         datalogger.save(filepath)

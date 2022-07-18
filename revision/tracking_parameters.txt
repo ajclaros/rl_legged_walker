@@ -2,14 +2,21 @@
 #names in this file are the class variables of WalkingTask and RLCTRNN
 
 
+
 #voltages
+inner_weights
+biases
 #outputs
 #inputs
 #flux_amp
+#inv_time_constants
+#inner_flux_periods
+#inner_flux_moments
 #bias_flux_amp
-inner_weights
-inner_biases
-#extended_weights
-#extended_biases
+#bias_inner_flux_periods
+#bias_inner_flux_moments
+extended_weights
+extended_biases
 distance_hist
 performance_hist
+running_average_performances

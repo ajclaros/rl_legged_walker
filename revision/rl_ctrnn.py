@@ -42,7 +42,6 @@ class RL_CTRNN( CTRNN ):
         self.flux_conv_rate = flux_conv_rate                    # The rate at which the current fluctation amplitude changes in response to reward (% of flux_period_max )
         self.learn_rate = learn_rate                            # The rate at which the synaptic weights shift (up/down) in accordance with the reward signal & fluctation position
         self.gaussian_mode = gaussian_mode                      # Whether to use a normal or uniform distribution for random samples in setting periods for each syn weight
-        self.weights_arr = np.zeros((size, ))
 
         self.square_oscillation_mode = square_oscillation_mode   # experimental mode to look at difference in performance with square wave flux
 
@@ -60,11 +59,9 @@ class RL_CTRNN( CTRNN ):
         self.bias_flux_period_min=bias_flux_period_min
         self.bias_flux_period_max=bias_flux_period_max
         self.bias_flux_conv_rate=bias_flux_conv_rate
-        self.inner_weights = np.zeros((self.size, self.size))
-        self.inner_biases= np.zeros((self.size))
         self.extended_weights = np.zeros((self.size, self.size))
         self.extended_biases= np.zeros((self.size))
-
+        self.inner_weights = np.zeros((self.size, self.size))
         if bias_max_flux_amp <= 0:
             self.bias_flux_mode=False
         else:
@@ -132,8 +129,8 @@ class RL_CTRNN( CTRNN ):
         self.extended_weights = self.inner_weights + inner_flux_center_displacements
         self.inner_weights = np.clip( self.inner_weights + self.learn_rate * inner_flux_center_displacements * reward, -self.weight_range, self.weight_range)
         if self.bias_flux_mode:
-            self.extended_biases = self.inner_biases + bias_inner_flux_center_displacements
-            self.inner_biases = np.clip( self.inner_biases + self.learn_rate * bias_inner_flux_center_displacements * reward, -self.bias_range, self.bias_range)
+            self.extended_biases = self.biases + bias_inner_flux_center_displacements
+            self.biases = np.clip( self.biases + self.learn_rate * bias_inner_flux_center_displacements * reward, -self.bias_range, self.bias_range)
 #        for i in range(self.size):
 #            for j in range(self.size):
 #                if i!=j:
@@ -154,7 +151,7 @@ class RL_CTRNN( CTRNN ):
     def calc_bias_with_flux(self):
         if self.bias_flux_mode:
             #  NxN        NxN             1                      NxN                  NxN          
-            fluxxed_bias = self.inner_biases + self.bias_flux_amp * np.sin(self.bias_inner_flux_moments / self.bias_inner_flux_periods * 2 * math.pi )
+            fluxxed_bias = self.biases + self.bias_flux_amp * np.sin(self.bias_inner_flux_moments / self.bias_inner_flux_periods * 2 * math.pi )
         else:
             print("This should NOT be called when bias_flux_mode is false. Exiting...")
             quit()
@@ -198,7 +195,7 @@ class RL_CTRNN( CTRNN ):
         if self.bias_flux_mode:
             self.outputs = sigmoid( self.voltages + self.calc_bias_with_flux() )
         else:
-            self.outputs = sigmoid( self.voltages + self.inner_biases)
+            self.outputs = sigmoid( self.voltages + self.biases)
 
     def pprint( self ):
         for k, v in self.__dict__.items():
