@@ -61,10 +61,11 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
         )
     else:
         learner.simulate(body, learning_start=4000, verbose=verbose)
-    end_fitness = fitnessFunction(learner.recoverParameters())
+    end_fitness = fitnessFunction(learner.recoverParameters(), N=size)
 
     if verbose>0:
-        start_fitness = fitnessFunction(starting_genome)
+        start_fitness = fitnessFunction(starting_genome, N=size)
+        print(start_fitness)
         print(f"startFitness: {start_fitness}\nendFitness: {end_fitness}")
     if log_data:
         # if data is being saves, save the end fiteness

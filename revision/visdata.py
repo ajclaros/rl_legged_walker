@@ -2,12 +2,11 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 files = os.listdir("data")
-files = [name for name in files if ".npz" in name ]
-data= ""
 generator_type = "RPG"
+files = [name for name in files if ".npz" in name  and generator_type in name]
+data= ""
 for i, name in enumerate(files):
-    if i==0:
-        data= np.load(f"./data/{name}")
+    data= np.load(f"./data/{name}")
 
 
 def plotWeightsBiases(data, show=False):
@@ -27,10 +26,21 @@ def plotWeightsBiases(data, show=False):
     ax.plot(time, data['biases'].T[1], color=cmap[10], label="bias_1")
     ax.plot(time, data['extended_biases'].T[1], color=cmap[11])
     ax.axvline(data['learning_start']*data['stepsize'], color='k', lw='1')
-    ax.title.set_text("Weight and Bias change during Trial")
+    ax.title.set_text(f"Weight and Bias change during Trial:{generator_type}")
+    if show:
+        plt.legend()
+        plt.savefig("./data/images/weight-bias.png")
+        plt.show()
+def plotPerformance(data, show=False):
+    fig, ax = plt.subplots()
+    time = np.arange(0, data['duration'], 0.1)
+    ax.plot(time, data['running_average_performances'])
+    ax.axvline(data['learning_start']*data['stepsize'], color='k')
+    ax.title.set_text(f"Average performance over time:{generator_type}\ntol:{data['tolerance']}")
     if show:
         plt.legend()
         plt.savefig("./data/images/weight-bias.png")
         plt.show()
 
 plotWeightsBiases(data, show=True)
+plotPerformance(data, show=True)

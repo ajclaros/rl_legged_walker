@@ -17,8 +17,6 @@ log_data = True
 verbose =  1.0
 #if true, prints end fitness after every trial
 
-starting_genome =np.array([0.99388489,  -0.19977217,   0.80557307,  0.66176187, -0.41946752,  0.00756486, -0.72451768, -0.50670193])
-starting_genome -= 0.3
 tracking_parameters = []
 with open("tracking_parameters.txt", "r") as f:
     for line in f:
@@ -38,14 +36,19 @@ param_list = {
     "conv_rate": [0.004],
     "min_period": [300],
     "max_period": [400],
-    "init_flux": [2.75],  # ], 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-    "max_flux": [20],
-    "duration": [2000],
+    "init_flux": [6.0],  # ], 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+    "max_flux": [10],
+    "duration": [4000],
     "size": [2],
     "generator_type":["CPG"],
-    "tolerance": [0.0, 0.5]
+    "tolerance": [0.01]
 }
 
+size = param_list['size'][0]
+#starting_genome =np.array([0.99388489,  -0.19977217,   0.80557307,  0.66176187, -0.41946752,  0.00756486, -0.72451768, -0.50670193])
+#starting_genome =np.array([0]*(size*size+2*size))
+starting_genome = np.random.uniform(size=size*size+2*size)*2-1
+#starting_genome += 0.3
 # parameters to track and their order to save into npz file
 # itertools creates a list of all permutations for each list in the dictionary
 # https://stackoverflow.com/questions/24594313/permutations-of-list-of-lists
@@ -64,7 +67,7 @@ for x in itertools.product(*param_list.values()):
             print(f"{key}:{params[key]}", end=" ", flush=False)
 
     # load in perturbed genome
-    starting_fitness = fitnessFunction(starting_genome)
+    starting_fitness = fitnessFunction(starting_genome, N=params["size"])
     print(f"\nTrial:", end= " ")
     for i in range(trials):
         print(f" {i}", end=" ", flush=False)
@@ -89,6 +92,4 @@ for x in itertools.product(*param_list.values()):
               generator_type=params['generator_type'],
               tolerance=params['tolerance'],
               tracking_parameters=tracking_parameters
-
               )
-

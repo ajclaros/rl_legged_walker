@@ -148,6 +148,7 @@ class WalkingTask(RL_CTRNN):
             print("learning_Start")
             print(learning_start)
             datalogger.data['learning_start'] = learning_start
+            datalogger.data['tolerance'] = tolerance
             datalogger.data['size'] = self.size
             datalogger.data['duration'] = self.duration
             datalogger.data['stepsize'] = self.stepsize
