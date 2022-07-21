@@ -70,6 +70,8 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
     if log_data:
         # if data is being saves, save the end fiteness
         datalogger.data["end_fitness"] = end_fitness
+        datalogger.data["generator_type"] = generator_type
+        datalogger.data["neuron_configuration"] = configuration
         if "tolerance" in tracking_parameters:
             datalogger.data['tolerance'] = tolerance
         filepath = Path(f"./data/{generator_type}-end_fit-{int(np.round(end_fitness,5)*100000)}")
