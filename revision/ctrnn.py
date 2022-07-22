@@ -1,5 +1,4 @@
 import numpy as np
-import json
 
 
 # Parent class which can be extended to provide additional functionality
