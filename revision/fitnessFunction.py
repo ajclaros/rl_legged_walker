@@ -2,7 +2,7 @@
 import leggedwalker
 import numpy as np
 from ctrnn import CTRNN
-import datalogger
+from datalogger import DataLogger
 #N = 2 # Number of neurons in the nervous system
 WR = 16    # Weight range - maps from [-1, 1] to: [-16,16]
 BR = 16    # Bias range - maps from [-1, 1] to: [-16,16]
@@ -34,10 +34,10 @@ def fitnessFunction(genotype, duration=220.0, N=2, generator_type='RPG', configu
     if record:
         datalogger = DataLogger()
         datalogger.data['stepsize'] = stepsize
-        datalogger.data['outputs'] = np.zeros(size = (len(time), N))
-        datalogger.data['distance'] = np.zeros(size = (len(time)))
-        datalogger.data['omega'] = np.zeros(size = (len(time)))
-        datalogger.data['angle'] = np.zeros(size = (len(time)))
+        datalogger.data['outputs'] = np.zeros(shape= (len(time), N))
+        datalogger.data['distance'] = np.zeros(shape= (len(time)))
+        datalogger.data['omega'] = np.zeros(shape= (len(time)))
+        datalogger.data['angle'] = np.zeros(shape= (len(time)))
     for i, t in enumerate(time):
 
         if record:
@@ -59,6 +59,6 @@ def fitnessFunction(genotype, duration=220.0, N=2, generator_type='RPG', configu
     if verbose==1:
         print(ns.recoverParameters())
     if record:
-        filename= f"behavior-{int(np.round(fit,5)*100000)}-s{ns.size}-c{'_'.join(str(num) for num in configuration)}"
+        filename= f"behavior-{generator_type}-{int(np.round(fit,5)*100000)}-s{ns.size}-c{'_'.join(str(num) for num in configuration)}"
         datalogger.save(f"./data/microbial/{filename}")
     return fit
