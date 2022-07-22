@@ -21,15 +21,7 @@ def plotWeightsBiases(data, show=False, legend=True):
             ax.plot(time, data['inner_weights'].T[i,j],                 color=cmap[i+1])
 
         ax.plot(time, data['biases'].T[i], color=cmap[i], ls='dotted', label='bias_0')
-        ax.plot(time, data['extended_biases'].T[i], ls='dotted', color=cmap[9])
-#    ax.plot(time, data['extended_weights'].T[0,1],         color=cmap[2], label='w_01')
-#    ax.plot(time, data['inner_weights'].T[0,1],                 color=cmap[3 ])
-#    ax.plot(time, data['extended_weights'].T[1,0],         color=cmap[4], label='w_10')
-#    ax.plot(time, data['inner_weights'].T[1,0],                 color=cmap[5 ])
-#    ax.plot(time, data['extended_weights'].T[1,1],         color=cmap[6], label='w_11')
-#    ax.plot(time, data['inner_weights'].T[1,1],                 color=cmap[7 ])
-#    ax.plot(time, data['biases'].T[1], color=cmap[10], label="bias_1")
-#    ax.plot(time, data['extended_biases'].T[1], color=cmap[11])
+        ax.plot(time, data['extended_biases'].T[i], ls='dotted', color=cmap[i+1])
     ax.axvline(data['learning_start']*data['stepsize'], color='k', lw='1')
     ax.title.set_text(f"Weight and Bias change during Trial:{generator_type}")
     if show:
