@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import jsons
 import math
 from ctrnn import CTRNN
 
@@ -101,14 +102,15 @@ class RL_CTRNN( CTRNN ):
         super().randomize_parameters()
     
     # Provided an external reward signal, update weights and fluctuations accordingly
-    def update_weights_and_flux_amp_with_reward(self, reward, tolerance=0.0):
+    def update_weights_and_flux_amp_with_reward(self, reward, tolerance):
         # Change in amplitude is based on reward signal and convergence rate
-        # Page 2, Equation 4:    dA  = -B * R(t)   
+        # Page 2, Equation 4:    dA  = -B * R(t)
         # Reward positive => amp decreases.    Reward negative => amp increases
         # Shift amplitude by percentage of the current self.max_flux_amp   multipled by the reward
         #                               0.1  *     10.0          *  generally small value
         #
         self.reward = reward
+
         if abs(reward)>=tolerance:
             self.flux_amp -= self.flux_conv_rate * reward
             self.flux_amp = min( max(self.flux_amp, 0), self.max_flux_amp )   # Keep fluctation amplitude between 0 and max_flux_amp (10)
