@@ -2,6 +2,7 @@
 import leggedwalker
 import numpy as np
 from ctrnn import CTRNN
+import datalogger
 #N = 2 # Number of neurons in the nervous system
 WR = 16    # Weight range - maps from [-1, 1] to: [-16,16]
 BR = 16    # Bias range - maps from [-1, 1] to: [-16,16]
@@ -13,7 +14,7 @@ duration = 220.0
 stepsize = 0.1
 #time = np.arange(0.0, duration, stepsize)
 
-def fitnessFunction(genotype, duration=220.0, N=2, generator_type='RPG', configuration = [0], verbose=0):
+def fitnessFunction(genotype, duration=220.0, N=2, generator_type='RPG', configuration = [0], verbose=0, record=False, stepsize= 0.1):
     # Create the agent's body
     legged = leggedwalker.LeggedAgent()
     if verbose>0:
@@ -30,8 +31,20 @@ def fitnessFunction(genotype, duration=220.0, N=2, generator_type='RPG', configu
     #learner = RL_CTRNN(ns)
     # Loop through simulated time, use Euler Method to step the nervous system and body
     time = np.arange(0.0, duration, stepsize)
+    if record:
+        datalogger = DataLogger()
+        datalogger.data['stepsize'] = stepsize
+        datalogger.data['outputs'] = np.zeros(size = (len(time), N))
+        datalogger.data['distance'] = np.zeros(size = (len(time)))
+        datalogger.data['omega'] = np.zeros(size = (len(time)))
+        datalogger.data['angle'] = np.zeros(size = (len(time)))
     for i, t in enumerate(time):
 
+        if record:
+            datalogger.data['outputs'][i] = ns.outputs
+            datalogger.data['distance'][i] = legged.cx
+            datalogger.data['omega'][i] = legged.omega
+            datalogger.data['angle'][i] = legged.angle
         if generator_type=='RPG':
             ns.setInputs(np.array([legged.anglefeedback()]*N))  # Set neuron input to angle feedback based on current body state
         else:
@@ -45,4 +58,7 @@ def fitnessFunction(genotype, duration=220.0, N=2, generator_type='RPG', configu
     fit = legged.cx/duration
     if verbose==1:
         print(ns.recoverParameters())
+    if record:
+        filename= f"behavior-{int(np.round(fit,5)*100000)}-s{ns.size}-c{'_'.join(str(num) for num in configuration)}"
+        datalogger.save(f"./data/microbial/{filename}")
     return fit

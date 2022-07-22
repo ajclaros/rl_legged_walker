@@ -1,10 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
+from pathlib import Path
 
 class Microbial():
 
-    def __init__(self, fitnessFunction, popsize, genesize, recombProb, mutatProb, demeSize, generations):
+    def __init__(self, fitnessFunction, popsize, genesize,
+                 recombProb, mutatProb, demeSize, generations,
+                 generator_type, neuron_configuration, size):
         self.fitnessFunction = fitnessFunction
         self.popsize = popsize
         self.genesize = genesize
@@ -16,18 +19,22 @@ class Microbial():
         self.pop = np.random.rand(popsize,genesize)*2 - 1
         self.fitness = np.zeros(popsize)
         self.avgHistory = np.zeros(generations)
+        self.size = size
         self.bestHistory = np.zeros(generations)
+        self.generator_type = generator_type
+        self.neuron_configuration = neuron_configuration
         self.gen = 0
 
 
-    def showFitness(self, label = ""):
-        plt.plot(self.bestHistory, label=label+' best history')
-        plt.plot(self.avgHistory, label=label+' average history')
+    def showFitness(self, label = "", c='k'):
+        plt.plot(self.bestHistory, label=label+' bestHist '+self.generator_type, color=c,ls='dashed')
+        plt.plot(self.avgHistory, label=label+' averageHist '+self.generator_type, color=c, ls='solid')
         plt.xlabel("Generations")
         plt.ylabel("Fitness")
         plt.legend()
-        plt.title("Microbial: Best and average fitness")
-        plt.savefig("{}.png".format(datetime.datetime.strftime(datetime.datetime.now(),"%Y-%m-%d-%h-%m")))
+        plt.title(f"Microbial: Best and average fitness\nN:{self.size},neuron_config:{self.neuron_configuration}")
+        filename = f"{self.generator_type}-s{self.size}-c{'_'.join(str(num) for num in self.neuron_configuration)}"
+        plt.savefig(Path(f"./data/microbial/{filename}"))
 
     def fitStats(self):
         bestind = self.pop[np.argmax(self.fitness)]
@@ -37,19 +44,22 @@ class Microbial():
         self.bestHistory[self.gen]=bestfit
         return avgfit, bestfit, bestind
 
-    def save(self,filename):
+    def save(self,filename = None):
         af,bf,bi = self.fitStats()
-        np.savez(filename, avghist=self.avgHistory, besthist=self.bestHistory, bestind=bi)
+        if not filename:
+            filename = f"{self.generator_type}-s{self.size}-c{'_'.join(str(num) for num in self.neuron_configuration)}"
+        np.savez(Path(f"./data/microbial/genomes/{filename}"), avghist=self.avgHistory, besthist=self.bestHistory, bestind=bi)
 
     def run(self):
         # Calculate all fitness once
         print("init agent:")
         for i in range(self.popsize):
             print(f"{i}", end = ' ', flush=False)
-            self.fitness[i] = self.fitnessFunction(self.pop[i])
+            self.fitness[i] = self.fitnessFunction(self.pop[i], N=self.size, generator_type=self.generator_type, configuration=self.neuron_configuration)
         # Evolutionary loop
+        print("\ngeneration:")
         for g in range(self.generations):
-            print("\ngeneration: {}".format(g))
+            print(f"{g}", end=" ", flush=False)
             self.gen = g
 
             # Report statistics every generation
@@ -77,97 +87,5 @@ class Microbial():
                 self.pop[loser] += np.random.normal(0.0,self.mutatProb,size=self.genesize)
                 self.pop[loser] = np.clip(self.pop[loser],-1,1)
                 # Save fitness
-                self.fitness[loser] = self.fitnessFunction(self.pop[loser])
-
-class Generational():
-
-    def __init__(self, fitnessFunction, popsize, genesize, recombProb, mutatProb, eliteprop, generations):
-        self.fitnessFunction = fitnessFunction
-        self.popsize = popsize
-        self.genesize = genesize
-        self.recombProb = recombProb
-        self.mutatProb = mutatProb
-        self.elite = int(eliteprop*popsize)
-        self.generations = generations
-        self.pop = np.random.rand(popsize,genesize)*2 - 1
-        self.fitness = np.zeros(popsize)
-        self.rank = np.zeros(popsize,dtype=int)
-        self.avgHistory = np.zeros(generations)
-        self.bestHistory = np.zeros(generations)
-        self.gen = 0
-
-    def showFitness(self):
-        plt.plot(self.bestHistory, label='best history')
-        plt.plot(self.avgHistory, label='avg history')
-        plt.xlabel("Generations")
-        plt.ylabel("Fitness")
-        plt.title("Generational: Best and average fitness")
-        plt.show()
-
-    def fitStats(self):
-        bestind = self.pop[np.argmax(self.fitness)]
-        bestfit = np.max(self.fitness)
-        avgfit = np.mean(self.fitness)
-        self.avgHistory[self.gen]=avgfit
-        self.bestHistory[self.gen]=bestfit
-        return avgfit, bestfit, bestind
-
-    def save(self,filename):
-        af,bf,bi = self.fitStats()
-        np.savez(filename, avghist=self.avgHistory, besthist=self.bestHistory, bestind=bi)
-
-    def run(self):
-
-        # Calculate all fitness once
-        for i in range(self.popsize):
-            print(i, end=' ')
-            self.fitness[i] = self.fitnessFunction(self.pop[i])
-
-        # Evolutionary loop
-        for g in range(self.generations):
-            print(g, end=' ')
-
-            # Report statistics every generation
-            self.gen = g
-            self.fitStats()
-
-            # Rank individuals by fitness
-            tempfitness = self.fitness.copy()
-            for i in range(self.popsize):
-                self.rank[i]=int(np.argmax(tempfitness))
-                tempfitness[self.rank[i]]=0.0
-
-            # Start new generation
-            new_pop = np.zeros((self.popsize,self.genesize))
-            new_fitness = np.zeros(self.popsize)
-
-            # Fill out the elite first
-            for i in range(self.elite):
-                new_pop[i] = self.pop[self.rank[i]]
-                new_fitness[i] = self.fitness[self.rank[i]]
-
-            # Fill out remainder of the population through reproduction of most fit parents
-            for i in range(self.elite,self.popsize):
-                # Pick parents based on rank probability
-                a = self.rank[int(np.random.triangular(0, 0, self.popsize))]
-                b = self.rank[int(np.random.triangular(0, 0, self.popsize))]
-                while (a==b):           # Make sure they are two different individuals
-                    b = self.rank[int(np.random.triangular(0, 0, self.popsize))]
-
-                # Recombine parents to produce child
-                for k in range(self.genesize):
-                    if np.random.random() < self.recombProb:
-                        new_pop[i][k] = self.pop[a][k]
-                    else:
-                        new_pop[i][k] = self.pop[b][k]
-
-                # Mutate child and make sure they stay within bounds
-                new_pop[i] += np.random.normal(0.0,self.mutatProb,size=self.genesize)
-                new_pop[i] = np.clip(new_pop[i],-1,1)
-
-                # Recalculate their fitness
-                new_fitness[i] = self.fitnessFunction(new_pop[i])
-
-            # Finally replace old population with the new one
-            self.pop = new_pop.copy()
-            self.fitness = new_fitness.copy()
+                #
+                self.fitness[loser] = self.fitnessFunction(self.pop[loser], N=self.size, generator_type=self.generator_type, configuration=self.neuron_configuration)

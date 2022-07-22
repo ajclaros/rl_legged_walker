@@ -7,9 +7,10 @@ inner_weights
 biases
 extended_weights
 extended_biases
-#outputs
+outputs
 #inputs
-#flux_amp
+flux_amp
+
 #voltages
 #inv_time_constants
 #inner_flux_periods

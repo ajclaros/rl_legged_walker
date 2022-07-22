@@ -7,6 +7,7 @@ import datetime
 from datalogger import DataLogger
 from fitnessFunction import fitnessFunction
 from pathlib import Path
+import os
 
 def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1, init_flux=2.75, max_flux=10,
           min_period=300, max_period=400, conv_rate=0.004, learn_rate=0.004,
@@ -61,18 +62,28 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
         )
     else:
         learner.simulate(body, learning_start=4000, verbose=verbose)
+
+    start_fitness = fitnessFunction(starting_genome, N=size, generator_type=generator_type, configuration=configuration)
     end_fitness = fitnessFunction(learner.recoverParameters(), N=size, generator_type=generator_type, configuration=configuration, verbose=verbose)
 
     if verbose>0:
-        start_fitness = fitnessFunction(starting_genome, N=size, generator_type=generator_type, configuration=configuration)
         print(start_fitness)
         print(f"startFitness: {start_fitness}\nendFitness:   {end_fitness}")
     if log_data:
-        # if data is being saves, save the end fiteness
+        # if data is being saved, save the end fiteness
         datalogger.data["end_fitness"] = end_fitness
+        datalogger.data["init_flux"] = init_flux
         datalogger.data["generator_type"] = generator_type
         datalogger.data["neuron_configuration"] = configuration
+        datalogger.data["start_fitness"] = start_fitness
         if "tolerance" in tracking_parameters:
             datalogger.data['tolerance'] = tolerance
-        filepath = Path(f"./data/{generator_type}-end_fit-{int(np.round(end_fitness,5)*100000)}")
+        datafiles = os.listdir("./data")
+        existing_files = [int(name.split("i")[-1].split(".")[0]) for name in datafiles if f"{generator_type}-{int(np.round(start_fitness, 5)*100000)}-{int(np.round(end_fitness, 5)*100000)}" in name]
+        if len(existing_files)>0:
+            iteration = max(existing_files)+1
+            filename = f"{generator_type}-{int(np.round(start_fitness,5)*100000)}-{int(np.round(end_fitness,5)*100000)}i{iteration}"
+        else:
+            filename = f"{generator_type}-{int(np.round(start_fitness,5)*100000)}-{int(np.round(end_fitness,5)*100000)}i0"
+        filepath = Path(f"./data/{filename}")
         datalogger.save(filepath)

@@ -145,8 +145,6 @@ class WalkingTask(RL_CTRNN):
 
         self.time_step = 0
         if datalogger:
-            print("learning_Start")
-            print(learning_start)
             datalogger.data['learning_start'] = learning_start
             datalogger.data['tolerance'] = tolerance
             datalogger.data['size'] = self.size

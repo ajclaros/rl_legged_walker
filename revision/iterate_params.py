@@ -14,7 +14,7 @@ log_data = True
 #if verbose in [0.0, 1.0], also prints out the % of trial completed
 #also prints out end fitness after each trial
 #if verbose>=1, only prints out end fitness
-verbose =  1.0
+verbose = -1
 #if true, prints end fitness after every trial
 
 tracking_parameters = []
@@ -28,7 +28,7 @@ print(tracking_parameters)
 
 #starting_genome+=0.5
 # times to try each element in the permutation of parameters
-trials = 1
+trials = 30
 param_list = {
     "window_size": [4000],
     "point": [0.1],  # the starting fitnesses: "starting point"
@@ -36,13 +36,13 @@ param_list = {
     "conv_rate": [0.004],
     "min_period": [300],
     "max_period": [400],
-    "init_flux": [1],  # ], 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+    "init_flux": [2, 6],  # ], 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
     "max_flux": [20],
     "duration": [2000],
     "size": [4],
-    "generator_type":["RPG"],
-    "tolerance": [0.00],
-    "neuron_configuration":[[0, 1,2]]
+    "generator_type":["CPG", "RPG"],
+    "tolerance": [0.00, 0.1, 0.05],
+    "neuron_configuration":[[0], [0, 1], [0, 1,2]]
 }
 
 size = param_list['size'][0]
@@ -80,13 +80,14 @@ for x in itertools.product(*param_list.values()):
     # list of filenames for perturbed genomes
     #iterate through each starting genome
     for key in params.keys():
-        if key in tracking_parameters:
-            print(f"{key}:{params[key]}", end=" ", flush=False)
+        print(f"{key}:{params[key]} ", end=" ", flush=False)
+    print("")
 
     # load in perturbed genome
     starting_fitness = fitnessFunction(starting_genome, N=params["size"],
                                        generator_type=params['generator_type'],
                                        configuration=params['neuron_configuration'], verbose=verbose)
+    print(starting_fitness)
     print(f"\nTrial:", end= " ")
     for i in range(trials):
         print(f" {i}", end=" ", flush=False)

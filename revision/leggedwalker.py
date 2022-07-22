@@ -208,14 +208,18 @@ class LeggedAgent:
                 self.footstate = 0
             self.forwardForce = u[configuration[0]] * MaxLegForce
             self.backwardForce = u[configuration[1]] * MaxLegForce
-        if len(configuration)==3:
+        if len(configuration)==3 and len(u)>2:
             if (u[configuration[0]] > 0.5):
                 self.footstate = 1
                 self.omega = 0
             else:
                 self.footstate = 0
             self.forwardForce = u[configuration[1]] * MaxLegForce
-            self.backwardForce = u[configuration[2]] * MaxLegForce
+            try:
+                self.backwardForce = u[configuration[2]] * MaxLegForce
+            except:
+                print("Need at least 3 neurons for this configuration")
+
 
         # Compute force applied to the body
         f = self.forwardForce - self.backwardForce

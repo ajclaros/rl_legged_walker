@@ -62,6 +62,7 @@ class RL_CTRNN( CTRNN ):
         self.extended_weights = np.zeros((self.size, self.size))
         self.extended_biases= np.zeros((self.size))
         self.inner_weights = np.zeros((self.size, self.size))
+        self.reward=0
         if bias_max_flux_amp <= 0:
             self.bias_flux_mode=False
         else:
@@ -108,6 +109,7 @@ class RL_CTRNN( CTRNN ):
         # Shift amplitude by percentage of the current self.max_flux_amp   multipled by the reward
         #                               0.1  *     10.0          *  generally small value
         #
+        self.reward = reward
 
         if abs(reward)>=tolerance:
             self.flux_amp -= self.flux_conv_rate * reward
