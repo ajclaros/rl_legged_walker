@@ -129,13 +129,6 @@ class CTRNN():
 # Used because np.array is not serializable for JSON
 # There might be better options, but this works for now
 # Approach from: https://stackoverflow.com/questions/26646362/numpy-array-is-not-json-serializable
-def default(obj):
-    if type(obj).__module__ == np.__name__:
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        else:
-            return obj.item()
-    raise TypeError('Unknown type:', type(obj))
 
 def sigmoid(x):
     return 1/(1+np.exp(-x))
