@@ -114,15 +114,13 @@ class WalkingTask(RL_CTRNN):
 
             if generator_type=='RPG':
                 self.setInputs(np.array([body.anglefeedback()] * self.size))
-            elif generator_type=='MPG':
-                if np.random.binomial(1, prob):
-                    self.setInputs(np.array([body.anglefeedback()] * self.size))
             else:
                 self.setInputs(np.array([0] * self.size))
             self.step(self.stepsize)
             body.stepN(self.stepsize, self.outputs, configuration)
             if self.time_step<learning_start:
                 reward = self.default_reward_func(body, learning=False)
+                #updating with 0 reward
                 self.update_weights_and_flux_amp_with_reward(reward, tolerance)
             else:
                 reward = self.default_reward_func(body, learning=True)
@@ -139,8 +137,13 @@ class WalkingTask(RL_CTRNN):
                         continue
                     elif "hist" in key or 'running' in key:
                         datalogger.data[key][self.time_step] = self.__dict__[key][self.time_step]
+                    elif key in ['angle', 'omega','distance']:
+                        datalogger.data['angle'][self.time_step] = body.angle
+                        datalogger.data['omega'][self.time_step] = body.omega
+                        datalogger.data['distance'][self.time_step] = body.cx
                     else:
                         datalogger.data[key][self.time_step] = self.__dict__[key]
+
             self.time_step += 1
 
         self.time_step = 0

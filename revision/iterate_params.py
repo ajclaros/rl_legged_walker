@@ -23,12 +23,13 @@ with open("tracking_parameters.txt", "r") as f:
         if "#" in line or line=="\n":
             continue
         tracking_parameters.append(line.replace("\n", ""))
+print("Tracking:")
 print(tracking_parameters)
 
 
 #starting_genome+=0.5
 # times to try each element in the permutation of parameters
-trials = 30
+trials = 1
 param_list = {
     "window_size": [4000],
     "point": [0.1],  # the starting fitnesses: "starting point"
@@ -37,12 +38,12 @@ param_list = {
     "min_period": [300],
     "max_period": [400],
     "init_flux": [2, 6],  # ], 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-    "max_flux": [20],
+    "max_flux": [0],
     "duration": [2000],
     "size": [4],
-    "generator_type":["CPG", "RPG"],
-    "tolerance": [0.00, 0.1, 0.05],
-    "neuron_configuration":[[0], [0, 1], [0, 1,2]]
+    "generator_type":["RPG"],
+    "tolerance": [0.00],
+    "neuron_configuration":[[0], [0, 1], [0, 1, 2]]
 }
 
 size = param_list['size'][0]
@@ -57,15 +58,19 @@ size = param_list['size'][0]
 #  -0.98631473, -0.05024617, -0.10482154,  0.44165332,  0.71163555, -0.09252401,
 #  -1.0, 0.29520454,  0.21483684, -0.65461579,  0.89240772, -0.71878452])
 
-#starting_Genome = .434
+#starting_Genome: fitness:.434 size 4
 starting_genome = np.array([0.23346257, -0.30279292, 0.34302416, -0.03512043, 0.80039391, -0.36072524,
 -0.49741529, 0.33465454, 0.40609191, -0.2660889, 0.41499235, -0.26798221,
 -0.57463584, 0.53038157, 0.22581106, -0.82549032, 0.33720579, -0.26231516,
 -0.30053218, 0.66658017, 0.21483684, -0.65461579, 0.89240772, -0.71878452])
 
+
+#perturbe genome
 #starting_genome =np.array([0]*(size*size+2*size))
 #starting_genome = np.random.uniform(size=size*size+2*size)*2-1
 #starting_genome += 0.3
+#
+
 # parameters to track and their order to save into npz file
 # itertools creates a list of all permutations for each list in the dictionary
 # https://stackoverflow.com/questions/24594313/permutations-of-list-of-lists
@@ -111,5 +116,6 @@ for x in itertools.product(*param_list.values()):
               verbose=verbose,
               generator_type=params['generator_type'],
               tolerance=params['tolerance'],
-              tracking_parameters=tracking_parameters
+              tracking_parameters=tracking_parameters,
+              filename = 'noreward'
               )

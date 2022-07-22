@@ -26,15 +26,15 @@ class Microbial():
         self.gen = 0
 
 
-    def showFitness(self, label = "", c='k'):
+    def showFitness(self, label = "", c='k', save =False):
         plt.plot(self.bestHistory, label=label+' bestHist '+self.generator_type, color=c,ls='dashed')
         plt.plot(self.avgHistory, label=label+' averageHist '+self.generator_type, color=c, ls='solid')
         plt.xlabel("Generations")
         plt.ylabel("Fitness")
         plt.legend()
-        plt.title(f"Microbial: Best and average fitness\nN:{self.size},neuron_config:{self.neuron_configuration}")
-        filename = f"{self.generator_type}-s{self.size}-c{'_'.join(str(num) for num in self.neuron_configuration)}"
-        plt.savefig(Path(f"./data/microbial/{filename}"))
+        if save:
+            filename = f"{self.generator_type}-s{self.size}-c{'_'.join(str(num) for num in self.neuron_configuration)}"
+            plt.savefig(Path(f"./data/microbial/{filename}"))
 
     def fitStats(self):
         bestind = self.pop[np.argmax(self.fitness)]

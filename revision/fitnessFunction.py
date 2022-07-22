@@ -3,11 +3,6 @@ import leggedwalker
 import numpy as np
 from ctrnn import CTRNN
 from datalogger import DataLogger
-#N = 2 # Number of neurons in the nervous system
-WR = 16    # Weight range - maps from [-1, 1] to: [-16,16]
-BR = 16    # Bias range - maps from [-1, 1] to: [-16,16]
-TR = 5.0   # Time range - maps from [-1, 1] to: [-5, 5]
-TA = 6.0   # Time add - maps from [-5, 5] to: [1,11]
 
 # Task Parameters
 duration = 220.0

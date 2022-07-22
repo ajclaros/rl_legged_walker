@@ -8,9 +8,12 @@ biases
 extended_weights
 extended_biases
 outputs
+#omega
+#angle
+#distance
 #inputs
 flux_amp
-
+reward
 #voltages
 #inv_time_constants
 #inner_flux_periods
