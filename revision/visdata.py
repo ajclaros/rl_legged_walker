@@ -67,7 +67,7 @@ def plotChosenParam(filename, param, show=False, save=True):
 
 
 
-def plotAverageParam(param, show=False):
+def plotAverageParam(param, show=False, save=True):
     files = os.listdir('./data')
     averaged = []
     files = [name for name in files if '.npz' in name]
@@ -78,10 +78,12 @@ def plotAverageParam(param, show=False):
         data = np.load(f"./data/{name}")
         ax.plot(time, data[param], c='c', ls='--')
         averaged.append(data[param])
-    ax.title.set_text(f"Averaged {param} over duration {data['duration']}\n all trials\n 10 random genomes")
+    ax.title.set_text(f"Averaged {param} over duration {data['duration']}\n all trials\n")
     plt.plot(time, np.mean(averaged, axis=0), c='k')
 
     if show:
+        if save:
+            plt.savefig(f"./data/images/all_files-{param}.png")
         plt.show()
 
 
