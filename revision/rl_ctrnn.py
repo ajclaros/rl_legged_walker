@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import jsons
 import math
 from ctrnn import CTRNN
 
@@ -200,9 +199,6 @@ class RL_CTRNN( CTRNN ):
         else:
             self.outputs = sigmoid( self.voltages + self.biases)
 
-    def pprint( self ):
-        for k, v in self.__dict__.items():
-            print( f"'{k}' : {v}")
 
 def sigmoid(x):
     return 1/(1+np.exp(-x))
