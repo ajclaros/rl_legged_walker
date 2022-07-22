@@ -124,25 +124,7 @@ class CTRNN():
         self.inv_time_constants = 1.0/self.time_constants
 
     # Pretty print option to help debug
-    def pprint( self ):
-        for k, v in self.__dict__.items():
-            print( f"'{k}' : {v}")
 
-    #Goal here is to provide a human readable encoding of the CTRNN, likewise simple to load
-    def save_json( self, filename="temp_ctrnn.json"):
-        nn_json = json.dumps( self.__dict__, default=default,indent=4 )
-        with open( filename, 'w') as filehandle:
-            filehandle.write( nn_json )
-        filehandle.close()
-
-    def load_json( self, filename="temp_ctrnn.json"):
-        with open( filename, 'r') as filehandle:
-            nn = json.loads( filehandle.read() )
-        for key,value in nn.items():
-            #TODO fix this at some point, but for now assume np.array
-            if isinstance(value, list):
-                value = np.array(value)
-            setattr(self, key, value)
 
 # Used because np.array is not serializable for JSON
 # There might be better options, but this works for now
