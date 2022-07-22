@@ -22,10 +22,6 @@ class CTRNN():
         self.BR = BR
         self.TR = TR
         self.TA = TA
-
-
-
-
         #Parameter ranges - FIXED values
         self.weight_range = weight_range
         self.bias_range = bias_range
@@ -73,7 +69,7 @@ class CTRNN():
     def initializeState(self,v):
         self.voltages = v
         self.inv_time_constants = 1.0/self.time_constants
-        self.outputs = sigmoid( self.voltages + self.biases)
+        self.outputs = sigmoid(self.voltages + self.biases)
 
     def recoverParameters(self):
         return np.append(self.inner_weights.reshape(self.inner_weights.size)/self.WR, [self.biases/self.BR, (self.time_constants-self.TA)/self.TR])

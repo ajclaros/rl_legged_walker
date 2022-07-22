@@ -47,7 +47,7 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
                     (int(duration/stepsize), size, size)
                 )
 
-            elif "bias" in var or "voltage":
+            elif "bias" in var or "voltage" in var:
                 datalogger.data[var] = np.zeros((int(duration/stepsize), size))
             else:
                 datalogger.data[var] = np.zeros(int(duration/stepsize))
@@ -66,8 +66,7 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
     start_fitness = fitnessFunction(starting_genome, N=size, generator_type=generator_type, configuration=configuration)
     end_fitness = fitnessFunction(learner.recoverParameters(), N=size, generator_type=generator_type, configuration=configuration, verbose=verbose)
 
-    if verbose>0:
-        print(start_fitness)
+    if verbose>=0:
         print(f"startFitness: {start_fitness}\nendFitness:   {end_fitness}")
     if log_data:
         # if data is being saved, save the end fiteness
@@ -88,3 +87,7 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
                 filename = f"{generator_type}-{int(np.round(start_fitness,5)*100000)}-{int(np.round(end_fitness,5)*100000)}i0"
         filepath = Path(f"./data/{filename}")
         datalogger.save(filepath)
+        print(filename)
+        return filename
+    else:
+        return "not saved"

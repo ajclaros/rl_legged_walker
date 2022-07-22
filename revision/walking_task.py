@@ -33,6 +33,7 @@ class WalkingTask(RL_CTRNN):
         self.time_step = 0
         self.duration = duration
         self.stepsize = stepsize
+        self.reward = 0
         self.time = np.arange(0,self.duration, self.stepsize)
         self.distance_hist = np.zeros((self.time.size))
         self.performance_hist = np.zeros((self.time.size))
@@ -109,19 +110,19 @@ class WalkingTask(RL_CTRNN):
 
             #if logfitness==Tree, runs fitnessfunction every given percentage:
             #verbose=0.1, runs fitnessFunction 10 at equal intervals
-            if i %(self.time.size*verbose) == 0 and verbose>=0 and verbose<1.0:
+            if verbose>0 and i %(self.time.size*verbose) == 0 and verbose<1.0:
                 print("{}% completed...".format(i/self.time.size *100))
 
             if generator_type=='RPG':
                 self.setInputs(np.array([body.anglefeedback()] * self.size))
-            else:
+            elif generator_type=='CPG':
                 self.setInputs(np.array([0] * self.size))
             self.step(self.stepsize)
             body.stepN(self.stepsize, self.outputs, configuration)
             if self.time_step<learning_start:
-                reward = self.default_reward_func(body, learning=False)
+                self.reward = self.default_reward_func(body, learning=False)
                 #updating with 0 reward
-                self.update_weights_and_flux_amp_with_reward(reward, tolerance)
+                self.update_weights_and_flux_amp_with_reward(self.reward, tolerance)
             else:
                 reward = self.default_reward_func(body, learning=True)
                 self.update_weights_and_flux_amp_with_reward(reward, tolerance)
@@ -153,4 +154,5 @@ class WalkingTask(RL_CTRNN):
             datalogger.data['size'] = self.size
             datalogger.data['duration'] = self.duration
             datalogger.data['stepsize'] = self.stepsize
-            datalogger.data["performanceHist"] = self.performance_hist
+            datalogger.data["performance_hist"] = self.performance_hist
+            datalogger.data["running_average"] = self.running_average_performances

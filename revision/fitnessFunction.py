@@ -13,7 +13,7 @@ def fitnessFunction(genotype, duration=220.0, N=2, generator_type='RPG', configu
     # Create the agent's body
     legged = leggedwalker.LeggedAgent()
     if verbose>0:
-        print(f"Running fitnessFunction:{generator_type}")
+        print(f"Running fitnessFunction: {generator_type}")
     # Create the nervous system
     ns = CTRNN(N)
     # Set the parameters of the nervous system according to the genotype-phenotype map
@@ -34,7 +34,6 @@ def fitnessFunction(genotype, duration=220.0, N=2, generator_type='RPG', configu
         datalogger.data['omega'] = np.zeros(shape= (len(time)))
         datalogger.data['angle'] = np.zeros(shape= (len(time)))
     for i, t in enumerate(time):
-
         if record:
             datalogger.data['outputs'][i] = ns.outputs
             datalogger.data['distance'][i] = legged.cx

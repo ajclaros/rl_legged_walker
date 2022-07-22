@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import jsons
 import math
 from ctrnn import CTRNN
 
@@ -194,7 +193,6 @@ class RL_CTRNN( CTRNN ):
                         self.bias_inner_flux_periods[i] = round( np.random.uniform( self.bias_flux_period_min, self.bias_flux_period_max), 3)
         netinput = self.inputs + np.dot( self.calc_inner_weights_with_flux(), self.outputs)
         self.voltages += dt * (self.inv_time_constants * ( -self.voltages + netinput) )
-
 
         if self.bias_flux_mode:
             self.outputs = sigmoid( self.voltages + self.calc_bias_with_flux() )

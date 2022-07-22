@@ -7,7 +7,6 @@ files = [name for name in files if ".npz" in name  and generator_type in name]
 data= ""
 for i, name in enumerate(files):
     data= np.load(f"./data/{name}")
-data = np.load("./data/noreward.npz")
 
 
 
@@ -20,7 +19,7 @@ def plotWeightsBiases(data, show=False, legend=True):
             ax.plot(time, data['extended_weights'].T[i,j],         color=cmap[i], label=f'w_{i}{j}')
             ax.plot(time, data['inner_weights'].T[i,j],                 color=cmap[i+1])
 
-        ax.plot(time, data['biases'].T[i], color=cmap[i], ls='dotted', label='bias_0')
+        ax.plot(time, data['biases'].T[i], color=cmap[i], ls='dotted', label=f"bias_{i}")
         ax.plot(time, data['extended_biases'].T[i], ls='dotted', color=cmap[i+1])
     ax.axvline(data['learning_start']*data['stepsize'], color='k', lw='1')
     ax.title.set_text(f"Weight and Bias change during Trial:{generator_type}")
@@ -54,6 +53,39 @@ def plotBehavior(data, show=False):
     if show:
         plt.show()
 
+def plotChosenParam(filename, param, show=False, save=True):
+    fig, ax = plt.subplots()
+    data= np.load(f"./data/{filename}.npz")
+    time = np.arange(0, data['duration'], data['stepsize'])
+    ax.plot(time, data[param])
+    ax.title.set_text(f"{param} over duration {data['duration']}")
+    if show:
+        if save:
+            figname = filename+param
+            plt.savefig(f"./data/images/{figname}")
+        plt.show()
 
-plotWeightsBiases(data, show=True)
-plotBehavior(data, show=True)
+
+
+def plotAverageParam(param, show=False):
+    files = os.listdir('./data')
+    averaged = []
+    files = [name for name in files if '.npz' in name]
+    data = np.load(f"./data/{files[0]}")
+    time = np.arange(0, data['duration'], data['stepsize'])
+    fig, ax = plt.subplots()
+    for name in files:
+        data = np.load(f"./data/{name}")
+        ax.plot(time, data[param], c='c', ls='--')
+        averaged.append(data[param])
+    ax.title.set_text(f"Averaged {param} over duration {data['duration']}\n all trials\n 10 random genomes")
+    plt.plot(time, np.mean(averaged, axis=0), c='k')
+
+    if show:
+        plt.show()
+
+
+
+
+#plotWeightsBiases(data, show=True)
+#plotBehavior(data, show=True)
