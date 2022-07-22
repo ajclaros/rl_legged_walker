@@ -1,6 +1,5 @@
 import numpy as np
 
-
 # Parent class which can be extended to provide additional functionality
 # To help keep track of matrix dimensions I use
 # N for the size of the network (fully connected neurons, including self loops NxN )
