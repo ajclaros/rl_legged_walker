@@ -131,8 +131,7 @@ if visualize:
             tracked = tracked.split(' ')[-1]
             plotAverageParam(tracked, show=False)
     if vis_everything:
-        print('here')
-        #plotBehavior(data, show=False)
+        plotBehavior(data, show=False)
         plotWeightsBiases(data, show=False, extended=True)
-        plotChosenParam(filename, params=['reward','flux_amp', 'running_average', 'distance'])
+        plotChosenParam(filename, params=['reward','flux_amp', 'running_average', 'distance'], title='Reward modulated params')
 plt.show()

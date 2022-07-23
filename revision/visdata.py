@@ -58,7 +58,7 @@ def plotBehavior(data, show=False):
     if show:
         plt.show()
 
-def plotChosenParam(filename, params, show=False, save=True):
+def plotChosenParam(filename, params, show=False, save=True, title=None):
     numplots = int(np.ceil(np.sqrt(len(params))))
     fig, ax = plt.subplots(nrows=numplots, ncols=numplots)
     data= np.load(f"./data/{filename}.npz")
@@ -68,7 +68,10 @@ def plotChosenParam(filename, params, show=False, save=True):
         col = i % numplots
         ax[row][col].plot(time, data[param])
         ax[row][col].title.set_text(f"{param}")
-    fig.suptitle(f"startFit:{np.round(data['start_fitness'],3)}\nEndFit:{np.round(data['end_fitness'], 3)}\nDuration: {data['duration']}")
+    if not title:
+        fig.suptitle(f"startFit:{np.round(data['start_fitness'],3)}\nEndFit:{np.round(data['end_fitness'], 3)}\nDuration: {data['duration']}")
+    else:
+        fig.suptitle(title)
     if show:
         if save:
             figname = filename+param
