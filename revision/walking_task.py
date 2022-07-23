@@ -108,13 +108,16 @@ class WalkingTask(RL_CTRNN):
 
         if datalogger:
             datalogger.data['startgenome'] = self.recoverParameters()
+            datalogger.data['track_fitness'] = np.zeros(self.time.size)
+            datalogger.data['track_fitness'][self.time_step] = fitnessFunction(datalogger.data['startgenome'], N=self.size, generator_type= generator_type, configuration=configuration)
         for i,t in enumerate(self.time):
 
-            #if logfitness==Tree, runs fitnessfunction every given percentage:
+            #if track==Tree, runs fitnessfunction every given percentage:
             #verbose=0.1, runs fitnessFunction 10 at equal intervals
-            if verbose>0 and i %(self.time.size*verbose) == 0 and verbose<1.0:
+            if verbose>0.0 and i %(self.time.size*verbose) == 0 and verbose<1.0:
                 print("{}% completed...".format(i/self.time.size *100))
-
+                if track:
+                    datalogger.data['track_fitness'][self.time_step] = fitnessFunction(self.recoverParameters(), N=self.size, generator_type= generator_type, configuration=configuration)
             if generator_type=='RPG':
                 self.setInputs(np.array([body.anglefeedback()] * self.size))
             elif generator_type=='CPG':
@@ -136,7 +139,9 @@ class WalkingTask(RL_CTRNN):
                 self.running_average_performances[self.time_step] = self.running_average_performances[self.time_step-1] * (1-self.performance_update_rate) + self.performance_update_rate * self.performance_hist[self.time_step]
             if datalogger:
                 for key in datalogger.data.keys():
-                    if key in ["startgenome"]:
+                    if key in ["startgenome", 'track_fitness']:
+                        if key =="track_fitness" and (self.time_step<self.time.size-1)/self.stepsize :
+                            datalogger.data['track_fitness'][self.time_step+1] = datalogger.data['track_fitness'][self.time_step]
                         continue
                     elif "hist" in key or 'running' in key:
                         datalogger.data[key][self.time_step] = self.__dict__[key][self.time_step]
@@ -151,6 +156,7 @@ class WalkingTask(RL_CTRNN):
 
         self.time_step = 0
         if datalogger:
+            datalogger.data['track_fitness'][-1] = fitnessFunction(self.recoverParameters(), N=self.size, generator_type= generator_type, configuration=configuration)
             datalogger.data['learning_start'] = learning_start
             datalogger.data['tolerance'] = tolerance
             datalogger.data['size'] = self.size
@@ -158,3 +164,5 @@ class WalkingTask(RL_CTRNN):
             datalogger.data['stepsize'] = self.stepsize
             datalogger.data["performance_hist"] = self.performance_hist
             datalogger.data["running_average"] = self.running_average_performances
+            if 'running_average_perforamnces' in datalogger.data.keys():
+                datalogger.data['running_average'] = datalogger.data.pop('running_average_perforamnces')

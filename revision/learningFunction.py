@@ -13,7 +13,8 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
           min_period=300, max_period=400, conv_rate=0.004, learn_rate=0.004,
           bias_init_flux=2.75, bias_max_flux=10, bias_min_period=300,
           bias_max_period=400, bias_conv_rate=0.004, log_data=False,
-          verbose=1.00, generator_type='RPG', configuration=[0], tolerance=None, tracking_parameters=None, filename = None):
+          verbose=1.00, generator_type='RPG', configuration=[0], tolerance=None, tracking_parameters=None, filename = None,
+          track_fitness=False):
 
     learner = WalkingTask(
             duration=duration,
@@ -58,7 +59,8 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
             verbose=verbose,
             generator_type=generator_type,
             configuration=configuration,
-            tolerance=tolerance
+            tolerance=tolerance,
+            track = track_fitness
         )
     else:
         learner.simulate(body, learning_start=4000, verbose=verbose)

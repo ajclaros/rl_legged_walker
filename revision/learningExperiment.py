@@ -9,8 +9,9 @@ from visdata import *
 # verbose=-1: do not print
 # verbose>=0: print out starting and ending fitness
 # verbose in (0,1), print out progress of trial every % time passes for example
-verbose = 0
+verbose = 0.1
 log_data = True
+track_fitness = True
 num_trials = 1
 randomize_genomes = False
 num_random_genomes = 1
@@ -19,16 +20,16 @@ num_random_genomes = 1
 # "averaged [param_name]" will print the average of the parameter across all trials
 visualize = True
 vis_everything = True
-vis_params = ['averaged running_average']
+vis_params = [""]
 
 
 params = {
     "window_size": 4000,
     "learn_rate": 0.008,
     "conv_rate": 0.004,
-    "min_period": 200,
-    "max_period": 600,
-    "init_flux":4,
+    "min_period": 300,
+    "max_period": 400,
+    "init_flux":3,
     "max_flux": 8,
     "duration": 2000,
     "size": 2,
@@ -90,7 +91,8 @@ if not randomize_genomes:
                          verbose=verbose,
                          generator_type=params['generator_type'],
                          tolerance=params['tolerance'],
-                         tracking_parameters=tracking_parameters)
+                         tracking_parameters=tracking_parameters,
+                         track_fitness=track_fitness)
 
 else:
     for i in range(num_random_genomes):
@@ -120,7 +122,8 @@ else:
                              verbose=verbose,
                              generator_type=params['generator_type'],
                              tolerance=params['tolerance'],
-                             tracking_parameters=tracking_parameters)
+                             tracking_parameters=tracking_parameters,
+                             track_fitness=track_fitness)
 
 files = os.listdir('./data')
 files = [name for name in files if '.npz' in name]
@@ -129,9 +132,9 @@ if visualize:
     for tracked in vis_params:
         if "averaged" in tracked:
             tracked = tracked.split(' ')[-1]
-            plotAverageParam(tracked, show=False)
+            #plotAverageParam(tracked, show=False)
     if vis_everything:
-        plotBehavior(data, show=False)
-        plotWeightsBiases(data, show=False, extended=True)
-        plotChosenParam(filename, params=['reward','flux_amp', 'running_average', 'distance'], title='Reward modulated params')
+        plotBehavior(data, show=False, save=True)
+        plotWeightsBiases(data, show=False, extended=True, save=True)
+        plotChosenParam(filename, params=['reward','flux_amp', 'distance', ('running_average', 'track_fitness')], save=True)
 plt.show()
