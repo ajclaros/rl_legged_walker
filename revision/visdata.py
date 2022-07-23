@@ -26,6 +26,7 @@ def plotWeightsBiases(data, show=False, legend=True, extended=False, linewidth=2
                 ax.plot(time, data['extended_biases'].T[i],ls='dotted', color=cmap[-i], lw=linewidth-1)
     ax.axvline(data['learning_start']*data['stepsize'], color='k', lw='1', ls='--')
     ax.title.set_text(f"Weight and Bias change during Trial:{data['generator_type']}")
+    plt.tight_layout()
     if show:
         if legend:
             plt.legend()
@@ -50,6 +51,7 @@ def plotBehavior(data, show=False, save=False):
     ax[1][1].set_title("Angle")
     ax[1][1].axvline(data['learning_start']*data['stepsize'], c='k', ls='--')
     fig.suptitle(f"Duration:{data['duration']},\nStartFit:{np.round(data['start_fitness'],3)}\nEndFit:{np.round(data['end_fitness'],3)}\nSize:{data['size']}")
+    plt.tight_layout()
     if show:
         plt.show()
     if save:
@@ -75,6 +77,7 @@ def plotChosenParam(filename, params, show=False, save=True, title=None, title_p
         ax[row][col].axvline(data['learning_start']*data['stepsize'], c='k', ls='--')
     if not title:
         fig.suptitle(f"startFit:{np.round(data['start_fitness'],3)}\nEndFit:{np.round(data['end_fitness'], 3)}\nDuration: {data['duration']}")
+    plt.tight_layout()
     if save:
         title = []
         for param in params:
@@ -105,7 +108,6 @@ def plotAverageParam(param, show=False, save=True):
         averaged.append(data[param])
     ax.title.set_text(f"Averaged {param} over duration {data['duration']}\n all {len(files)} trials\n")
     plt.plot(time, np.mean(averaged, axis=0), c='k')
-
     if show:
         plt.show()
     if save:

@@ -132,7 +132,7 @@ if visualize:
     for tracked in vis_params:
         if "averaged" in tracked:
             tracked = tracked.split(' ')[-1]
-            #plotAverageParam(tracked, show=False)
+            plotAverageParam(tracked, show=False)
     if vis_everything:
         plotBehavior(data, show=False, save=True)
         plotWeightsBiases(data, show=False, extended=True, save=True)

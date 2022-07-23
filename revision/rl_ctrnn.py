@@ -101,7 +101,7 @@ class RL_CTRNN( CTRNN ):
         super().randomize_parameters()
     
     # Provided an external reward signal, update weights and fluctuations accordingly
-    def update_weights_and_flux_amp_with_reward(self, reward, tolerance, learning=True):
+    def update_weights_and_flux_amp_with_reward(self, reward, tolerance=0.0, learning=True):
         # Change in amplitude is based on reward signal and convergence rate
         # Page 2, Equation 4:    dA  = -B * R(t)
         # Reward positive => amp decreases.    Reward negative => amp increases
