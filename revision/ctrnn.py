@@ -123,12 +123,8 @@ class CTRNN():
             k += 1
         self.inv_time_constants = 1.0/self.time_constants
 
-    # Pretty print option to help debug
 
 
-# Used because np.array is not serializable for JSON
-# There might be better options, but this works for now
-# Approach from: https://stackoverflow.com/questions/26646362/numpy-array-is-not-json-serializable
 
 def sigmoid(x):
     return 1/(1+np.exp(-x))

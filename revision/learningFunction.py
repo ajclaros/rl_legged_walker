@@ -47,7 +47,7 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
                     (int(duration/stepsize), size, size)
                 )
 
-            elif "bias" in var or "voltage" in var:
+            elif "bias" in var or "voltage" in var or "outputs" in var:
                 datalogger.data[var] = np.zeros((int(duration/stepsize), size))
             else:
                 datalogger.data[var] = np.zeros(int(duration/stepsize))
@@ -75,6 +75,7 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
         datalogger.data["generator_type"] = generator_type
         datalogger.data["neuron_configuration"] = configuration
         datalogger.data["start_fitness"] = start_fitness
+        datalogger.data["generator_type"] = generator_type
         if "tolerance" in tracking_parameters:
             datalogger.data['tolerance'] = tolerance
         datafiles = os.listdir("./data")

@@ -9,28 +9,32 @@ for i, name in enumerate(files):
     data= np.load(f"./data/{name}")
 
 
-
-def plotWeightsBiases(data, show=False, legend=True):
+def plotWeightsBiases(data, show=False, legend=True, extended=False, linewidth=2):
     cmap = plt.get_cmap('tab20').colors
     fig, ax = plt.subplots(figsize=(8,4))
-    time = np.arange(0, data['duration'], 0.1)
+    time = np.arange(0, data['duration'], data['stepsize'])
+
     for i in range(data["size"]):
         for j in range(data['size']):
-            ax.plot(time, data['extended_weights'].T[i,j],         color=cmap[i], label=f'w_{i}{j}')
-            ax.plot(time, data['inner_weights'].T[i,j],                 color=cmap[i+1])
+            ax.plot(time, data['inner_weights'].T[i,j], color=cmap[i*data['size']+j], label=f'w_{i}{j}', lw=linewidth)
+            if extended:
+                ax.plot(time, data['extended_weights'].T[i,j], color=cmap[i*data['size']+j], ls='dotted', lw=linewidth-1)
 
-        ax.plot(time, data['biases'].T[i], color=cmap[i], ls='dotted', label=f"bias_{i}")
-        ax.plot(time, data['extended_biases'].T[i], ls='dotted', color=cmap[i+1])
+        if 'biases' in data.files:
+            ax.plot(time, data['biases'].T[i], color=cmap[-i], label=f"bias_{i}", lw=linewidth)
+            if extended:
+                ax.plot(time, data['extended_biases'].T[i],ls='dotted', color=cmap[-i], lw=linewidth-1)
     ax.axvline(data['learning_start']*data['stepsize'], color='k', lw='1')
-    ax.title.set_text(f"Weight and Bias change during Trial:{generator_type}")
+    ax.title.set_text(f"Weight and Bias change during Trial:{data['generator_type']}")
     if show:
         if legend:
             plt.legend()
         plt.savefig("./data/images/weight-bias.png")
         plt.show()
+
 def plotPerformance(data, show=False):
     fig, ax = plt.subplots(nrows=2, ncols=2)
-    time = np.arange(0, data['duration'], 0.1)
+    time = np.arange(0, data['duration'], data['stepsize'])
     ax[0].plot(time, data['running_average_performances'])
     ax.axvline(data['learning_start']*data['stepsize'], color='k')
     ax.title.set_text(f"Average performance over time:{generator_type}\ntol:{data['tolerance']}")
@@ -38,9 +42,10 @@ def plotPerformance(data, show=False):
         plt.legend()
         plt.savefig("./data/images/weight-bias.png")
         plt.show()
+
 def plotBehavior(data, show=False):
     fig, ax = plt.subplots(nrows=2, ncols=2)
-    time = np.arange(0, data['duration'], 0.1)
+    time = np.arange(0, data['duration'], data['stepsize'])
     ax[0][0].plot(time, data['outputs'])
     ax[0][0].set_title("Neural outputs")
     ax[0][1].plot(time, data['distance'])
@@ -49,16 +54,21 @@ def plotBehavior(data, show=False):
     ax[1][0].set_title("Omega")
     ax[1][1].plot(time, data['angle'])
     ax[1][1].set_title("Angle")
-    fig.suptitle(f"Duration:{data['duration']},\nStartFit:{data['start_fitness']}\nEndFit:{data['end_fitness']}\nSize:{data['size']}")
+    fig.suptitle(f"Duration:{data['duration']},\nStartFit:{np.round(data['start_fitness'],3)}\nEndFit:{np.round(data['end_fitness'],3)}\nSize:{data['size']}")
     if show:
         plt.show()
 
-def plotChosenParam(filename, param, show=False, save=True):
-    fig, ax = plt.subplots()
+def plotChosenParam(filename, params, show=False, save=True):
+    numplots = int(np.ceil(np.sqrt(len(params))))
+    fig, ax = plt.subplots(nrows=numplots, ncols=numplots)
     data= np.load(f"./data/{filename}.npz")
     time = np.arange(0, data['duration'], data['stepsize'])
-    ax.plot(time, data[param])
-    ax.title.set_text(f"{param} over duration {data['duration']}")
+    for i, param in enumerate(params):
+        row = i // numplots
+        col = i % numplots
+        ax[row][col].plot(time, data[param])
+        ax[row][col].title.set_text(f"{param}")
+    fig.suptitle(f"startFit:{np.round(data['start_fitness'],3)}\nEndFit:{np.round(data['end_fitness'], 3)}\nDuration: {data['duration']}")
     if show:
         if save:
             figname = filename+param
@@ -77,8 +87,9 @@ def plotAverageParam(param, show=False, save=True):
     for name in files:
         data = np.load(f"./data/{name}")
         ax.plot(time, data[param], c='c', ls='--')
+        ax.axvline(data['learning_start']*data['stepsize'])
         averaged.append(data[param])
-    ax.title.set_text(f"Averaged {param} over duration {data['duration']}\n all trials\n")
+    ax.title.set_text(f"Averaged {param} over duration {data['duration']}\n all {len(files)} trials\n")
     plt.plot(time, np.mean(averaged, axis=0), c='k')
 
     if show:

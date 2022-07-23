@@ -75,9 +75,11 @@ class WalkingTask(RL_CTRNN):
     def default_reward_func(self,  distance, learning=True):
         performance = self.performance_func(distance)
         running_average_performance = self.running_average_performances[self.time_step-1]
+
         # Current instantaneous performance vs. the current running average (NOT the previous instantaneous performance)
         if not learning:
             return 0
+
         return  performance - running_average_performance
 
     def default_performance_func(self, body):
@@ -122,7 +124,7 @@ class WalkingTask(RL_CTRNN):
             if self.time_step<learning_start:
                 self.reward = self.default_reward_func(body, learning=False)
                 #updating with 0 reward
-                self.update_weights_and_flux_amp_with_reward(self.reward, tolerance)
+                self.update_weights_and_flux_amp_with_reward(self.reward, tolerance, learning=False)
             else:
                 reward = self.default_reward_func(body, learning=True)
                 self.update_weights_and_flux_amp_with_reward(reward, tolerance)

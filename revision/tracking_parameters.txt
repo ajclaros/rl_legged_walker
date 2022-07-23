@@ -3,10 +3,9 @@
 
 
 #agent behavior
-#distance_hist
-#omega
-#angle
-#distance
+omega
+angle
+distance
 
 #nervous system data
 inner_weights
@@ -15,11 +14,11 @@ extended_weights
 extended_biases
 #inv_time_constants
 #voltages
-#outputs
+outputs
 
 #reward modulated learning data
-#flux_amp
-#reward
+flux_amp
+reward
 #inner_flux_periods
 #inner_flux_moments
 #bias_flux_amp

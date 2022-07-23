@@ -101,7 +101,7 @@ class RL_CTRNN( CTRNN ):
         super().randomize_parameters()
     
     # Provided an external reward signal, update weights and fluctuations accordingly
-    def update_weights_and_flux_amp_with_reward(self, reward, tolerance):
+    def update_weights_and_flux_amp_with_reward(self, reward, tolerance, learning=True):
         # Change in amplitude is based on reward signal and convergence rate
         # Page 2, Equation 4:    dA  = -B * R(t)
         # Reward positive => amp decreases.    Reward negative => amp increases
@@ -110,7 +110,7 @@ class RL_CTRNN( CTRNN ):
         #
         self.reward = reward
 
-        if abs(reward)>=tolerance:
+        if abs(reward)>=tolerance and learning:
             self.flux_amp -= self.flux_conv_rate * reward
             self.flux_amp = min( max(self.flux_amp, 0), self.max_flux_amp )   # Keep fluctation amplitude between 0 and max_flux_amp (10)
         # 0 at center, +1 above center, -1, below center
@@ -119,21 +119,21 @@ class RL_CTRNN( CTRNN ):
                     self.bias_flux_amp = min( max(self.bias_flux_amp, 0), self.bias_max_flux_amp )   # Keep fluctation amplitude between 0 and max_flux_amp (10)
         inner_flux_center_displacements = self.flux_amp * np.sin(self.inner_flux_moments / self.inner_flux_periods * 2 * math.pi )
         if self.bias_flux_mode:
-            bias_inner_flux_center_displacements = self.bias_flux_amp * np.sin(self.bias_inner_flux_moments / self.bias_inner_flux_periods * 2 * math.pi )
+            bias_inner_flux_center_displacements = self.bias_flux_amp *np.sin(self.bias_inner_flux_moments / self.bias_inner_flux_periods * 2 * math.pi )
         # Page 2, Equation 3:    dC  = a ( W(t) - C) * R(t)
         #   NxN                  NxN                1.0              NxN                     -1              * small value
         #limiting to inter neuron weights, comment out and uncomment 129,130 for normal behavior
-#        for i in range(self.size):
-#            for j in range(self.size):
-#                if i!=j: #experiment
-#                    self.extended_weights[i,j] = self.inner_weights[i,j] + inner_flux_center_displacements[i,j]
-#                    self.inner_weights[i,j] = np.clip( self.inner_weights[i,j] + self.learn_rate * inner_flux_center_displacements[i,j] * reward, -self.weight_range, self.weight_range)
-#        return
         self.extended_weights = self.inner_weights + inner_flux_center_displacements
-        self.inner_weights = np.clip( self.inner_weights + self.learn_rate * inner_flux_center_displacements * reward, -self.weight_range, self.weight_range)
+        if abs(reward)<=tolerance and learning:
+            self.inner_weights = np.clip( self.inner_weights + self.learn_rate * inner_flux_center_displacements*0.1, -self.weight_range, self.weight_range)
+        else:
+            self.inner_weights = np.clip( self.inner_weights + self.learn_rate * inner_flux_center_displacements * reward, -self.weight_range, self.weight_range)
         if self.bias_flux_mode:
             self.extended_biases = self.biases + bias_inner_flux_center_displacements
-            self.biases = np.clip( self.biases + self.learn_rate * bias_inner_flux_center_displacements * reward, -self.bias_range, self.bias_range)
+            if abs(reward)<=tolerance and learning:
+                self.biases = np.clip( self.biases + self.learn_rate * bias_inner_flux_center_displacements*0.1, -self.bias_range, self.bias_range)
+            else:
+                self.biases = np.clip( self.biases + self.learn_rate * bias_inner_flux_center_displacements*reward, -self.bias_range, self.bias_range)
 #        for i in range(self.size):
 #            for j in range(self.size):
 #                if i!=j:
@@ -148,13 +148,13 @@ class RL_CTRNN( CTRNN ):
     # In this code the individual instantaneous time within a period (moments) are scaled by the individual periods and current amplitude
     def calc_inner_weights_with_flux(self):
         #  NxN        NxN             1                      NxN                  NxN          
-        inner_weights = self.inner_weights + self.flux_amp * np.sin(self.inner_flux_moments / self.inner_flux_periods * 2 * math.pi )
-        return inner_weights.T
+        fluxxed_weights = self.inner_weights + self.flux_amp * np.sin(self.inner_flux_moments / self.inner_flux_periods * 2 * math.pi ) * np.sign(self.inner_flux_periods)
+        return fluxxed_weights.T
     
     def calc_bias_with_flux(self):
         if self.bias_flux_mode:
             #  NxN        NxN             1                      NxN                  NxN          
-            fluxxed_bias = self.biases + self.bias_flux_amp * np.sin(self.bias_inner_flux_moments / self.bias_inner_flux_periods * 2 * math.pi )
+            fluxxed_bias = self.biases + self.bias_flux_amp * np.sin(self.bias_inner_flux_moments / self.bias_inner_flux_periods * 2 * math.pi )*np.sign(self.bias_inner_flux_periods)
         else:
             print("This should NOT be called when bias_flux_mode is false. Exiting...")
             quit()
@@ -169,7 +169,7 @@ class RL_CTRNN( CTRNN ):
         for i in range(self.size):
             for j in range(self.size):
                 #if period is reached/exceeded randomize new one...
-                if self.inner_flux_moments[i][j] > self.inner_flux_periods[i][j]:
+                if self.inner_flux_moments[i][j] > abs(self.inner_flux_periods[i][j]):
                     # reset synaptic fluctation moment and pick new period
                     self.inner_flux_moments[i][j] = 0
                     #round to avoid the offsets causing the fluctuation to involvuntarily move up/down
@@ -178,7 +178,11 @@ class RL_CTRNN( CTRNN ):
                         dev = (self.flux_period_max - self.flux_period_min) / 4
                         self.inner_flux_periods[i][j] = np.clip( np.round(np.random.normal( center, scale=dev),3), self.flux_period_min, self.flux_period_max)
                     else:
-                        self.inner_flux_periods[i][j] = round( np.random.uniform( self.flux_period_min, self.flux_period_max), 3)
+                        self.inner_flux_periods[i][j] = np.round(np.random.uniform(self.flux_period_min, self.flux_period_max), 3)
+                    self.inner_flux_periods[i][j] *= (np.random.binomial(1, 0.5)*2)-1
+
+
+
             #Adjust biases when enabled
             if self.bias_flux_mode:
                 if self.bias_inner_flux_moments[i] > self.bias_inner_flux_periods[i]:
@@ -191,11 +195,13 @@ class RL_CTRNN( CTRNN ):
                         self.bias_inner_flux_periods[i] = np.clip( np.round(np.random.normal( center, scale=dev),3), self.bias_flux_period_min, self.bias_flux_period_max)
                     else:
                         self.bias_inner_flux_periods[i] = round( np.random.uniform( self.bias_flux_period_min, self.bias_flux_period_max), 3)
-        netinput = self.inputs + np.dot( self.calc_inner_weights_with_flux(), self.outputs)
+        netinput = self.inputs + np.dot(self.extended_weights.T, self.outputs)
+        #netinput = self.inputs + np.dot( self.calc_inner_weights_with_flux(), self.outputs)
         self.voltages += dt * (self.inv_time_constants * ( -self.voltages + netinput) )
 
         if self.bias_flux_mode:
-            self.outputs = sigmoid( self.voltages + self.calc_bias_with_flux() )
+            self.outputs = sigmoid( self.voltages + self.extended_biases.T )
+            #self.outputs = sigmoid( self.voltages + self.calc_bias_with_flux() )
         else:
             self.outputs = sigmoid( self.voltages + self.biases)
 
