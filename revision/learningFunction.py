@@ -93,4 +93,5 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
         print(filename)
         return filename
     else:
+        print("Not saved")
         return "not saved"

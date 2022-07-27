@@ -30,7 +30,7 @@ print(tracking_parameters)
 # times to try each element in the permutation of parameters
 trials = 100
 param_list = {
-    "window_size": [4000],
+    "window_size": [400],
     "point": [0.1],  # the starting fitnesses: "starting point"
     "learn_rate": [0.008],
     "conv_rate": [0.004],

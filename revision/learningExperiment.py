@@ -9,10 +9,10 @@ from visdata import *
 # verbose=-1: do not print
 # verbose>=0: print out starting and ending fitness
 # verbose in (0,1), print out progress of trial every % time passes for example
-verbose = 0.1
+verbose = 0.0
 log_data = True
-track_fitness = True
-num_trials = 1
+track_fitness = False
+num_trials = 100
 randomize_genomes = False
 num_random_genomes = 1
 
@@ -20,28 +20,35 @@ num_random_genomes = 1
 # "averaged [param_name]" will print the average of the parameter across all trials
 visualize = True
 vis_everything = True
-vis_params = [""]
+vis_params = ["averaged running_average"]
 
 
 params = {
-    "window_size": 4000,
+    "window_size": 400,             #unit seconds
     "learn_rate": 0.008,
     "conv_rate": 0.004,
-    "min_period": 300,
-    "max_period": 400,
-    "init_flux":3,
+    "min_period": 300,              #unit seconds
+    "max_period": 400,              #unit seconds
+    "init_flux":4,
     "max_flux": 8,
-    "duration": 2000,
+    "duration": 2000,               #unit seconds
     "size": 2,
     "generator_type": "RPG",
     "tolerance": 0.00,
-    "neuron_configuration": [0]
+    "neuron_configuration": [0],
 }
 
 # hard coded genomes
 if not randomize_genomes:
     # size = 2
     starting_genome =np.array([0.99388489,  -0.19977217,   0.80557307,  0.66176187, -0.41946752,  0.00756486, -0.72451768, -0.50670193])
+
+    #size = 4
+#    starting_genome = np.array([0.23346257, -0.30279292, 0.34302416, -0.03512043, 0.80039391, -0.36072524,
+#    -0.49741529, 0.33465454, 0.40609191, -0.2660889, 0.41499235, -0.26798221,
+#    -0.57463584, 0.53038157, 0.22581106, -0.82549032, 0.33720579, -0.26231516,
+#    -0.30053218, 0.66658017, 0.21483684, -0.65461579, 0.89240772, -0.71878452])
+
     for i, val in enumerate(starting_genome):
 
         #add noise to genome, keep within bounds [-1,1]
@@ -51,13 +58,6 @@ if not randomize_genomes:
             starting_genome[i]+=-perturb
         else:
             starting_genome[i]+=perturb
-
-    #size = 4
-    #starting_genome = np.array([0.23346257, -0.30279292, 0.34302416, -0.03512043, 0.80039391, -0.36072524,
-    #-0.49741529, 0.33465454, 0.40609191, -0.2660889, 0.41499235, -0.26798221,
-    #-0.57463584, 0.53038157, 0.22581106, -0.82549032, 0.33720579, -0.26231516,
-    #-0.30053218, 0.66658017, 0.21483684, -0.65461579, 0.89240772, -0.71878452])
-
 tracking_parameters = []
 with open("tracking_parameters.txt", "r") as f:
     for line in f:
@@ -123,11 +123,15 @@ else:
                              generator_type=params['generator_type'],
                              tolerance=params['tolerance'],
                              tracking_parameters=tracking_parameters,
-                             track_fitness=track_fitness)
+                             track_fitness=track_fitness,
+                             max_perf = params['max_perf'])
 
 files = os.listdir('./data')
 files = [name for name in files if '.npz' in name]
 data = np.load(f"./data/{filename}.npz")
+time = np.arange(0, data['duration'], data['stepsize'])
+plt.plot(time[:-1], np.diff(data['distance']))
+plt.title("diff distance")
 if visualize:
     for tracked in vis_params:
         if "averaged" in tracked:
@@ -137,4 +141,4 @@ if visualize:
         plotBehavior(data, show=False, save=True)
         plotWeightsBiases(data, show=False, extended=True, save=True)
         plotChosenParam(filename, params=['reward','flux_amp', 'distance', ('running_average', 'track_fitness')], save=True)
-plt.show()
+plotAverageParam('running_average', show=True, b=1000)

@@ -59,7 +59,7 @@ def plotBehavior(data, show=False, save=False):
 
 def plotChosenParam(filename, params, show=False, save=True, title=None, title_params=None):
     numplots = int(np.ceil(np.sqrt(len(params))))
-    fig, ax = plt.subplots(nrows=numplots, ncols=numplots)
+    fig, ax = plt.subplots(nrows=numplots, ncols=numplots, figsize = (4,4))
     data= np.load(f"./data/{filename}.npz")
     time = np.arange(0, data['duration'], data['stepsize'])
     for i, param in enumerate(params):
@@ -94,20 +94,22 @@ def plotChosenParam(filename, params, show=False, save=True, title=None, title_p
         plt.show()
 
 
-def plotAverageParam(param, show=False, save=True):
+def plotAverageParam(param, show=False, save=True, b=60):
     files = os.listdir('./data')
     averaged = []
     files = [name for name in files if '.npz' in name]
     data = np.load(f"./data/{files[0]}")
     time = np.arange(0, data['duration'], data['stepsize'])
     fig, ax = plt.subplots()
-    for name in files:
+    for i, name in enumerate(files):
+        if i==b:
+            break
         data = np.load(f"./data/{name}")
         ax.plot(time, data[param], c='c', ls='--')
         ax.axvline(data['learning_start']*data['stepsize'], ls='--')
         averaged.append(data[param])
     ax.title.set_text(f"Averaged {param} over duration {data['duration']}\n all {len(files)} trials\n")
-    plt.plot(time, np.mean(averaged, axis=0), c='k')
+    ax.plot(time, np.mean(averaged, axis=0), c='k')
     if show:
         plt.show()
     if save:

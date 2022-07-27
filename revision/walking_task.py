@@ -8,7 +8,7 @@ class WalkingTask(RL_CTRNN):
 
     def __init__(self, size=2, duration=2000.0, stepsize=0.01,
                  reward_func=None, performance_func=None,
-                 running_window_mode=True, running_window_size=4000,
+                 running_window_mode=True, running_window_size=400,
                  performance_update_rate=0.005, performance_bias=0.007,
                  init_flux_amp=2.75, max_flux_amp=10, flux_period_min=300,
                  flux_period_max=400, flux_conv_rate=0.004, learn_rate=0.008,
@@ -40,7 +40,7 @@ class WalkingTask(RL_CTRNN):
         self.running_window_mode = running_window_mode
         self.running_average_performances = np.zeros(len(self.time) )
         if self.running_window_mode:
-            self.running_window_size = running_window_size
+            self.running_window_size = int(running_window_size/self.stepsize)
             self.sliding_window = np.zeros(self.running_window_size)
         else:
             self.performance_update_rate = performance_update_rate  # how quickly the running average performance is updated
@@ -104,7 +104,7 @@ class WalkingTask(RL_CTRNN):
                 + self.performance_update_rate * performance
         return performance
 
-    def simulate(self, body, datalogger=None, track=False,learning_start = None, verbose=0.1, generator_type='RPG', configuration = [0], tolerance=None):
+    def simulate(self, body, datalogger=None, track=False,learning_start = None, verbose=0.1, generator_type='RPG', configuration = [0], tolerance=0.0):
 
         if datalogger:
             datalogger.data['startgenome'] = self.recoverParameters()
@@ -127,10 +127,11 @@ class WalkingTask(RL_CTRNN):
             if self.time_step<learning_start:
                 self.reward = self.default_reward_func(body, learning=False)
                 #updating with 0 reward
-                self.update_weights_and_flux_amp_with_reward(self.reward, tolerance, learning=False)
+                self.update_weights_and_flux_amp_with_reward(self.reward, tolerance=tolerance, learning=False)
             else:
                 reward = self.default_reward_func(body, learning=True)
-                self.update_weights_and_flux_amp_with_reward(reward, tolerance)
+                self.reward = reward
+                self.update_weights_and_flux_amp_with_reward(reward, tolerance=tolerance)
             if self.running_window_mode:
                 self.sliding_window = np.roll(self.sliding_window, 1)
                 self.sliding_window[0] = self.performance_hist[self.time_step]

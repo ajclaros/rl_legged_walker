@@ -108,8 +108,8 @@ class RL_CTRNN( CTRNN ):
         # Shift amplitude by percentage of the current self.max_flux_amp   multipled by the reward
         #                               0.1  *     10.0          *  generally small value
         #
-        self.reward = reward
 
+        self.reward = reward
         if abs(reward)>=tolerance and learning:
             self.flux_amp -= self.flux_conv_rate * reward
             self.flux_amp = min( max(self.flux_amp, 0), self.max_flux_amp )   # Keep fluctation amplitude between 0 and max_flux_amp (10)
