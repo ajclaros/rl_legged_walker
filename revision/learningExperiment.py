@@ -6,14 +6,16 @@ from pathlib import Path
 from visdata import *
 
 
-# runn a single configuration "num_trials" times
+# run a single configuration "num_trials" times
 # verbose=-1: do not print
 # verbose>=0: print out starting and ending fitness
 # verbose in (0,1), print out progress of trial every % time passes for example
+folderName = "duration2000"
+
 verbose = 0.1
 log_data = True
 track_fitness = False
-num_trials = 1
+num_trials = 3
 randomize_genomes = False
 num_random_genomes = 1
 
@@ -23,8 +25,6 @@ visualize = True
 vis_everything = False
 vis_params = ["averaged running_average"]
 
-#w
-folderName = "experiment0"
 
 params = {
     "window_size": 400,             #unit seconds
@@ -34,7 +34,7 @@ params = {
     "max_period": 400,              #unit seconds
     "init_flux":4,
     "max_flux": 8,
-    "duration": 8000,               #unit seconds
+    "duration": 2000,               #unit seconds
     "size": 2,
     "generator_type": "RPG",
     "tolerance": 0.00,
@@ -51,7 +51,6 @@ with open(f"./data/{folderName}/params.txt", 'w') as f:
 if not randomize_genomes:
     # size = 2
     starting_genome =np.array([0.99388489,  -0.19977217,   0.80557307,  0.66176187, -0.41946752,  0.00756486, -0.72451768, -0.50670193])
-
     #size = 4
 #    starting_genome = np.array([0.23346257, -0.30279292, 0.34302416, -0.03512043, 0.80039391, -0.36072524,
 #    -0.49741529, 0.33465454, 0.40609191, -0.2660889, 0.41499235, -0.26798221,
@@ -141,15 +140,19 @@ files = os.listdir(pathname)
 files = [name for name in files if '.npz' in name]
 data = np.load(f"{pathname}/{filename}.npz")
 time = np.arange(0, data['duration'], data['stepsize'])
-plt.plot(time[:-1], np.diff(data['distance']))
-plt.title("diff distance")
 if visualize:
     for tracked in vis_params:
         if "averaged" in tracked:
             tracked = tracked.split(' ')[-1]
             plotAverageParam(tracked, show=False, b=-1, pathname=pathname)
+
     if vis_everything:
         plotBehavior(data, show=False, save=True)
         plotWeightsBiases(data, show=False, extended=True, save=True)
         plotChosenParam(pathname+"/"+filename, params=['reward','flux_amp', 'distance', ('running_average', 'track_fitness')], save=True)
+    else:
+        plot_params = [p for p in vis_params if "averaged" not in p]
+        plotChosenParam(pathname+"/"+filename(), params=plot_params)
+
 #plotAverageParam('running_average', show=True, b=1000, pathname=pathname)
+plt.show()

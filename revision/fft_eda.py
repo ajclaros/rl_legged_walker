@@ -6,7 +6,7 @@ from scipy.fft import fft, fftfreq
 mpl.rcParams['text.usetex'] = False
 from matplotlib.widgets import Slider, Button, CheckButtons
 import os
-folderName="duration2000"
+folderName="experiment0"
 pathName=f"./data/{folderName}"
 #fig, ax = plt.subplots(nrows=2, ncols=2)
 fig = plt.figure()
@@ -106,8 +106,8 @@ ax[1].title.set_text("Power Spectrum")
 clean_plot, = ax[0].plot(t, clean, color='r', label=f"filtered for power above {threshold}")
 power, clean, threshold = powerSpecCleanPlot(clean , threshold= threshold)
 cleaned_power, = ax[2].plot(power[0], power[1])
-ax[2].set_xlim((0,0.04))
-ax[2].set_ylim((0,1))
+ax[2].set_xlim((0,0.01))
+#ax[2].set_ylim((0,1))
 
 #line_6, = ax[0].plot(t, np.mean(arr, axis=0)+arr.std(axis=0), color='y', ls="dotted", label=r"mean $\pm$ std of subset")
 #line_7, = ax[0].plot(t, np.mean(arr, axis=0)-arr.std(axis=0), color='y', ls="dotted")
