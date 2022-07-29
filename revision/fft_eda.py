@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.gridspec as gridspec
 from scipy.fft import fft, fftfreq
-mpl.rcParams['text.usetex'] = False
-from matplotlib.widgets import Slider, Button, CheckButtons
 import os
-folderName="duration2000"
-pathName=f"./data/{folderName}"
+from matplotlib.widgets import Slider, Button, CheckButtons
+mpl.rcParams['text.usetex'] = False
+folderName = "RPG_d8000_initfx2"
+pathName= f"./data/{folderName}"
 #fig, ax = plt.subplots(nrows=2, ncols=2)
 fig = plt.figure()
 ax = []
@@ -43,13 +43,14 @@ text_var_2.set_visible(False)
 free_move =False
 change =False
 files = os.listdir(pathName)
-files = [name for name in files if 'npz' in name]
+files = [name for name in files if '.npz' in name]
 #files = files[:int(len(files)/4)]
 data = np.load(f"{pathName}/{files[0]}")
 t = np.arange(0, data['duration'], data['stepsize'])
+t = t[int(data['learning_start']/data['stepsize']):]
 for name in files:
     data = np.load(f"{pathName}/{name}")
-    grouped.append(data['running_average'])
+    grouped.append(data['running_average'][int(data['learning_start']/data['stepsize']):])
 grouped = np.array(grouped)
 average = np.mean(grouped, axis=0)
 
@@ -59,11 +60,9 @@ def window(size):
 
 ax[0].plot(t, average, c='k', label='Mean average performance across all trials')
 
-
 # Define initial parameters
 init_y_0= 0
 init_y_1= 0.65
-
 init_x_0= 0
 init_x_1= data['duration']
 # Create the figure and the line that we will manipulate
@@ -96,7 +95,7 @@ def powerSpecCleanPlot(mean_arr, threshold=5, dt= 0.1, n=20000):
     clean = ffilt
     return (power, clean, threshold)
 
-power, clean, threshold = powerSpecCleanPlot(mean_arr=arr.mean(axis=0), threshold=begin_x, n=data['duration']/data['stepsize'])
+power, clean, threshold = powerSpecCleanPlot(mean_arr=arr.mean(axis=0), threshold=begin_x, n=(data['duration']-data['learning_start'])/data['stepsize'])
 power_plot, = ax[1].plot(power[0], power[1])
 ax[2].set_xlim((0,0.04))
 ax[0].title.set_text(f"averaged 'running Averages' of {arr.shape[0]} trials\n where trial at x_1:{init_x_1}   in:[{np.round(init_y_0,2)},{np.round(init_y_1, 2)}]")
@@ -104,10 +103,10 @@ ax[1].set_xlim((0,0.04))
 ax[1].set_ylim((0,1))
 ax[1].title.set_text("Power Spectrum")
 clean_plot, = ax[0].plot(t, clean, color='r', label=f"filtered for power above {threshold}")
-power, clean, threshold = powerSpecCleanPlot(clean , threshold= threshold)
+power, clean, threshold = powerSpecCleanPlot(clean , threshold= threshold, n=(data['duration']-data['learning_start'])/data['stepsize'])
 cleaned_power, = ax[2].plot(power[0], power[1])
-ax[2].set_xlim((0,0.01))
-#ax[2].set_ylim((0,1))
+#ax[2].set_xlim((0,0.01))
+ax[2].set_ylim((0,1))
 
 #line_6, = ax[0].plot(t, np.mean(arr, axis=0)+arr.std(axis=0), color='y', ls="dotted", label=r"mean $\pm$ std of subset")
 #line_7, = ax[0].plot(t, np.mean(arr, axis=0)-arr.std(axis=0), color='y', ls="dotted")
@@ -178,15 +177,14 @@ def update(val):
     #x_0 = int(line_3.get_xdata())
     x_1 = int(line_4.get_xdata())
     arr = thresh(grouped, (y_0, y_1, 0, x_1*10))
-    power, clean, threshold= powerSpecCleanPlot(mean_arr=arr.mean(axis=0), threshold=f(x_0_slider.val), n=data['duration']/data['stepsize'])
-
+    power, clean, threshold= powerSpecCleanPlot(mean_arr=arr.mean(axis=0), threshold=f(x_0_slider.val), n=(data['duration']-data['learning_start'])/data['stepsize'])
     thresh_line.set_ydata(f(threshold))
     power_plot.set_xdata(power[0])
     power_plot.set_ydata(power[1])
     clean_plot.set_ydata(clean)
     clean_plot.set_label(f"filtered above power:{np.round(threshold,2)}")
 
-    power, clean, threshold = powerSpecCleanPlot(clean , threshold= threshold)
+    power, clean, threshold = powerSpecCleanPlot(clean , threshold= threshold, n=(data['duration']-data['learning_start'])/data['stepsize'])
     cleaned_power.set_ydata(power[1])
     ax[2].title.set_text(f"cleaned spectrum past {np.round(threshold, 2)}")
     print(arr.shape)

@@ -10,12 +10,11 @@ from visdata import *
 # verbose=-1: do not print
 # verbose>=0: print out starting and ending fitness
 # verbose in (0,1), print out progress of trial every % time passes for example
-folderName = "duration8000"
 
 verbose = 0.1
 log_data = True
 track_fitness = False
-num_trials = 100
+num_trials = 1
 randomize_genomes = False
 num_random_genomes = 1
 
@@ -32,14 +31,15 @@ params = {
     "conv_rate": 0.004,
     "min_period": 300,              #unit seconds
     "max_period": 400,              #unit seconds
-    "init_flux":4,
+    "init_flux":2,
     "max_flux": 8,
-    "duration": 8000,               #unit seconds
+    "duration": 2000,               #unit seconds
     "size": 2,
     "generator_type": "RPG",
     "tolerance": 0.00,
-    "neuron_configuration": [0],
+    "neuron_configuration": [0]
 }
+folderName = f"{params['generator_type']}_d{params['duration']}_initfx{params['init_flux']}"
 if not os.path.exists(Path(f"./data/{folderName}")):
     os.mkdir(f"./data/{folderName}")
 
@@ -150,9 +150,9 @@ if visualize:
         plotBehavior(data, show=False, save=True)
         plotWeightsBiases(data, show=False, extended=True, save=True)
         plotChosenParam(pathname+"/"+filename, params=['reward','flux_amp', 'distance', ('running_average', 'track_fitness')], save=True)
-    else:
-        plot_params = [p for p in vis_params if "averaged" not in p]
-        plotChosenParam(pathname+"/"+filename(), params=plot_params)
+    #else:
+    #    plot_params = [p for p in vis_params if "averaged" not in p]
+    #    plotChosenParam(pathname+"/"+filename(), params=plot_params)
 
 #plotAverageParam('running_average', show=True, b=1000, pathname=pathname)
 plt.show()

@@ -2,13 +2,16 @@
 
 * Summary:
 Implementation of reward modulated reinforcement learning in an embodied task. The learning task adjusts the weights and biases of an N size CTRNN for a legged walking task.
-The main CTRNN is an extension and modification of an implementation of a CTRNN CPG oscillation task by Yoder et al 2022
+The main code (ctrnn.py, rl_ctrnn.py, walking_task.py) is a modification of an existing implementation of a CTRNN CPG oscillation task by Yoder et al 2022
 
 - Main project is within the /revision/ folder. The /archived/ folder is the previous implementation
 * External Libraries:
+** Required
 - Numpy
 - Matplotlib
-- scipy.fft
+---------
+** Optional:
+- scipy.fft used in fft_eda.py
 * Usage:
 ** learningExperiment.py
 - folderName: creates folder if it does not exist within "./data/" to save each trial. Writes params.txt within folder of parameters used for the current experiment.
@@ -116,13 +119,15 @@ param_list = {
 #+END_SRC
 ** fft_eda.py:
 - GUI interface for fft exploratory data analysis on mean-averaged_performances of all trials in a given folder
-- select a subset of trials by changing x_1, y_0 and y_1
-- will grab all trials where the average performance of a trial \in [y_0, y_1] at x_1
-- windowed mode moves y_1 with y_0. Change to free mode to freely move y_0 and y_1. Press button to change mode.
+- select a subset of trials by changing =x_1=, =y_0= and =y_1=
+- will grab all trials where the average performance of a trial \in [ =y_0=, =y_1= ] at =x_1=
 - Bottom left plot is the power spectrum of the averaged-curve
-- modify =thresh= slider to filter out frequences below threshold. 
+- Modify =thresh= slider to filter out frequences below threshold. 
 - Bottom right plot displays the cleaned curve
 - Top plot displays in red the cleaned curve against the averaged curve and the average of all sample
+- =change mode=:  Switch between =y_1= moving with =y_0= at the same rate
+- =Print spectrum=: Print the filtered frequency and power spectrum
+
 
 
 
