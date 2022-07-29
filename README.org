@@ -114,6 +114,16 @@ param_list = {
     "neuron_configuration":[[0]]
 }
 #+END_SRC
+** fft_eda.py:
+- GUI interface for fft exploratory data analysis on mean-averaged_performances of all trials in a given folder
+- select a subset of trials by changing x_1, y_0 and y_1
+- will grab all trials where the average performance of a trial \in [y_0, y_1] at x_1
+- windowed mode moves y_1 with y_0. Change to free mode to freely move y_0 and y_1. Press button to change mode.
+- Bottom left plot is the power spectrum of the averaged-curve
+- modify =thresh= slider to filter out frequences below threshold. 
+- Bottom right plot displays the cleaned curve
+- Top plot displays in red the cleaned curve against the averaged curve and the average of all sample
+
 
 
 

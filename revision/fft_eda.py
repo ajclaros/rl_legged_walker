@@ -64,7 +64,7 @@ ax[0].plot(t, average, c='k', label='Mean average performance across all trials'
 init_y_0= 0
 init_y_1= 0.65
 
-init_x_0= 5
+init_x_0= 0
 init_x_1= data['duration']
 # Create the figure and the line that we will manipulate
 #line, = plt.plot(t, f(t, init_amplitude, init_frequency), lw=2)
@@ -215,7 +215,7 @@ reset_ax= plt.axes([0.06, 0.06, 0.11, 0.04])
 window_ax = plt.axes([0.06, 0.1, 0.11, 0.04])
 printspectrum_ax= plt.axes([0.06, 0.14, 0.11, 0.04])
 button_3 = Button(printspectrum_ax, 'Print spectrum', hovercolor='0.975')
-button_2 = Button(window_ax, 'window mode', hovercolor='0.975')
+button_2 = Button(window_ax, 'change mode', hovercolor='0.975')
 button_1= Button(reset_ax, 'Reset', hovercolor='0.975')
 
 
