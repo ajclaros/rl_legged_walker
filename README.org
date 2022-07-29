@@ -49,7 +49,7 @@ vis_params = ["averaged running_average"]
 |                 | FS:FootState  | FF: ForwardForce             | BF: BackwardForce          |
 | list            | assignment FS | assignment 2 FF              | assignment 3 BF            |
 | [n_0]           | $n_0 > 0.5$   | $2*(u[n_0]-0.5)*MaxLegForce$ | $2*(0.5- n_0)*MaxLegForce$ |
-| [n_0, n_1]      | same          | $ n_0*MaxLegForce$           | $n_1*MaxLegForce        $  |
+| [n_0, n_1]      | same          | $n_0*MaxLegForce$            | $n_1*MaxLegForce        $  |
 | [n_0, n_1, n_2] | same          | $n_1*MaxLegForce$            | $n_2*MaxLegForce$          |
 - tolerance: Experimental. Set 0 for default behavior. Otherwise during each performance evaluation, if the current performance is not greater than the tolerance, amplitude size stays the same, and weight center will follow the extended weights by a scaled value (0.1 as noted in rl_ctrnn.py)
 #+BEGIN_SRC python
