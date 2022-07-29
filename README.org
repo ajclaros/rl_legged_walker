@@ -116,7 +116,7 @@ param_list = {
 }
 #+END_SRC
 
-* Reference
+* Further Reading:
 - Yoder, J.A., Anderson, C.B., Wang, C., & Izquierdo, E.J. (2022). Reinforcement Learning for Central Pattern Generation in Dynamical Recurrent Neural Networks. Frontiers in Computational Neuroscience, 16.
 - Wei, T., & Webb, B. (2018). A Bio-inspired Reinforcement Learning Rule to Optimise Dynamical Neural Networks for Robot Control. 2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 556-561.
 - Wei, T., & Webb, B. (2018). A model of operant learning based on chaotically varying synaptic strength. Neural networks : the official journal of the International Neural Network Society, 108, 114-127 .
