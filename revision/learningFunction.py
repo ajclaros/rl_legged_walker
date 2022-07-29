@@ -13,7 +13,7 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
           min_period=300, max_period=400, conv_rate=0.004, learn_rate=0.004,
           bias_init_flux=2.75, bias_max_flux=10, bias_min_period=300,
           bias_max_period=400, bias_conv_rate=0.004, log_data=False,
-          verbose=1.00, generator_type='RPG', configuration=[0], tolerance=None, tracking_parameters=None, filename = None,
+          verbose=1.00, generator_type='RPG', configuration=[0], tolerance=None, tracking_parameters=None, filename = None, folderName=None,
           track_fitness=False):
 
     learner = WalkingTask(
@@ -88,9 +88,12 @@ def learn(starting_genome, duration=2000, size=2, windowsize=4000, stepsize=0.1,
                 filename = f"{generator_type}-{int(np.round(start_fitness,5)*100000)}-{int(np.round(end_fitness,5)*100000)}i{iteration}"
             else:
                 filename = f"{generator_type}-{int(np.round(start_fitness,5)*100000)}-{int(np.round(end_fitness,5)*100000)}i0"
-        filepath = Path(f"./data/{filename}")
+        if folderName:
+            filepath = Path(f"./data/{folderName}/{filename}")
+        else:
+            filepath = Path(f"./data/{filename}")
         datalogger.save(filepath)
-        print(filename)
+        print(filepath)
         return filename
     else:
         print("Not saved")

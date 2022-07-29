@@ -2,6 +2,7 @@ import numpy as np
 import os
 from datalogger import DataLogger
 from learningFunction import learn
+from pathlib import Path
 from visdata import *
 
 
@@ -9,19 +10,21 @@ from visdata import *
 # verbose=-1: do not print
 # verbose>=0: print out starting and ending fitness
 # verbose in (0,1), print out progress of trial every % time passes for example
-verbose = 0.0
+verbose = 0.1
 log_data = True
 track_fitness = False
-num_trials = 100
+num_trials = 1
 randomize_genomes = False
 num_random_genomes = 1
 
 #if visualize is true, print the parameters to visualize
 # "averaged [param_name]" will print the average of the parameter across all trials
 visualize = True
-vis_everything = True
+vis_everything = False
 vis_params = ["averaged running_average"]
 
+#w
+folderName = "experiment0"
 
 params = {
     "window_size": 400,             #unit seconds
@@ -31,12 +34,18 @@ params = {
     "max_period": 400,              #unit seconds
     "init_flux":4,
     "max_flux": 8,
-    "duration": 2000,               #unit seconds
+    "duration": 8000,               #unit seconds
     "size": 2,
     "generator_type": "RPG",
     "tolerance": 0.00,
     "neuron_configuration": [0],
 }
+if not os.path.exists(Path(f"./data/{folderName}")):
+    os.mkdir(f"./data/{folderName}")
+
+with open(f"./data/{folderName}/params.txt", 'w') as f:
+    for key in params.keys():
+        f.writelines(f"{key}:{params[key]}\n")
 
 # hard coded genomes
 if not randomize_genomes:
@@ -92,7 +101,7 @@ if not randomize_genomes:
                          generator_type=params['generator_type'],
                          tolerance=params['tolerance'],
                          tracking_parameters=tracking_parameters,
-                         track_fitness=track_fitness)
+                         track_fitness=track_fitness, folderName=folderName)
 
 else:
     for i in range(num_random_genomes):
@@ -124,11 +133,13 @@ else:
                              tolerance=params['tolerance'],
                              tracking_parameters=tracking_parameters,
                              track_fitness=track_fitness,
-                             max_perf = params['max_perf'])
+                             max_perf = params['max_perf'],
+                             folderName=folderName)
 
-files = os.listdir('./data')
+pathname = f"./data/{folderName}"
+files = os.listdir(pathname)
 files = [name for name in files if '.npz' in name]
-data = np.load(f"./data/{filename}.npz")
+data = np.load(f"{pathname}/{filename}.npz")
 time = np.arange(0, data['duration'], data['stepsize'])
 plt.plot(time[:-1], np.diff(data['distance']))
 plt.title("diff distance")
@@ -136,9 +147,9 @@ if visualize:
     for tracked in vis_params:
         if "averaged" in tracked:
             tracked = tracked.split(' ')[-1]
-            plotAverageParam(tracked, show=False)
+            plotAverageParam(tracked, show=False, b=-1, pathname=pathname)
     if vis_everything:
         plotBehavior(data, show=False, save=True)
         plotWeightsBiases(data, show=False, extended=True, save=True)
-        plotChosenParam(filename, params=['reward','flux_amp', 'distance', ('running_average', 'track_fitness')], save=True)
-plotAverageParam('running_average', show=True, b=1000)
+        plotChosenParam(pathname+"/"+filename, params=['reward','flux_amp', 'distance', ('running_average', 'track_fitness')], save=True)
+#plotAverageParam('running_average', show=True, b=1000, pathname=pathname)
