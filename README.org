@@ -39,7 +39,6 @@ visualize = True
 vis_everything = False
 vis_params = ["averaged running_average"]
 #+END_SRC
-
 - window_size: size of the averaging window during the performance evaluation
 - min/max_period: uniformly generate a sin wave with within [min, max] bounds
 - init_flux: initial amplitude of the sine wave, amplitude will not go larger than /max_flux/ or lower than 0
