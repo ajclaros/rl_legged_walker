@@ -21,7 +21,6 @@ The main CTRNN is an extension and modification of an implementation of a CTRNN 
 - num_random_genomes: run {num_trials} on N genomes
 #+BEGIN_SRC python
 folderName = "duration2000"
-
 verbose = 0.1
 log_data = True
 track_fitness = False
@@ -116,7 +115,11 @@ param_list = {
 }
 #+END_SRC
 
+
+
+
 * Further Reading:
 - Yoder, J.A., Anderson, C.B., Wang, C., & Izquierdo, E.J. (2022). Reinforcement Learning for Central Pattern Generation in Dynamical Recurrent Neural Networks. Frontiers in Computational Neuroscience, 16.
 - Wei, T., & Webb, B. (2018). A Bio-inspired Reinforcement Learning Rule to Optimise Dynamical Neural Networks for Robot Control. 2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 556-561.
 - Wei, T., & Webb, B. (2018). A model of operant learning based on chaotically varying synaptic strength. Neural networks : the official journal of the International Neural Network Society, 108, 114-127 .
+- Beer, R.D. (2009). Beyond control: the dynamics of brain-body-environment interaction in motor systems. Advances in experimental medicine and biology, 629, 7-24 .

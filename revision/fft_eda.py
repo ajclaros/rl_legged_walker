@@ -6,7 +6,7 @@ from scipy.fft import fft, fftfreq
 mpl.rcParams['text.usetex'] = False
 from matplotlib.widgets import Slider, Button, CheckButtons
 import os
-folderName="experiment0"
+folderName="duration2000"
 pathName=f"./data/{folderName}"
 #fig, ax = plt.subplots(nrows=2, ncols=2)
 fig = plt.figure()
@@ -158,7 +158,7 @@ x_1_slider = Slider(
 )
 # The function to be called anytime a slider's value changes
 def update(val):
-    global PSD, threshold, change
+    global PSD, threshold, change, power, clean
     line_1.set_ydata(f(y_0_slider.val))
     line_4.set_xdata(f(x_1_slider.val))
     #line_3.set_xdata(f(x_0_slider.val))
@@ -211,9 +211,9 @@ x_0_slider.on_changed(update)
 x_1_slider.on_changed(update)
 
 # Create a `matplotlib.widgets.Button` to reset the sliders to initial values.
-reset_ax= plt.axes([0.08, 0.06, 0.12, 0.04])
-window_ax = plt.axes([0.08, 0.1, 0.12, 0.04])
-printspectrum_ax= plt.axes([0.08, 0.14, 0.12, 0.04])
+reset_ax= plt.axes([0.06, 0.06, 0.11, 0.04])
+window_ax = plt.axes([0.06, 0.1, 0.11, 0.04])
+printspectrum_ax= plt.axes([0.06, 0.14, 0.11, 0.04])
 button_3 = Button(printspectrum_ax, 'Print spectrum', hovercolor='0.975')
 button_2 = Button(window_ax, 'window mode', hovercolor='0.975')
 button_1= Button(reset_ax, 'Reset', hovercolor='0.975')
@@ -236,8 +236,9 @@ def free(event):
         text_var_1.set_visible(True)
         text_var_2.set_visible(False)
 def printSpectrum(event):
-    global PSD, threshold
-    print(PSD[np.where(PSD>threshold)])
+    global power, threshold
+    print(f"freq:{power[0][np.where(power[1]>threshold)]}")
+    print(f"powe:{power[1][np.where(power[1]>threshold)]}")
 button_1.on_clicked(reset)
 button_2.on_clicked(free)
 button_3.on_clicked(printSpectrum)

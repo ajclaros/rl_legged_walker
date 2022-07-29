@@ -10,12 +10,12 @@ from visdata import *
 # verbose=-1: do not print
 # verbose>=0: print out starting and ending fitness
 # verbose in (0,1), print out progress of trial every % time passes for example
-folderName = "duration2000"
+folderName = "duration8000"
 
 verbose = 0.1
 log_data = True
 track_fitness = False
-num_trials = 3
+num_trials = 100
 randomize_genomes = False
 num_random_genomes = 1
 
@@ -34,7 +34,7 @@ params = {
     "max_period": 400,              #unit seconds
     "init_flux":4,
     "max_flux": 8,
-    "duration": 2000,               #unit seconds
+    "duration": 8000,               #unit seconds
     "size": 2,
     "generator_type": "RPG",
     "tolerance": 0.00,
