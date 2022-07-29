@@ -1,0 +1,33 @@
+#+title: Scratchpad
+
+#+BEGIN_SRC jupyter-python :session py :exports both
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
+files = os.listdir("./data")
+files= [name for name in files if 'npz' in name]
+averaged = []
+data=np.load(f"./data/{files[0]}")
+time = np.arange(0, data['duration'], data['stepsize'])
+
+for name in files:
+    data= np.load(f"./data/{name}")
+    averaged.append(data['running_average'])
+
+def window(size):
+    return np.ones(size)/float(size)
+average = np.mean(averaged, axis=0)
+std = np.array(averaged).std(axis=0)
+plt.plot(time, average)
+plt.plot(time, average+std, color='k')
+plt.plot(time, average-std, color='k')
+#plt.plot(time , conv,  c='r')
+#plt.axhline(0.00)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| <matplotlib.lines.Line2D | at | 0x7f9fe5b4d550> |
+[[file:./.ob-jupyter/6c2290c4db23f37555ce894541e0764552fa7825.png]]
+:END:

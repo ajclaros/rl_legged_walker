@@ -1,0 +1,27 @@
+#comment out ignored variables with "#"
+#names in this file are the class variables of WalkingTask and RLCTRNN
+
+
+#agent behavior
+omega
+angle
+distance
+
+#nervous system data
+inner_weights
+biases
+extended_weights
+extended_biases
+#inv_time_constants
+#voltages
+outputs
+
+#reward modulated learning data
+flux_amp
+reward
+running_average_performances
+#inner_flux_periods
+#inner_flux_moments
+#bias_flux_amp
+#bias_inner_flux_periods
+#bias_inner_flux_moments
