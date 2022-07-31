@@ -32,7 +32,6 @@ print(tracking_parameters)
 trials = 1
 param_list = {
     "window_size": [400],
-    "point": [0.1],  # the starting fitnesses: "starting point"
     "learn_rate": [0.008],
     "conv_rate": [0.004],
     "min_period": [300],
@@ -43,7 +42,7 @@ param_list = {
     "size": [4],
     "generator_type":["RPG"],
     "tolerance": [0.00],
-    "neuron_configuration":[[0]]
+    "neuron_configuration": [[0]]
 }
 
 if not os.path.exists(Path(f"./data/{folderName}")):
