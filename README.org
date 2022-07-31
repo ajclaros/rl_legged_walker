@@ -70,7 +70,7 @@ params = {
 }
 #+END_SRC
 
-- non-random genome. Set starting_genome to the hard-coded genome of choice. Note, length of the array must be $n^{2}+2n$, where n is the size parameter
+- non-random genome. Set starting_genome to the hard-coded genome of choice. Note, length of the array must be n^{2}+2n, where n is the size parameter
 #+BEGIN_SRC python
 if not randomize_genomes:
     # size = 2
