@@ -6,6 +6,7 @@ from scipy.fft import fft, fftfreq
 import os
 from matplotlib.widgets import Slider, Button, CheckButtons
 mpl.rcParams['text.usetex'] = False
+
 folderName = "RPG_d8000_initfx2"
 pathName= f"./data/{folderName}"
 #fig, ax = plt.subplots(nrows=2, ncols=2)
@@ -79,8 +80,8 @@ line_2 = ax[0].axhline(add_y)
 line_4 = ax[0].axvline(add_x)
 thresh_line = ax[1].axhline(init_x_0, ls='dotted', c='k')
 #line_5, = ax[0].plot(t[begin_x*10:add_x], np.mean(arr, axis=0), color='y')
-#line_6, = ax[0].plot(t[begin_x*10:add_x], np.mean(arr, axis=0)+arr.std(axis=0), color='y', ls="dotted")
-#line_7, = ax[0].plot(t[begin_x*10:add_x], np.mean(arr, axis=0)-arr.std(axis=0), color='y', ls="dotted")
+line_6, = ax[0].plot(t, np.mean(arr, axis=0)+arr.std(axis=0), color='y', ls="dotted", label='mean+std')
+line_7, = ax[0].plot(t, np.mean(arr, axis=0)-arr.std(axis=0), color='y', ls="dotted")
 line_5, = ax[0].plot(t, np.mean(arr, axis=0), color='y', label='mean of subset')
 def powerSpecCleanPlot(mean_arr, threshold=5, dt= 0.1, n=20000):
     fhat = np.fft.fft(mean_arr, n)
@@ -191,6 +192,8 @@ def update(val):
     #line_5.set_xdata(t[x_0*10: x_1*10])
     #line_5.set_xdata(t)
     line_5.set_ydata(np.mean(arr, axis=0))
+    line_6.set_ydata(np.mean(arr, axis=0)-arr.std(axis=0))
+    line_7.set_ydata(np.mean(arr, axis=0)+arr.std(axis=0))
 
     #line_6.set_xdata(t[x_0*10: x_1*10])
     #line_6.set_xdata(t)
