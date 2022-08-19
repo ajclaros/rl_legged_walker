@@ -1,0 +1,139 @@
+#+title: rl_legged_walker
+
+* Summary:
+Implementation of reward modulated reinforcement learning in an embodied task. The learning task adjusts the weights and biases of an N size CTRNN for a legged walking task.
+The main code (ctrnn.py, rl_ctrnn.py, walking_task.py) is a modification of an existing implementation of a CTRNN CPG oscillation task by Yoder et al 2022
+
+- Main project is within the /revision/ folder. The /archived/ folder is the previous implementation
+* External Libraries:
+** Required
+- Numpy
+- Matplotlib
+---------
+** Optional:
+- scipy.fft used in fft_eda.py
+* Usage:
+** learningExperiment.py
+- Creates a folder automatically based off of the starting parameters
+
+- verbose=-1: do not print
+- verbose>=0: print out starting and ending fitness
+- verbose in (0,1), print out progress of trial every % time passes for example
+- log_data will save npz file within folderName after each trial in format {generator_type}_\{start_fitness\}_\{end_fitness\}i{iter_num}. "iter_num" is used in case there are multiple trials that start and end with the same fitness
+- run a single configuration "num_trials" times
+- randomize_genomes: begin each genome with a randomized genome
+- num_random_genomes: run {num_trials} on N genomes
+#+BEGIN_SRC python
+verbose = 0.1
+log_data = True
+track_fitness = False
+num_trials = 3
+randomize_genomes = False
+num_random_genomes = 1
+#+END_SRC
+
+- If visualize==true: print the parameters to visualize
+- List parameters to visualize as a list within vis_params
+- if an element within vis_params contains "averaged" followed by as space. A visualization of all trials with the given parameter, followed by the average of each trial within the folder
+# "averaged [param_name]" will print the average of the parameter across all trials
+#+BEGIN_SRC python
+visualize = True
+vis_everything = False
+vis_params = ["averaged running_average"]
+#+END_SRC
+- window_size: size of the averaging window during the performance evaluation
+- min/max_period: uniformly generate a sin wave with within [min, max] bounds
+- init_flux: initial amplitude of the sine wave, amplitude will not go larger than /max_flux/ or lower than 0
+- duration: measured in units of time. dt=0.1
+- generator_type: RPG (with sensory feedback) or CPG (without sensory feedback)
+- neuron_configuration: list of size up to length 3 containing the indices of a neuron. Formulas for configuration are as follows:
+|                 | FS:FootState  | FF: ForwardForce             | BF: BackwardForce          |
+| list            | assignment FS | assignment 2 FF              | assignment 3 BF            |
+| [n_0]           | $n_0 > 0.5$   | $2*(n_0-0.5)*MaxLegForce$  | $2*(0.5- n_0)*MaxLegForce$ |
+| [n_0, n_1]      | same          | $n_0*MaxLegForce$            | $n_1*MaxLegForce        $  |
+| [n_0, n_1, n_2] | same          | $n_1*MaxLegForce$            | $n_2*MaxLegForce$          |
+- tolerance: Experimental. Set 0 for default behavior. Otherwise during each performance evaluation, if the current performance is not greater than the tolerance, amplitude size stays the same, and weight center will follow the extended weights by a scaled value (0.1 as noted in rl_ctrnn.py)
+#+BEGIN_SRC python
+params = {
+    "window_size": 400,             #unit seconds
+    "learn_rate": 0.008,
+    "conv_rate": 0.004,
+    "min_period": 300,              #unit seconds
+    "max_period": 400,              #unit seconds
+    "init_flux":4,
+    "max_flux": 8,
+    "duration": 2000,               #unit seconds
+    "size": 2,
+    "generator_type": "RPG",
+    "neuron_configuration": [0],
+    "tolerance": 0.00,              #experimental
+}
+#+END_SRC
+
+- non-random genome. Set starting_genome to the hard-coded genome of choice. Note, length of the array must be n^{2}+2n, where n is the size parameter
+#+BEGIN_SRC python
+if not randomize_genomes:
+    # size = 2
+    starting_genome =np.array([0.99388489,  -0.19977217,   0.80557307,  0.66176187, -0.41946752,  0.00756486, -0.72451768, -0.50670193])
+#+END_SRC
+- Easy way to perturb a hard-coded genome while staying within [-1, 1]
+#+BEGIN_SRC python
+    for i, val in enumerate(starting_genome):
+        #add noise to genome, keep within bounds [-1,1]
+        perturb = 0.2
+        #perturb  = np.random.binomial(1, p=0.5)*0.2
+        if val+perturb>1 or val+perturb<-1:
+            starting_genome[i]+=-perturb
+        else:
+            starting_genome[i]+=perturb
+#+END_SRC
+
+- load in parameters to track. See "tracking_parameters.txt"
+#+BEGIN_SRC python
+tracking_parameters = []
+with open("tracking_parameters.txt", "r") as f:
+    for line in f:
+        if "#" in line or line=="\n":
+            continue
+        tracking_parameters.append(line.replace("\n", ""))
+#+END_SRC
+** iterate_params.py
+- Similar format as learningExperiment.py, only each parameter is a list of values. Iterates through each possible combination of parameters for a given amount of trials. Set the lengh of each parameter list to be similar to learningExperiment. Good for sweeping through a range of parameters automatically.
+#+BEGIN_SRC python
+trials = 100
+param_list = {
+    "window_size": [400],   #in units of time
+    "learn_rate": [0.008],
+    "conv_rate": [0.004],
+    "min_period": [300],    #units of time
+    "max_period": [400],    #units of time
+    "init_flux": [0],  # ], 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+    "max_flux": [0],
+    "duration": [2000],     #units of time
+    "size": [4],
+    "generator_type":["RPG"],
+    "tolerance": [0.00],
+    "neuron_configuration": [ [0], [0,1] ]
+}
+#+END_SRC
+** fft_eda.py:
+- GUI interface for fft exploratory data analysis on mean-averaged_performances of all trials in a given folder
+- select a subset of trials by changing =x_1=, =y_0= and =y_1=
+- will grab all trials where the average performance of a trial \in [ =y_0=, =y_1= ] at =x_1=
+- Bottom left plot is the power spectrum of the averaged-curve
+- Modify =thresh= slider to filter out frequences below threshold. 
+- Bottom right plot displays the cleaned curve
+- Top plot displays in red the cleaned curve against the averaged curve and the average of all sample
+- =change mode=:  Switch between =y_1= moving with =y_0= at the same rate
+- =Print spectrum=: Print the filtered frequency and power spectrum
+
+
+
+
+
+
+* Further Reading:
+- Yoder, J.A., Anderson, C.B., Wang, C., & Izquierdo, E.J. (2022). Reinforcement Learning for Central Pattern Generation in Dynamical Recurrent Neural Networks. Frontiers in Computational Neuroscience, 16.
+- Wei, T., & Webb, B. (2018). A Bio-inspired Reinforcement Learning Rule to Optimise Dynamical Neural Networks for Robot Control. 2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 556-561.
+- Wei, T., & Webb, B. (2018). A model of operant learning based on chaotically varying synaptic strength. Neural networks : the official journal of the International Neural Network Society, 108, 114-127 .
+- Beer, R.D. (2009). Beyond control: the dynamics of brain-body-environment interaction in motor systems. Advances in experimental medicine and biology, 629, 7-24 .
