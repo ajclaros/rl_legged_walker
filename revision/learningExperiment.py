@@ -47,11 +47,11 @@ csv_elements = [
 
 params = {
     "window_size": 440,  # unit seconds
-    "learn_rate": 0.90,
+    "learn_rate": 0.9,
     "conv_rate": 0.5,
     "min_period": 440,  # unit seconds
     "max_period": 4400,  # unit seconds
-    "init_flux": 6,
+    "init_flux": 2,
     "max_flux": 8,
     "duration": 20000,  # unit seconds
     "size": 2,
@@ -142,6 +142,7 @@ if record_csv:
 
 
 params["bias_init_flux"] = params["init_flux"]
+params["bias_init_flux"] = params["init_flux"]
 params["max_flux"] = params["max_flux"]
 params["bias_init_flux"] = params["init_flux"]
 params["bias_max_flux"] = params["max_flux"]
@@ -152,14 +153,13 @@ results = []
 with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as executor:
     for i, starting_genome in enumerate(genome_list):
         print(f"Genome:{i}")
-        start_fitness = fitnessFunction(
-            starting_genome,
-            N=params["size"],
-            generator_type=params["generator_type"],
-            configuration=params["neuron_configuration"],
-        )
-        params["init_flux"] = getAmp(0.625, start_fitness, params["max_flux"])
-        params["bias_init_flux"] = params["init_flux"]
+        # start_fitness = fitnessFunction(
+        #     starting_genome,
+        #     N=params["size"],
+        #     generator_type=params["generator_type"],
+        #     configuration=params["neuron_configuration"],
+        # )
+        # params["init_flux"] = getAmp(0.625, start_fitness, params["max_flux"])
         N = params["size"]
         for trial in range(num_trials):
             np.random.seed(np.random.randint(10000))
