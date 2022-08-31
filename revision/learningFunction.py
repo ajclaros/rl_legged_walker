@@ -106,7 +106,7 @@ def learn(
         configuration=neuron_configuration,
     )
     end_fitness = fitnessFunction(
-        learner.recoverParameters(),
+        learner.recoverParameters(inner=False),
         N=size,
         generator_type=generator_type,
         configuration=neuron_configuration,

@@ -6,6 +6,7 @@ from pathlib import Path
 from visdata import *
 import concurrent.futures
 import matplotlib.pyplot as plt
+from fitnessFunction import fitnessFunction
 import time
 
 # run a single configuration "num_trials" times
@@ -13,20 +14,23 @@ import time
 # verbose>=0: print out starting and ending fitness
 # verbose in (0,1), print out progress of trial every % time passes for example
 
-verbose = -1
+verbose = 0.1
 log_data = True
 record_csv = True
 track_fitness = False
-num_trials = 20
+num_trials = 8
 num_processes = 8
 num_sets = int(np.floor(num_trials / num_processes))
 randomize_genomes = True
-num_random_genomes = 1
+num_random_genomes = 3
 # if visualize is true, print the parameters to visualize
 # "averaged [param_name]" will print the average of the parameter across all trials
 visualize = True
 vis_everything = False
-vis_params = ["averaged running_average", "averaged reward"]
+vis_params = [
+    "averaged flux_amp",
+    "averaged running_average_performances",
+]
 csv_name = "single_genome.csv"
 
 csv_elements = [
@@ -42,17 +46,17 @@ csv_elements = [
 ]
 
 params = {
-    "window_size": 400,  # unit seconds
-    "learn_rate": 0.008,
-    "conv_rate": 0.004,
-    "min_period": 300,  # unit seconds
-    "max_period": 800,  # unit seconds
-    "init_flux": 8,
-    "max_flux": 16,
-    "duration": 8000,  # unit seconds
+    "window_size": 440,  # unit seconds
+    "learn_rate": 0.90,
+    "conv_rate": 0.5,
+    "min_period": 440,  # unit seconds
+    "max_period": 4400,  # unit seconds
+    "init_flux": 6,
+    "max_flux": 8,
+    "duration": 20000,  # unit seconds
     "size": 2,
     "generator_type": "RPG",
-    "tolerance": 0.10,
+    "tolerance": 0.00000,
     "neuron_configuration": [0],
 }
 
@@ -61,6 +65,14 @@ folderName += "recording"
 if not os.path.exists(Path(f"./data/{folderName}")):
     print(f"creating folder:{folderName}")
     os.mkdir(f"./data/{folderName}")
+
+
+def getAmp(end_fitness, start_fitness, max_flux):
+    start_flux = 0
+    if start_fitness == 0.0:
+        return max_flux
+    else:
+        return max_flux * start_fitness / end_fitness
 
 
 N = params["size"]
@@ -82,7 +94,9 @@ if not randomize_genomes:
             ]
         )
     )
+    genome_list = np.array(genome_list)
     starting_genome = genome_list[0]
+
     for i, val in enumerate(starting_genome):
 
         # add noise to genome, keep within bounds [-1,1]
@@ -128,23 +142,31 @@ if record_csv:
 
 
 params["bias_init_flux"] = params["init_flux"]
-params["init_flux"] = params["init_flux"]
 params["max_flux"] = params["max_flux"]
 params["bias_init_flux"] = params["init_flux"]
-params["bias_init_flux"] = params["init_flux"]
-params["bias_max_flux"] = params["max_flux"]
 params["bias_max_flux"] = params["max_flux"]
 params["bias_min_period"] = params["min_period"]
 params["bias_max_period"] = params["max_period"]
 params["bias_conv_rate"] = params["conv_rate"]
+results = []
 with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as executor:
     for i, starting_genome in enumerate(genome_list):
         print(f"Genome:{i}")
+        start_fitness = fitnessFunction(
+            starting_genome,
+            N=params["size"],
+            generator_type=params["generator_type"],
+            configuration=params["neuron_configuration"],
+        )
+        params["init_flux"] = getAmp(0.625, start_fitness, params["max_flux"])
+        params["bias_init_flux"] = params["init_flux"]
         N = params["size"]
-        results = []
-        print("trial:")
         for trial in range(num_trials):
             np.random.seed(np.random.randint(10000))
+            if len(results) == 0:
+                print_verbose = verbose
+            else:
+                print_verbose = -1
             results.append(
                 executor.submit(
                     learn,
@@ -156,7 +178,7 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as execut
                     print_done=False,
                     trial=trial,
                     log_data=log_data,
-                    verbose=verbose,
+                    verbose=print_verbose,
                     genome_num=i,
                     csv_name=csv_name,
                 )
@@ -165,12 +187,14 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as execut
                 for future in concurrent.futures.as_completed(results):
                     filename = future.result()
                     print(filename)
+                results = []
+
 if visualize:
     pathname = f"./data/{folderName}"
     files = os.listdir(pathname)
     files = [name for name in files if ".npz" in name]
     data = np.load(f"{pathname}/{files[0]}")
-    time = np.arange(0, data["duration"], data["stepsize"])
+    Time = np.arange(0, data["duration"], data["stepsize"])
     if visualize:
         for tracked in vis_params:
             if "averaged" in tracked:
@@ -190,7 +214,6 @@ if visualize:
                 ],
                 save=True,
             )
-
     plt.show()
     # else:
     #    plot_params = [p for p in vis_params if "averaged" not in p]

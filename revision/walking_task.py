@@ -61,10 +61,12 @@ class WalkingTask(RL_CTRNN):
         self.distance_hist = np.zeros((self.time.size))
         self.performance_hist = np.zeros((self.time.size))
         self.running_window_mode = running_window_mode
-        self.running_average_performances = np.zeros(len(self.time))
+        self.running_average_performances = np.zeros((self.time.size))
         if self.running_window_mode:
             self.running_window_size = int(running_window_size / self.stepsize)
             self.sliding_window = np.zeros(self.running_window_size)
+            self.window_a = np.zeros(int(self.running_window_size / 2))
+            self.window_b = np.zeros(int(self.running_window_size / 2))
         else:
             self.performance_update_rate = performance_update_rate  # how quickly the running average performance is updated
         # uses performance to determine reward
@@ -99,47 +101,25 @@ class WalkingTask(RL_CTRNN):
         np.savez(filename, genotype=self.recoverParameters())
 
     def default_reward_func(self, distance, learning=True):
-        performance = self.performance_func(distance)
-        running_average_performance = self.running_average_performances[
-            self.time_step - 1
-        ]
-
+        self.performance_func(distance)
         # Current instantaneous performance vs. the current running average (NOT the previous instantaneous performance)
         if not learning:
             return 0
 
-        return np.exp(abs(performance - running_average_performance)) * np.sign(
-            performance
-        )
+        return (self.window_b.mean() - self.window_a.mean()) / (self.window_b.size * 10)
 
     def default_performance_func(self, body):
         self.distance_hist[self.time_step] = body.cx
-
-        performance = (
-            self.distance_hist[self.time_step] - self.distance_hist[self.time_step - 1]
+        self.window_a = np.roll(self.window_a, 1)
+        self.window_b = np.roll(self.window_b, 1)
+        self.window_b[0] = (
+            self.distance_hist[self.time_step]
+            - self.distance_hist[self.time_step - self.window_b.size]
         )
-        performance /= self.stepsize
-
-        self.performance = performance
-        self.performance_hist[self.time_step] = performance
-
-        if self.running_window_mode:
-            # rotate everything forward
-            self.sliding_window = np.roll(self.sliding_window, 1)
-            # replace oldest value (which just rolled to the front)
-            self.sliding_window[0] = performance
-            # current running average
-            self.running_average_performances[self.time_step] = np.mean(
-                self.sliding_window
-            )
-
-        else:
-            self.running_average_performances[self.time_step] = (
-                self.running_average_performances[self.time_step - 1]
-                * (1 - self.performance_update_rate)
-                + self.performance_update_rate * performance
-            )
-        return performance
+        self.window_a[0] = (
+            self.distance_hist[self.time_step - self.window_a.size]
+            - self.distance_hist[self.time_step - self.running_window_size]
+        )
 
     def simulate(
         self,
@@ -194,17 +174,8 @@ class WalkingTask(RL_CTRNN):
                     reward, tolerance=tolerance
                 )
             if self.running_window_mode:
-                self.sliding_window = np.roll(self.sliding_window, 1)
-                self.sliding_window[0] = self.performance_hist[self.time_step]
-                self.running_average_performances[self.time_step] = np.mean(
-                    self.sliding_window
-                )
-            else:
                 self.running_average_performances[self.time_step] = (
-                    self.running_average_performances[self.time_step - 1]
-                    * (1 - self.performance_update_rate)
-                    + self.performance_update_rate
-                    * self.performance_hist[self.time_step]
+                    self.window_b.mean() / self.window_b.size * 10
                 )
             if datalogger:
                 for key in datalogger.data.keys():
@@ -243,9 +214,3 @@ class WalkingTask(RL_CTRNN):
             datalogger.data["size"] = self.size
             datalogger.data["duration"] = self.duration
             datalogger.data["stepsize"] = self.stepsize
-            datalogger.data["performance_hist"] = self.performance_hist
-            datalogger.data["running_average"] = self.running_average_performances
-            if "running_average_perforamnces" in datalogger.data.keys():
-                datalogger.data["running_average"] = datalogger.data.pop(
-                    "running_average_perforamnces"
-                )
