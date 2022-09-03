@@ -18,19 +18,16 @@ verbose = 0.1
 log_data = True
 record_csv = True
 track_fitness = False
-num_trials = 120
-num_processes = 120
+num_trials = 5
+num_processes = 6
 num_sets = int(np.floor(num_trials / num_processes))
 randomize_genomes = True
-num_random_genomes = 3
+num_random_genomes = 1
 # if visualize is true, print the parameters to visualize
 # "averaged [param_name]" will print the average of the parameter across all trials
 visualize = True
-vis_everything = False
-vis_params = [
-    "averaged flux_amp",
-    "averaged running_average_performances",
-]
+vis_everything = True
+vis_params = ["averaged running_average_performances", "averaged flux_amp"]
 csv_name = "single_genome.csv"
 
 csv_elements = [
@@ -47,13 +44,13 @@ csv_elements = [
 
 params = {
     "window_size": 440,  # unit seconds
-    "learn_rate": 0.9,
-    "conv_rate": 0.5,
+    "learn_rate": 0.6,
+    "conv_rate": 0.1,
     "min_period": 440,  # unit seconds
     "max_period": 4400,  # unit seconds
     "init_flux": 2,
     "max_flux": 8,
-    "duration": 20000,  # unit seconds
+    "duration": 30000,  # unit seconds
     "size": 2,
     "generator_type": "RPG",
     "tolerance": 0.00000,
@@ -140,7 +137,7 @@ if record_csv:
             genome += "\n\n"
             f.writelines(genome)
 
-
+filename = ""
 params["bias_init_flux"] = params["init_flux"]
 params["bias_init_flux"] = params["init_flux"]
 params["max_flux"] = params["max_flux"]
@@ -186,13 +183,15 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as execut
             if len(results) == num_processes:
                 for future in concurrent.futures.as_completed(results):
                     filename = future.result()
-                    print(filename)
                 results = []
 
+
+print(folderName)
 if visualize:
     pathname = f"./data/{folderName}"
     files = os.listdir(pathname)
     files = [name for name in files if ".npz" in name]
+    filename = files[0].split(".")[0]
     data = np.load(f"{pathname}/{files[0]}")
     Time = np.arange(0, data["duration"], data["stepsize"])
     if visualize:
@@ -210,7 +209,7 @@ if visualize:
                     "reward",
                     "flux_amp",
                     "distance",
-                    ("running_average", "track_fitness"),
+                    ("running_average_performances", "track_fitness"),
                 ],
                 save=True,
             )

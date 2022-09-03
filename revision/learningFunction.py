@@ -165,9 +165,8 @@ def learn(
         datalogger.save(filepath)
 
         if print_done:
-            return f"{trial} done "
-        else:
-            return filename
+            f"{trial} done"
+        return filename
     else:
         if print_done:
             print(
