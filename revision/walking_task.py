@@ -59,7 +59,7 @@ class WalkingTask(RL_CTRNN):
         self.reward = 0
         self.time = np.arange(0, self.duration, self.stepsize)
         self.distance_hist = np.zeros((self.time.size))
-        self.performance_hist = np.zeros((self.time.size))
+        self.performance_hist = np.zeros(self.time.size)
         self.running_window_mode = running_window_mode
         self.running_average_performances = np.zeros((self.time.size))
         if self.running_window_mode:
@@ -73,12 +73,12 @@ class WalkingTask(RL_CTRNN):
         if reward_func is None:
             self.reward_func = self.default_reward_func
         else:
-            self.reward_func = reward_func
+            self.reward_func = self.secondary_reward_func
         # determines how performance is measured
         if performance_func is None:
             self.performance_func = self.default_performance_func
         else:
-            self.performance_func = performance_func
+            self.performance_func = self.secondary_performance_func
 
     def save(self, filename):
         np.savez(
@@ -120,6 +120,45 @@ class WalkingTask(RL_CTRNN):
             self.distance_hist[self.time_step - self.window_a.size]
             - self.distance_hist[self.time_step - self.running_window_size]
         )
+        self.running_average_performances[self.time_step] = self.window_a[0]
+        print(np.unique(self.running_average_performances))
+
+    def secondary_reward_func(self, distance, learning=True):
+        performance = self.performance_func(distance)
+        running_average_performance = self.running_average_performances[
+            self.time_step - 1
+        ]
+        # Current instantaneous performance vs. the current running average (NOT the previous instantaneous performance)
+        if not learning:
+            return 0
+        return performance - running_average_performance
+
+    def secondary_performance_func(self, body):
+        self.distance_hist[self.time_step] = body.cx
+        performance = (
+            self.distance_hist[self.time_step] - self.distance_hist[self.time_step - 1]
+        )
+        performance /= self.stepsize
+        self.performance = performance
+        self.performance_hist[self.time_step] = performance
+        if self.running_window_mode:
+            # rotate everything forward
+            self.sliding_window = np.roll(self.sliding_window, 1)
+            # replace oldest value (which just rolled to the front)
+            self.sliding_window[0] = performance
+            # current running average
+            self.running_average_performances[self.time_step] = np.mean(
+                self.sliding_window
+            )
+        else:
+            self.running_average_performances[self.time_step] = (
+                self.running_average_performances[self.time_step - 1]
+                * (1 - self.performance_update_rate)
+                + self.performance_update_rate * performance
+            )
+
+        print(np.unique(self.running_average_performances))
+        return performance
 
     def simulate(
         self,
@@ -162,13 +201,13 @@ class WalkingTask(RL_CTRNN):
             self.step(self.stepsize)
             body.stepN(self.stepsize, self.outputs, configuration)
             if self.time_step < learning_start:
-                self.reward = self.default_reward_func(body, learning=False)
+                self.reward = self.reward_func(body, learning=False)
                 # updating with 0 reward
                 self.update_weights_and_flux_amp_with_reward(
                     self.reward, tolerance=tolerance, learning=False
                 )
             else:
-                reward = self.default_reward_func(body, learning=True)
+                reward = self.reward_func(body, learning=True)
                 self.reward = reward
                 self.update_weights_and_flux_amp_with_reward(
                     reward, tolerance=tolerance
@@ -214,3 +253,11 @@ class WalkingTask(RL_CTRNN):
             datalogger.data["size"] = self.size
             datalogger.data["duration"] = self.duration
             datalogger.data["stepsize"] = self.stepsize
+            datalogger.data[
+                "running_average_performances"
+            ] = self.running_average_performances
+            print(np.unique(datalogger.data["running_average_performances"]))
+            print("end")
+
+
+#            print(self.running_average_performances["running_average_performances"])

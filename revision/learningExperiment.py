@@ -18,15 +18,17 @@ verbose = 0.1
 log_data = True
 record_csv = True
 track_fitness = False
-num_trials = 5
-num_processes = 6
+num_trials = 1
+num_processes = 16
 num_sets = int(np.floor(num_trials / num_processes))
-randomize_genomes = True
+randomize_genomes = False
 num_random_genomes = 1
 # if visualize is true, print the parameters to visualize
 # "averaged [param_name]" will print the average of the parameter across all trials
-visualize = True
-vis_everything = True
+visualize = False
+vis_behavior = True
+vis_weights = True
+vis_agent = True
 vis_params = ["averaged running_average_performances", "averaged flux_amp"]
 csv_name = "single_genome.csv"
 
@@ -42,21 +44,39 @@ csv_elements = [
     "genome_num",
 ]
 
+# params = {
+#     "reward_func": "secondary",
+#     "performance_func": "secondary",
+#     "window_size": 440,  # unit seconds
+#     "learn_rate": 0.2,
+#     "conv_rate": 0.2,
+#     "min_period": 4300,  # unit seconds
+#     "max_period": 4400,  # unit seconds
+#     "init_flux": 2.0,
+#     "max_flux": 8,
+#     "duration": 15000,  # unit seconds
+#     "size": 2,
+#     "generator_type": "RPG",
+#     "tolerance": 0.00000,
+#     "neuron_configuration": [0],
+# }
+
 params = {
-    "window_size": 440,  # unit seconds
-    "learn_rate": 0.6,
-    "conv_rate": 0.1,
-    "min_period": 440,  # unit seconds
-    "max_period": 4400,  # unit seconds
-    "init_flux": 2,
+    "reward_func": "secondary",
+    "performance_func": "secondary",
+    "window_size": 400,  # unit seconds
+    "learn_rate": 0.008,
+    "conv_rate": 0.004,
+    "min_period": 300,  # unit seconds
+    "max_period": 400,  # unit seconds
+    "init_flux": 6.0,
     "max_flux": 8,
-    "duration": 30000,  # unit seconds
+    "duration": 1000,  # unit seconds
     "size": 2,
     "generator_type": "RPG",
     "tolerance": 0.00000,
     "neuron_configuration": [0],
 }
-
 folderName = f"{params['generator_type']}_d{params['duration']}_initfx{params['init_flux']}_00_window{params['window_size']}_max_p{params['max_period']}"
 folderName += "recording"
 if not os.path.exists(Path(f"./data/{folderName}")):
@@ -178,20 +198,25 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as execut
                     verbose=print_verbose,
                     genome_num=i,
                     csv_name=csv_name,
+                    stepsize=0.10,
                 )
             )
             if len(results) == num_processes:
                 for future in concurrent.futures.as_completed(results):
-                    filename = future.result()
+                    (filename := future.result())
+
                 results = []
 
-
+print("----------")
+print(filename)
+print("----------")
 print(folderName)
 if visualize:
     pathname = f"./data/{folderName}"
     files = os.listdir(pathname)
     files = [name for name in files if ".npz" in name]
     filename = files[0].split(".")[0]
+    print(filename)
     data = np.load(f"{pathname}/{files[0]}")
     Time = np.arange(0, data["duration"], data["stepsize"])
     if visualize:
@@ -200,9 +225,11 @@ if visualize:
                 tracked = tracked.split(" ")[-1]
                 plotAverageParam(tracked, show=False, b=-1, pathname=pathname)
 
-        if vis_everything:
+        if vis_behavior:
             plotBehavior(data, show=False, save=True)
+        if vis_weights:
             plotWeightsBiases(data, show=False, extended=True, save=True)
+        if vis_agent:
             plotChosenParam(
                 pathname + "/" + filename,
                 params=[

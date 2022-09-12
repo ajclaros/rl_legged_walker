@@ -50,6 +50,8 @@ def learn(
     trial=0,
     csv_name=None,
     genome_num=None,
+    performance_func=None,
+    reward_func=None,
 ):
 
     learner = WalkingTask(
@@ -69,6 +71,8 @@ def learn(
         bias_flux_period_min=min_period,
         bias_flux_period_max=max_period,
         bias_flux_conv_rate=conv_rate,
+        performance_func=performance_func,
+        reward_func=reward_func,
     )
     weights = starting_genome[0 : size * size]
     learner.setWeights(weights.reshape((size, size)))
@@ -105,8 +109,12 @@ def learn(
         generator_type=generator_type,
         configuration=neuron_configuration,
     )
+    if reward_func == None:
+        params = learner.recoverParameters(inner=False)
+    else:
+        params = learner.recoverParameters(inner=True)
     end_fitness = fitnessFunction(
-        learner.recoverParameters(inner=False),
+        params,
         N=size,
         generator_type=generator_type,
         configuration=neuron_configuration,
@@ -166,6 +174,7 @@ def learn(
 
         if print_done:
             f"{trial} done"
+
         return filename
     else:
         if print_done:
