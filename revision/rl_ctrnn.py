@@ -91,6 +91,10 @@ class RL_CTRNN(CTRNN):
         self.bias_inner_flux_moments = np.zeros(
             size
         )  # current moment in time of the oscillation for each synapse
+        self.weight_flux_sign = (
+            np.random.binomial(1, 0.5, size=(self.size, self.size)) * 2 - 1
+        )
+        self.bias_flux_sign = np.random.binomial(1, 0.5, size=(self.size)) * 2 - 1
         self.bias_init_flux_amp = bias_init_flux_amp
         self.bias_max_flux_amp = bias_max_flux_amp
         self.bias_flux_period_min = bias_flux_period_min
@@ -300,9 +304,7 @@ class RL_CTRNN(CTRNN):
                             ),
                             3,
                         )
-                    self.inner_flux_periods[i][j] *= (
-                        np.random.binomial(1, 0.5) * 2
-                    ) - 1
+                    self.inner_flux_periods[i][j] *= self.weight_flux_sign[i][j]
 
             # Adjust biases when enabled
             if self.bias_flux_mode:
@@ -329,6 +331,8 @@ class RL_CTRNN(CTRNN):
                             ),
                             3,
                         )
+                        self.bias_inner_flux_periods *= self.bias_flux_sign[i]
+
         netinput = self.inputs + np.dot(self.extended_weights.T, self.outputs)
         # netinput = self.inputs + np.dot( self.calc_inner_weights_with_flux(), self.outputs)
         self.voltages += dt * (self.inv_time_constants * (-self.voltages + netinput))

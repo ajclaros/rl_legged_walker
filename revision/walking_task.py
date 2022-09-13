@@ -101,12 +101,14 @@ class WalkingTask(RL_CTRNN):
         np.savez(filename, genotype=self.recoverParameters())
 
     def default_reward_func(self, distance, learning=True):
-        self.performance_func(distance)
+        self.default_performance_func(distance)
         # Current instantaneous performance vs. the current running average (NOT the previous instantaneous performance)
         if not learning:
             return 0
 
-        return (self.window_b.mean() - self.window_a.mean()) / (self.window_b.size * 10)
+        return (self.window_b.mean() - self.window_a.mean()) / (
+            self.window_b.size / self.stepsize
+        )
 
     def default_performance_func(self, body):
         self.distance_hist[self.time_step] = body.cx
@@ -120,8 +122,9 @@ class WalkingTask(RL_CTRNN):
             self.distance_hist[self.time_step - self.window_a.size]
             - self.distance_hist[self.time_step - self.running_window_size]
         )
-        self.running_average_performances[self.time_step] = self.window_a[0]
-        print(np.unique(self.running_average_performances))
+        self.running_average_performances[self.time_step] = self.window_a.mean() / (
+            self.stepsize * self.window_a.size
+        )
 
     def secondary_reward_func(self, distance, learning=True):
         performance = self.performance_func(distance)
@@ -157,7 +160,6 @@ class WalkingTask(RL_CTRNN):
                 + self.performance_update_rate * performance
             )
 
-        print(np.unique(self.running_average_performances))
         return performance
 
     def simulate(
@@ -212,10 +214,6 @@ class WalkingTask(RL_CTRNN):
                 self.update_weights_and_flux_amp_with_reward(
                     reward, tolerance=tolerance
                 )
-            if self.running_window_mode:
-                self.running_average_performances[self.time_step] = (
-                    self.window_b.mean() / self.window_b.size * 10
-                )
             if datalogger:
                 for key in datalogger.data.keys():
                     if key in ["startgenome", "track_fitness"]:
@@ -256,8 +254,4 @@ class WalkingTask(RL_CTRNN):
             datalogger.data[
                 "running_average_performances"
             ] = self.running_average_performances
-            print(np.unique(datalogger.data["running_average_performances"]))
-            print("end")
-
-
-#            print(self.running_average_performances["running_average_performances"])
+            datalogger.data["metric"] = self.performance_func.__name__.split("_")[0]

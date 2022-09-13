@@ -18,18 +18,23 @@ verbose = 0.1
 log_data = True
 record_csv = True
 track_fitness = False
-num_trials = 1
+num_trials = 16
 num_processes = 16
 num_sets = int(np.floor(num_trials / num_processes))
 randomize_genomes = False
 num_random_genomes = 1
 # if visualize is true, print the parameters to visualize
 # "averaged [param_name]" will print the average of the parameter across all trials
-visualize = False
-vis_behavior = True
-vis_weights = True
-vis_agent = True
-vis_params = ["averaged running_average_performances", "averaged flux_amp"]
+visualize = True
+vis_behavior = False
+vis_weights = False
+vis_agent = False
+vis_params = [
+    "averaged running_average_performances",
+    "distribution running_average_performances",
+    "averaged flux_amp",
+    "distribution flux_amp",
+]  # , "averaged flux_amp"]
 csv_name = "single_genome.csv"
 
 csv_elements = [
@@ -44,39 +49,37 @@ csv_elements = [
     "genome_num",
 ]
 
-# params = {
-#     "reward_func": "secondary",
-#     "performance_func": "secondary",
-#     "window_size": 440,  # unit seconds
-#     "learn_rate": 0.2,
-#     "conv_rate": 0.2,
-#     "min_period": 4300,  # unit seconds
-#     "max_period": 4400,  # unit seconds
-#     "init_flux": 2.0,
-#     "max_flux": 8,
-#     "duration": 15000,  # unit seconds
-#     "size": 2,
-#     "generator_type": "RPG",
-#     "tolerance": 0.00000,
-#     "neuron_configuration": [0],
-# }
-
 params = {
-    "reward_func": "secondary",
-    "performance_func": "secondary",
-    "window_size": 400,  # unit seconds
-    "learn_rate": 0.008,
-    "conv_rate": 0.004,
-    "min_period": 300,  # unit seconds
-    "max_period": 400,  # unit seconds
-    "init_flux": 6.0,
+    "window_size": 440,  # unit seconds
+    "learn_rate": 0.1,
+    "conv_rate": 0.1,
+    "min_period": 440,  # unit seconds
+    "max_period": 4400,  # unit seconds
+    "init_flux": 2.0,
     "max_flux": 8,
-    "duration": 1000,  # unit seconds
+    "duration": 60000,  # unit seconds
     "size": 2,
     "generator_type": "RPG",
     "tolerance": 0.00000,
     "neuron_configuration": [0],
 }
+
+# params = {
+#     "reward_func": "secondary",
+#     "performance_func": "secondary",
+#     "window_size": 400,  # unit seconds
+#     "learn_rate": 0.008,
+#     "conv_rate": 0.004,
+#     "min_period": 300,  # unit seconds
+#     "max_period": 400,  # unit seconds
+#     "init_flux": 6.0,
+#     "max_flux": 8,
+#     "duration": 60000,  # unit seconds
+#     "size": 2,
+#     "generator_type": "RPG",
+#     "tolerance": 0.00000,
+#     "neuron_configuration": [0],
+# }
 folderName = f"{params['generator_type']}_d{params['duration']}_initfx{params['init_flux']}_00_window{params['window_size']}_max_p{params['max_period']}"
 folderName += "recording"
 if not os.path.exists(Path(f"./data/{folderName}")):
@@ -206,10 +209,9 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as execut
                     (filename := future.result())
 
                 results = []
+for future in concurrent.futures.as_completed(results):
+    (filename := future.result())
 
-print("----------")
-print(filename)
-print("----------")
 print(folderName)
 if visualize:
     pathname = f"./data/{folderName}"
@@ -223,7 +225,14 @@ if visualize:
         for tracked in vis_params:
             if "averaged" in tracked:
                 tracked = tracked.split(" ")[-1]
-                plotAverageParam(tracked, show=False, b=-1, pathname=pathname)
+                plotAverageParam(
+                    tracked, show=False, b=-1, pathname=pathname, save=True
+                )
+            if "distribution" in tracked:
+                tracked = tracked.split(" ")[-1]
+                plotDistributionParam(
+                    tracked, show=False, pathname=pathname, bins=10, save=True
+                )
 
         if vis_behavior:
             plotBehavior(data, show=False, save=True)

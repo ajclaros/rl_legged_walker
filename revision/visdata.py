@@ -142,13 +142,13 @@ def plotAverageParam(param, show=False, save=True, b=60, pathname="./data"):
         ax.axvline(data["learning_start"] * data["stepsize"], ls="--")
         averaged.append(data[param])
     ax.title.set_text(
-        f"Averaged {param} over duration {data['duration']}\n all {len(files)} trials\n"
+        f"Averaged {param} over duration {data['duration']}\n all {len(files)} trials\nUsing {data['metric']} measurement"
     )
     ax.plot(time, np.mean(averaged, axis=0), c="k")
     if show:
         plt.show()
     if save:
-        plt.savefig(f"./data/images/all_files-{param}.png")
+        plt.savefig(f"./data/images/all_files-{data['metric']}-{param}.png")
 
 
 def plotDistributionParam(
@@ -164,16 +164,16 @@ def plotDistributionParam(
         if i == b:
             break
         data = np.load(f"{pathname}/{name}")
-        param_data.append(data[param])
+        param_data.append(data[param][-1])
 
     ax.title.set_text(
-        f"Histogram {param} over duration {data['duration']}\n all {len(files)} trials\n"
+        f"Histogram {param} over duration {data['duration']}\n all {len(files)} trials\n using {data['metric']} measurement"
     )
     ax.hist(param_data, bins=bins, density=True)
     if show:
         plt.show()
     if save:
-        plt.savefig(f"./data/images/{param}-distribution.png")
+        plt.savefig(f"./data/images/{param}-{data['metric']}-distribution.png")
 
 
 # plotWeightsBiases(data, show=True)
