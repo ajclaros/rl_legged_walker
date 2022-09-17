@@ -18,11 +18,11 @@ verbose = 0.1
 log_data = True
 record_csv = True
 track_fitness = False
-num_trials = 16
-num_processes = 16
+num_trials = 40
+num_processes = 120
 num_sets = int(np.floor(num_trials / num_processes))
-randomize_genomes = False
-num_random_genomes = 1
+randomize_genomes = True
+num_random_genomes = 3
 # if visualize is true, print the parameters to visualize
 # "averaged [param_name]" will print the average of the parameter across all trials
 visualize = True
@@ -240,7 +240,7 @@ if visualize:
             plotWeightsBiases(data, show=False, extended=True, save=True)
         if vis_agent:
             plotChosenParam(
-                pathname + "/" + filename,
+                pathname + "/" + filename + ".npz",
                 params=[
                     "reward",
                     "flux_amp",

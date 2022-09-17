@@ -2,12 +2,17 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-files = os.listdir("data")
+folders = os.listdir("data")
 generator_type = "RPG"
-files = [name for name in files if ".npz" in name and generator_type in name]
+folders = [name for name in folders if generator_type in name]
+files = [
+    name
+    for name in os.listdir(f"./data/{folders[0]}")
+    if ".npz" in name and generator_type in name
+]
 data = ""
 for i, name in enumerate(files):
-    data = np.load(f"./data/{name}")
+    data = np.load(f"./data/{folders[0]}/{name}")
 
 
 def plotWeightsBiases(
@@ -92,7 +97,7 @@ def plotChosenParam(
 ):
     numplots = int(np.ceil(np.sqrt(len(params))))
     fig, ax = plt.subplots(nrows=numplots, ncols=numplots, figsize=(4, 4))
-    data = np.load(f"./{filename}.npz")
+    data = np.load(f"./{filename}")
     time = np.arange(0, data["duration"], data["stepsize"])
     for i, param in enumerate(params):
         row = i // numplots
@@ -130,17 +135,27 @@ def plotChosenParam(
 def plotAverageParam(param, show=False, save=True, b=60, pathname="./data"):
     files = os.listdir(pathname)
     averaged = []
+    genome_list = []
     files = [name for name in files if ".npz" in name]
     data = np.load(f"{pathname}/{files[0]}")
     time = np.arange(0, data["duration"], data["stepsize"])
+    genome = data["startgenome"]
+    genome_list = genome.reshape((1, genome.size))
     fig, ax = plt.subplots()
+    cmap = plt.get_cmap("tab10").colors
     for i, name in enumerate(files):
         if i == b:
             break
         data = np.load(f"{pathname}/{name}")
-        ax.plot(time, data[param], c="c", ls="--")
-        ax.axvline(data["learning_start"] * data["stepsize"], ls="--")
+        genome = data["startgenome"]
+
+        genome_list = np.vstack([genome_list, genome])
+        genome_list = np.unique(genome_list, axis=0)
+        colorindex = (genome_list == genome.reshape((1, genome.size))).nonzero()[0][0]
+        # .nonzero()[0][0]
+        ax.plot(time, data[param], ls="--", c=cmap[colorindex])
         averaged.append(data[param])
+    ax.axvline(data["learning_start"] * data["stepsize"], ls="--")
     ax.title.set_text(
         f"Averaged {param} over duration {data['duration']}\n all {len(files)} trials\nUsing {data['metric']} measurement"
     )
