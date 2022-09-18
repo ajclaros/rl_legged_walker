@@ -33,6 +33,7 @@ class WalkingTask(RL_CTRNN):
         BR=16.0,
         TR=5.0,
         TA=6.0,
+        record_every=1,
     ):
         super().__init__(
             size,
@@ -57,6 +58,7 @@ class WalkingTask(RL_CTRNN):
         self.duration = duration
         self.stepsize = stepsize
         self.reward = 0
+        self.sample_rate = 1 / record_every
         self.time = np.arange(0, self.duration, self.stepsize)
         self.distance_hist = np.zeros((self.time.size))
         self.performance_hist = np.zeros(self.time.size)
@@ -214,27 +216,28 @@ class WalkingTask(RL_CTRNN):
                 self.update_weights_and_flux_amp_with_reward(
                     reward, tolerance=tolerance
                 )
-            if datalogger:
+            if datalogger and self.time_step % (1 / self.sample_rate) == 0:
+                position = int(self.time_step * self.sample_rate)
                 for key in datalogger.data.keys():
                     if key in ["startgenome", "track_fitness"]:
                         if (
                             key == "track_fitness"
-                            and (self.time_step < self.time.size - 1) / self.stepsize
+                            and (position < self.time.size - 1) / self.stepsize
                         ):
                             datalogger.data["track_fitness"][
                                 self.time_step + 1
-                            ] = datalogger.data["track_fitness"][self.time_step]
+                            ] = datalogger.data["track_fitness"][position]
                         continue
                     elif "hist" in key or "running" in key:
-                        datalogger.data[key][self.time_step] = self.__dict__[key][
+                        datalogger.data[key][position] = self.__dict__[key][
                             self.time_step
                         ]
                     elif key in ["angle", "omega", "distance"]:
-                        datalogger.data["angle"][self.time_step] = body.angle
-                        datalogger.data["omega"][self.time_step] = body.omega
-                        datalogger.data["distance"][self.time_step] = body.cx
+                        datalogger.data["angle"][position] = body.angle
+                        datalogger.data["omega"][position] = body.omega
+                        datalogger.data["distance"][position] = body.cx
                     else:
-                        datalogger.data[key][self.time_step] = self.__dict__[key]
+                        datalogger.data[key][position] = self.__dict__[key]
 
             self.time_step += 1
 
@@ -251,7 +254,8 @@ class WalkingTask(RL_CTRNN):
             datalogger.data["size"] = self.size
             datalogger.data["duration"] = self.duration
             datalogger.data["stepsize"] = self.stepsize
+            datalogger.data["sample_rate"] = self.sample_rate
             datalogger.data[
                 "running_average_performances"
-            ] = self.running_average_performances
+            ] = self.running_average_performances[:: int(1 / self.sample_rate)]
             datalogger.data["metric"] = self.performance_func.__name__.split("_")[0]

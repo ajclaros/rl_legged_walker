@@ -2,17 +2,17 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-folders = os.listdir("data")
-generator_type = "RPG"
-folders = [name for name in folders if generator_type in name]
-files = [
-    name
-    for name in os.listdir(f"./data/{folders[0]}")
-    if ".npz" in name and generator_type in name
-]
-data = ""
-for i, name in enumerate(files):
-    data = np.load(f"./data/{folders[0]}/{name}")
+# folders = os.listdir("data")
+# generator_type = "RPG"
+# folders = [name for name in folders if generator_type in name]
+# files = [
+#     name
+#     for name in os.listdir(f"./data/{folders[0]}")
+#     if ".npz" in name and generator_type in name
+# ]
+# data = ""
+# for i, name in enumerate(files):
+#     data = np.load(f"./data/{folders[0]}/{name}")
 
 
 def plotWeightsBiases(
@@ -20,7 +20,7 @@ def plotWeightsBiases(
 ):
     cmap = plt.get_cmap("tab20").colors
     fig, ax = plt.subplots(figsize=(8, 4))
-    time = np.arange(0, data["duration"], data["stepsize"])
+    time = np.arange(0, data["duration"], data["stepsize"] / data["sample_rate"])
 
     for i in range(data["size"]):
         for j in range(data["size"]):
@@ -56,7 +56,12 @@ def plotWeightsBiases(
                     color=cmap[-i],
                     lw=linewidth - 1,
                 )
-    ax.axvline(data["learning_start"] * data["stepsize"], color="k", lw="1", ls="--")
+    ax.axvline(
+        data["learning_start"],
+        color="k",
+        lw="1",
+        ls="--",
+    )
     ax.title.set_text(f"Weight and Bias change during Trial:{data['generator_type']}")
     plt.tight_layout()
     if show:
@@ -69,19 +74,19 @@ def plotWeightsBiases(
 
 def plotBehavior(data, show=False, save=False):
     fig, ax = plt.subplots(nrows=2, ncols=2)
-    time = np.arange(0, data["duration"], data["stepsize"])
+    time = np.arange(0, data["duration"], data["stepsize"] / data["sample_rate"])
     ax[0][0].plot(time, data["outputs"])
-    ax[0][0].axvline(data["learning_start"] * data["stepsize"], c="k", ls="--")
+    ax[0][0].axvline(data["learning_start"], c="k", ls="--")
     ax[0][0].set_title("Neural outputs")
     ax[0][1].plot(time, data["distance"])
-    ax[0][1].axvline(data["learning_start"] * data["stepsize"], c="k", ls="--")
+    ax[0][1].axvline(data["learning_start"], c="k", ls="--")
     ax[0][1].set_title("Distance")
     ax[1][0].plot(time, data["omega"])
-    ax[1][0].axvline(data["learning_start"] * data["stepsize"], c="k", ls="--")
+    ax[1][0].axvline(data["learning_start"], c="k", ls="--")
     ax[1][0].set_title("Omega")
     ax[1][1].plot(time, data["angle"])
     ax[1][1].set_title("Angle")
-    ax[1][1].axvline(data["learning_start"] * data["stepsize"], c="k", ls="--")
+    ax[1][1].axvline(data["learning_start"], c="k", ls="--")
     fig.suptitle(
         f"Duration:{data['duration']},\nStartFit:{np.round(data['start_fitness'],3)}\nEndFit:{np.round(data['end_fitness'],3)}\nSize:{data['size']}"
     )
@@ -98,7 +103,7 @@ def plotChosenParam(
     numplots = int(np.ceil(np.sqrt(len(params))))
     fig, ax = plt.subplots(nrows=numplots, ncols=numplots, figsize=(4, 4))
     data = np.load(f"./{filename}")
-    time = np.arange(0, data["duration"], data["stepsize"])
+    time = np.arange(0, data["duration"], data["stepsize"] / data["samplerate"])
     for i, param in enumerate(params):
         row = i // numplots
         col = i % numplots
@@ -111,7 +116,11 @@ def plotChosenParam(
         else:
             ax[row][col].plot(time, data[param])
             ax[row][col].title.set_text(f"{param}")
-        ax[row][col].axvline(data["learning_start"] * data["stepsize"], c="k", ls="--")
+        ax[row][col].axvline(
+            data["learning_start"],
+            c="k",
+            ls="--",
+        )
     if not title:
         fig.suptitle(
             f"startFit:{np.round(data['start_fitness'],3)}\nEndFit:{np.round(data['end_fitness'], 3)}\nDuration: {data['duration']}"
@@ -138,26 +147,33 @@ def plotAverageParam(param, show=False, save=True, b=60, pathname="./data"):
     genome_list = []
     files = [name for name in files if ".npz" in name]
     data = np.load(f"{pathname}/{files[0]}")
-    time = np.arange(0, data["duration"], data["stepsize"])
+    time = np.arange(0, data["duration"], data["stepsize"] / data["sample_rate"])
     genome = data["startgenome"]
     genome_list = genome.reshape((1, genome.size))
     fig, ax = plt.subplots()
     cmap = plt.get_cmap("tab10").colors
+    skip = 0
     for i, name in enumerate(files):
-        if i == b:
-            break
-        data = np.load(f"{pathname}/{name}")
-        genome = data["startgenome"]
+        try:
+            if i == b:
+                break
+            data = np.load(f"{pathname}/{name}")
+            genome = data["startgenome"]
 
-        genome_list = np.vstack([genome_list, genome])
-        genome_list = np.unique(genome_list, axis=0)
-        colorindex = (genome_list == genome.reshape((1, genome.size))).nonzero()[0][0]
-        # .nonzero()[0][0]
-        ax.plot(time, data[param], ls="--", c=cmap[colorindex])
-        averaged.append(data[param])
-    ax.axvline(data["learning_start"] * data["stepsize"], ls="--")
+            genome_list = np.vstack([genome_list, genome])
+            genome_list = np.unique(genome_list, axis=0)
+            colorindex = (genome_list == genome.reshape((1, genome.size))).nonzero()[0][
+                0
+            ]
+            # .nonzero()[0][0]
+            ax.plot(time, data[param], ls="--", c=cmap[colorindex])
+            averaged.append(data[param])
+        except:
+            skip += 1
+            continue
+    ax.axvline(data["learning_start"], ls="--")
     ax.title.set_text(
-        f"Averaged {param} over duration {data['duration']}\n all {len(files)} trials\nUsing {data['metric']} measurement"
+        f"Averaged {param} over duration {data['duration']}\n all {len(files)-skip} trials\nUsing {data['metric']} measurement"
     )
     ax.plot(time, np.mean(averaged, axis=0), c="k")
     if show:
@@ -172,17 +188,21 @@ def plotDistributionParam(
     files = os.listdir(pathname)
     files = [name for name in files if ".npz" in name]
     data = np.load(f"{pathname}/{files[0]}")
-    time = np.arange(0, data["duration"], data["stepsize"])
+    time = np.arange(0, data["duration"], data["stepsize"] / data["sample_rate"])
     fig, ax = plt.subplots()
     param_data = []
+    skip = 0
     for i, name in enumerate(files):
-        if i == b:
-            break
-        data = np.load(f"{pathname}/{name}")
-        param_data.append(data[param][-1])
+        try:
+            if i == b:
+                break
+            data = np.load(f"{pathname}/{name}")
+            param_data.append(data[param][-1])
+        except:
+            skip += 1
 
     ax.title.set_text(
-        f"Histogram {param} over duration {data['duration']}\n all {len(files)} trials\n using {data['metric']} measurement"
+        f"Histogram {param} over duration {data['duration']}\n all {len(files)-skip} trials\n using {data['metric']} measurement"
     )
     ax.hist(param_data, bins=bins, density=True)
     if show:

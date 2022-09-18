@@ -8,6 +8,7 @@ from datalogger import DataLogger
 from fitnessFunction import fitnessFunction
 from pathlib import Path
 from csv import DictWriter
+import time
 import os
 
 
@@ -52,6 +53,7 @@ def learn(
     genome_num=None,
     performance_func=None,
     reward_func=None,
+    record_every=1,
 ):
 
     learner = WalkingTask(
@@ -73,6 +75,7 @@ def learn(
         bias_flux_conv_rate=conv_rate,
         performance_func=performance_func,
         reward_func=reward_func,
+        record_every=record_every,
     )
     weights = starting_genome[0 : size * size]
     learner.setWeights(weights.reshape((size, size)))
@@ -84,12 +87,16 @@ def learn(
         datalogger = DataLogger()
         for var in tracking_parameters:
             if "weight" in var:
-                datalogger.data[var] = np.zeros((int(duration / stepsize), size, size))
+                datalogger.data[var] = np.zeros(
+                    (int(duration / stepsize / record_every), size, size)
+                )
 
             elif "bias" in var or "voltage" in var or "outputs" in var:
-                datalogger.data[var] = np.zeros((int(duration / stepsize), size))
+                datalogger.data[var] = np.zeros(
+                    (int(duration / stepsize / record_every), size)
+                )
             else:
-                datalogger.data[var] = np.zeros(int(duration / stepsize))
+                datalogger.data[var] = np.zeros(int(duration / stepsize / record_every))
         learner.simulate(
             body,
             learning_start=window_size,
@@ -164,12 +171,11 @@ def learn(
                 filename = f"{generator_type}-{int(np.round(start_fitness,5)*100000)}-{int(np.round(end_fitness,5)*100000)}i{iteration}"
             else:
                 iteration = len(existing_files)
-                filename = f"{generator_type}-{int(np.round(start_fitness,5)*100000)}-{int(np.round(end_fitness,5)*100000)}i{iteration}"
+                filename = f"{generator_type}-{int(np.round(start_fitness,5)*100000)}-{int(np.round(end_fitness,5)*100000)}-i{iteration}"
         if folderName:
             filepath = Path(f"./data/{folderName}/{filename}")
         else:
             filepath = Path(f"./data/{filename}")
-
         datalogger.save(filepath)
 
         if print_done:

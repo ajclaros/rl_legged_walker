@@ -18,11 +18,11 @@ verbose = 0.1
 log_data = True
 record_csv = True
 track_fitness = False
-num_trials = 40
-num_processes = 120
+num_trials = 4
+num_processes = 16
 num_sets = int(np.floor(num_trials / num_processes))
 randomize_genomes = True
-num_random_genomes = 3
+num_random_genomes = 4
 # if visualize is true, print the parameters to visualize
 # "averaged [param_name]" will print the average of the parameter across all trials
 visualize = True
@@ -31,9 +31,8 @@ vis_weights = False
 vis_agent = False
 vis_params = [
     "averaged running_average_performances",
+    # "distribution flux_amp",
     "distribution running_average_performances",
-    "averaged flux_amp",
-    "distribution flux_amp",
 ]  # , "averaged flux_amp"]
 csv_name = "single_genome.csv"
 
@@ -51,17 +50,18 @@ csv_elements = [
 
 params = {
     "window_size": 440,  # unit seconds
-    "learn_rate": 0.1,
-    "conv_rate": 0.1,
+    "learn_rate": 0.9,
+    "conv_rate": 0.9,
     "min_period": 440,  # unit seconds
-    "max_period": 4400,  # unit seconds
-    "init_flux": 2.0,
-    "max_flux": 8,
-    "duration": 60000,  # unit seconds
-    "size": 2,
+    "max_period": 8000,  # unit seconds
+    "init_flux": 0.1,
+    "max_flux": 0.1,
+    "duration": 8000,  # unit seconds
+    "size": 3,
     "generator_type": "RPG",
     "tolerance": 0.00000,
     "neuron_configuration": [0],
+    "record_every": 100,
 }
 
 # params = {
@@ -220,7 +220,7 @@ if visualize:
     filename = files[0].split(".")[0]
     print(filename)
     data = np.load(f"{pathname}/{files[0]}")
-    Time = np.arange(0, data["duration"], data["stepsize"])
+    Time = np.arange(0, data["duration"], data["stepsize"] / data["sample_rate"])
     if visualize:
         for tracked in vis_params:
             if "averaged" in tracked:
