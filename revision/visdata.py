@@ -103,7 +103,7 @@ def plotChosenParam(
     numplots = int(np.ceil(np.sqrt(len(params))))
     fig, ax = plt.subplots(nrows=numplots, ncols=numplots, figsize=(4, 4))
     data = np.load(f"./{filename}")
-    time = np.arange(0, data["duration"], data["stepsize"] / data["samplerate"])
+    time = np.arange(0, data["duration"], data["stepsize"] / data["sample_rate"])
     for i, param in enumerate(params):
         row = i // numplots
         col = i % numplots
@@ -188,7 +188,7 @@ def plotDistributionParam(
     files = os.listdir(pathname)
     files = [name for name in files if ".npz" in name]
     data = np.load(f"{pathname}/{files[0]}")
-    time = np.arange(0, data["duration"], data["stepsize"] / data["sample_rate"])
+    time = np.arange(0, data["duration"], data["stepsize"] * data["sample_rate"])
     fig, ax = plt.subplots()
     param_data = []
     skip = 0

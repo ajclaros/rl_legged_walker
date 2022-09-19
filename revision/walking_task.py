@@ -53,19 +53,18 @@ class WalkingTask(RL_CTRNN):
             TR=TR,
             TA=TA,
         )
+        self.stepsize = stepsize
+        self.running_window_mode = running_window_mode
+        self.running_window_size = int(running_window_size / self.stepsize)
         self.size = size
         self.time_step = 0
         self.duration = duration
-        self.stepsize = stepsize
         self.reward = 0
         self.sample_rate = 1 / record_every
         self.time = np.arange(0, self.duration, self.stepsize)
-        self.distance_hist = np.zeros((self.time.size))
-        self.performance_hist = np.zeros(self.time.size)
-        self.running_window_mode = running_window_mode
-        self.running_average_performances = np.zeros((self.time.size))
+        self.distance_track = np.zeros((self.running_window_size))
+        self.performance_track = np.zeros((self.running_window_size))
         if self.running_window_mode:
-            self.running_window_size = int(running_window_size / self.stepsize)
             self.sliding_window = np.zeros(self.running_window_size)
             self.window_a = np.zeros(int(self.running_window_size / 2))
             self.window_b = np.zeros(int(self.running_window_size / 2))
@@ -82,23 +81,6 @@ class WalkingTask(RL_CTRNN):
         else:
             self.performance_func = self.secondary_performance_func
 
-    def save(self, filename):
-        np.savez(
-            filename,
-            duration=self.duration,
-            stepsize=self.stepsize,
-            time=self.time,
-            weight_hist=self.weight_hist,
-            bias_hist=self.bias_hist,
-            distanct_hist=self.distance_hist,
-            performance_hist=self.performance_hist,
-            extended_weight_hist=self.extended_weight_hist,
-            extended_bias_hist=self.extended_bias_hist,
-            neural_outputs=self.neural_outputs,
-            distance_hist=self.distance_hist,
-            genotype=self.recoverParameters(),
-        )
-
     def save2(self, filename):
         np.savez(filename, genotype=self.recoverParameters())
 
@@ -113,56 +95,37 @@ class WalkingTask(RL_CTRNN):
         )
 
     def default_performance_func(self, body):
-        self.distance_hist[self.time_step] = body.cx
-        self.window_a = np.roll(self.window_a, 1)
-        self.window_b = np.roll(self.window_b, 1)
+        self.distance_track[0] = body.cx
         self.window_b[0] = (
-            self.distance_hist[self.time_step]
-            - self.distance_hist[self.time_step - self.window_b.size]
+            self.distance_track[0] - self.distance_track[self.window_b.size - 1]
         )
         self.window_a[0] = (
-            self.distance_hist[self.time_step - self.window_a.size]
-            - self.distance_hist[self.time_step - self.running_window_size]
+            self.distance_track[self.window_a.size]
+            - self.distance_track[self.running_window_size - 1]
         )
-        self.running_average_performances[self.time_step] = self.window_a.mean() / (
+        self.performance_track[0] = self.window_a.mean() / (
             self.stepsize * self.window_a.size
         )
 
-    def secondary_reward_func(self, distance, learning=True):
-        performance = self.performance_func(distance)
-        running_average_performance = self.running_average_performances[
-            self.time_step - 1
-        ]
+        self.distance_track = np.roll(self.distance_track, 1)
+        self.window_a = np.roll(self.window_a, 1)
+        self.window_b = np.roll(self.window_b, 1)
+        self.performance_track = np.roll(self.performance_track, 1)
+
+    def secondary_reward_func(self, body, learning=True):
+        self.performance_func(body)
         # Current instantaneous performance vs. the current running average (NOT the previous instantaneous performance)
         if not learning:
             return 0
-        return performance - running_average_performance
+        return self.performance - self.performance_track.mean()
 
     def secondary_performance_func(self, body):
-        self.distance_hist[self.time_step] = body.cx
-        performance = (
-            self.distance_hist[self.time_step] - self.distance_hist[self.time_step - 1]
-        )
+        self.distance_track[0] = body.cx
+        performance = self.distance_track[0] - self.distance_track[1]
         performance /= self.stepsize
         self.performance = performance
-        self.performance_hist[self.time_step] = performance
-        if self.running_window_mode:
-            # rotate everything forward
-            self.sliding_window = np.roll(self.sliding_window, 1)
-            # replace oldest value (which just rolled to the front)
-            self.sliding_window[0] = performance
-            # current running average
-            self.running_average_performances[self.time_step] = np.mean(
-                self.sliding_window
-            )
-        else:
-            self.running_average_performances[self.time_step] = (
-                self.running_average_performances[self.time_step - 1]
-                * (1 - self.performance_update_rate)
-                + self.performance_update_rate * performance
-            )
-
-        return performance
+        self.performance_track[0] = performance
+        self.performance_track = np.roll(self.performance_track, 1)
 
     def simulate(
         self,
@@ -178,13 +141,15 @@ class WalkingTask(RL_CTRNN):
 
         if datalogger:
             datalogger.data["startgenome"] = self.recoverParameters()
-            datalogger.data["track_fitness"] = np.zeros(self.time.size)
-            datalogger.data["track_fitness"][self.time_step] = fitnessFunction(
-                datalogger.data["startgenome"],
-                N=self.size,
-                generator_type=generator_type,
-                configuration=configuration,
-            )
+            # datalogger.data["track_fitness"] = np.zeros(
+            #     int(self.time.size * self.sample_rate)
+            # )
+            # datalogger.data["track_fitness"][0] = fitnessFunction(
+            #     datalogger.data["startgenome"],
+            #     N=self.size,
+            #     generator_type=generator_type,
+            #     configuration=configuration,
+            # )
         for i, t in enumerate(self.time):
 
             # if track==Tree, runs fitnessfunction every given percentage:
@@ -228,10 +193,13 @@ class WalkingTask(RL_CTRNN):
                                 self.time_step + 1
                             ] = datalogger.data["track_fitness"][position]
                         continue
-                    elif "hist" in key or "running" in key:
-                        datalogger.data[key][position] = self.__dict__[key][
-                            self.time_step
-                        ]
+                    elif "hist" in key:
+                        key_name = key.split("_")[0] + "_track"
+                        datalogger.data[key][position] = self.__dict__[key_name][1]
+                    elif "average" in key:
+                        key_name = key.split("_")[0] + "track"
+                        datalogger.data[key][position] = self.__dict__[key_name].mean()
+
                     elif key in ["angle", "omega", "distance"]:
                         datalogger.data["angle"][position] = body.angle
                         datalogger.data["omega"][position] = body.omega
@@ -243,19 +211,17 @@ class WalkingTask(RL_CTRNN):
 
         self.time_step = 0
         if datalogger:
-            datalogger.data["track_fitness"][-1] = fitnessFunction(
-                self.recoverParameters(),
-                N=self.size,
-                generator_type=generator_type,
-                configuration=configuration,
-            )
+            # datalogger.data["track_fitness"][-1] = fitnessFunction(
+            #     self.recoverParameters(),
+            #     N=self.size,
+            #     generator_type=generator_type,
+            #     configuration=configuration,
+            #     verbose=verbose,
+            # )
             datalogger.data["learning_start"] = learning_start
             datalogger.data["tolerance"] = tolerance
             datalogger.data["size"] = self.size
             datalogger.data["duration"] = self.duration
             datalogger.data["stepsize"] = self.stepsize
             datalogger.data["sample_rate"] = self.sample_rate
-            datalogger.data[
-                "running_average_performances"
-            ] = self.running_average_performances[:: int(1 / self.sample_rate)]
             datalogger.data["metric"] = self.performance_func.__name__.split("_")[0]

@@ -19,7 +19,8 @@ outputs
 #reward modulated learning data
 flux_amp
 reward
-running_average_performances
+performance_hist
+performance_average_hist
 #inner_flux_periods
 #inner_flux_moments
 #bias_flux_amp

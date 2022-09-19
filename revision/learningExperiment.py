@@ -18,7 +18,7 @@ verbose = 0.1
 log_data = True
 record_csv = True
 track_fitness = False
-num_trials = 4
+num_trials = 1
 num_processes = 16
 num_sets = int(np.floor(num_trials / num_processes))
 randomize_genomes = True
@@ -26,14 +26,15 @@ num_random_genomes = 4
 # if visualize is true, print the parameters to visualize
 # "averaged [param_name]" will print the average of the parameter across all trials
 visualize = True
-vis_behavior = False
-vis_weights = False
-vis_agent = False
+vis_behavior = True
+vis_weights = True
+vis_agent = True
 vis_params = [
-    "averaged running_average_performances",
-    # "distribution flux_amp",
-    "distribution running_average_performances",
-]  # , "averaged flux_amp"]
+    "averaged performance_average_hist",
+    "distribution flux_amp",
+    "distribution performance_hist",
+    "averaged flux_amp",
+]
 csv_name = "single_genome.csv"
 
 csv_elements = [
@@ -50,13 +51,13 @@ csv_elements = [
 
 params = {
     "window_size": 440,  # unit seconds
-    "learn_rate": 0.9,
-    "conv_rate": 0.9,
+    "learn_rate": 0.1,
+    "conv_rate": 0.1,
     "min_period": 440,  # unit seconds
-    "max_period": 8000,  # unit seconds
-    "init_flux": 0.1,
-    "max_flux": 0.1,
-    "duration": 8000,  # unit seconds
+    "max_period": 4400,  # unit seconds
+    "init_flux": 1,
+    "max_flux": 2,
+    "duration": 10000,  # unit seconds
     "size": 3,
     "generator_type": "RPG",
     "tolerance": 0.00000,
@@ -245,7 +246,7 @@ if visualize:
                     "reward",
                     "flux_amp",
                     "distance",
-                    ("running_average_performances", "track_fitness"),
+                    "performance_average_hist",
                 ],
                 save=True,
             )
