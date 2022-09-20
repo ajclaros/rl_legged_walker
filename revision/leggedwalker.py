@@ -66,7 +66,7 @@ class LeggedAgent:
         # Update the leg geometry
         self.jointX = self.jointX + stepsize * self.vx
         if self.footstate == 1.0:
-            angle = np.arctan2(self.footX - self.jointX, self.footY - self.jointY)
+            angle = math.atan2(self.footX - self.jointX, self.footY - self.jointY)
             self.omega = (angle - self.angle) / stepsize
             self.angle = angle
         else:
@@ -85,11 +85,11 @@ class LeggedAgent:
             if self.angle > ForwardAngleLimit:
                 self.angle = ForwardAngleLimit
                 self.omega = 0
-            self.footX = self.jointX + LegLength * np.sin(self.angle)
-            self.footY = self.jointY + LegLength * np.cos(self.angle)
+            self.footX = self.jointX + LegLength * math.sin(self.angle)
+            self.footY = self.jointY + LegLength * math.cos(self.angle)
 
         # If the foot is too far back, the body becomes "unstable" and forward motion ceases
-        if self.cx - self.footX > 20:
+        if (self.cx - self.footX > 20) and (self.footX - self.cx > 20):
             self.vx = 0.0
 
     def step2(self, stepsize, u):
@@ -143,7 +143,8 @@ class LeggedAgent:
             self.footX = self.jointX + LegLength * math.sin(self.angle)
             self.footY = self.jointY + LegLength * math.cos(self.angle)
         # If the foot is too far back, the body becomes "unstable" and forward motion ceases
-        if self.cx - self.footX > 20:
+        # if self.cx - self.footX > 20:
+        if (self.cx - self.footX > 20) and (self.footX - self.cx > 20):
             self.vx = 0.0
 
     def step1(self, stepsize, u):
@@ -202,7 +203,8 @@ class LeggedAgent:
             self.footY = self.jointY + LegLength * math.cos(self.angle)
 
         # If the foot is too far back, the body becomes "unstable" and forward motion ceases
-        if self.cx - self.footX > 20:
+        # if self.cx - self.footX > 20:
+        if (self.cx - self.footX > 20) and (self.footX - self.cx > 20):
             self.vx = 0.0
 
     def stepN(self, stepsize, u, neuron_configuration=[0, 0, 0]):
@@ -282,5 +284,6 @@ class LeggedAgent:
             self.footY = self.jointY + LegLength * math.cos(self.angle)
 
         # If the foot is too far back, the body becomes "unstable" and forward motion ceases
-        if self.cx - self.footX > 20:
+        # if self.cx - self.footX > 20:
+        if abs(self.cx - self.footX) > 20:
             self.vx = 0.0

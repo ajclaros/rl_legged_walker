@@ -56,8 +56,8 @@ def fitnessFunction(
             ns.setInputs(np.array([0] * ns.size))
         #        ns.setInputs(np.array([0.0]*N))  # Set neuron input to angle feedback based on current body state
         ns.step(stepsize)  # Update the nervous system based on inputs
-        legged.step3(stepsize, ns.outputs)
-        # legged.stepN(stepsize, ns.outputs, configuration)
+        # legged.step3(stepsize, ns.outputs)
+        legged.stepN(stepsize, ns.outputs, configuration)
         # Update the body based on nervous system activity
     #        fitness_arr[i] = body.cx                        # track position of body
     # update neurons based on speed of movement (cx(t)-cx(t-1))/dt

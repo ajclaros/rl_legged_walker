@@ -31,8 +31,8 @@ vis_weights = True
 vis_agent = True
 vis_params = [
     "averaged performance_average_hist",
-    "distribution flux_amp",
-    "distribution performance_hist",
+    #    "distribution flux_amp",
+    #    "distribution performance_hist",
     "averaged flux_amp",
 ]
 csv_name = "single_genome.csv"
@@ -51,18 +51,18 @@ csv_elements = [
 
 params = {
     "window_size": 440,  # unit seconds
-    "learn_rate": 0.8,
-    "conv_rate": 0.8,
-    "min_period": 4400,  # unit seconds
-    "max_period": 10000,  # unit seconds
-    "init_flux": 1,
-    "max_flux": 3,
+    "learn_rate": 0.9,
+    "conv_rate": 0.9,
+    "min_period": 440,  # unit seconds
+    "max_period": 4400,  # unit seconds
+    "init_flux": 2,
+    "max_flux": 1,
     "duration": 30000,  # unit seconds
     "size": 3,
     "generator_type": "CPG",
     "tolerance": 0.00000,
     "neuron_configuration": [0, 1, 2],
-    "record_every": 10,
+    "record_every": 3,
 }
 
 # params = {

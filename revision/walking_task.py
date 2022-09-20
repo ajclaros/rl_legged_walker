@@ -170,8 +170,8 @@ class WalkingTask(RL_CTRNN):
 
             # rl_ctrnn step
             self.step(self.stepsize)
-            body.step3(self.stepsize, self.outputs)
-            # body.stepN(self.stepsize, self.outputs, configuration)
+            # body.step3(self.stepsize, self.outputs)
+            body.stepN(self.stepsize, self.outputs, configuration)
             if self.time_step < learning_start:
                 self.reward = self.reward_func(body, learning=False)
                 # updating with 0 reward
@@ -228,3 +228,4 @@ class WalkingTask(RL_CTRNN):
             datalogger.data["stepsize"] = self.stepsize
             datalogger.data["sample_rate"] = self.sample_rate
             datalogger.data["metric"] = self.performance_func.__name__.split("_")[0]
+            print(self.time_constants)
