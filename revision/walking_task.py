@@ -167,8 +167,11 @@ class WalkingTask(RL_CTRNN):
                 self.setInputs(np.array([body.anglefeedback()] * self.size))
             elif generator_type == "CPG":
                 self.setInputs(np.array([0] * self.size))
+
+            # rl_ctrnn step
             self.step(self.stepsize)
-            body.stepN(self.stepsize, self.outputs, configuration)
+            body.step3(self.stepsize, self.outputs)
+            # body.stepN(self.stepsize, self.outputs, configuration)
             if self.time_step < learning_start:
                 self.reward = self.reward_func(body, learning=False)
                 # updating with 0 reward

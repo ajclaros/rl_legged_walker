@@ -18,11 +18,11 @@ verbose = 0.1
 log_data = True
 record_csv = True
 track_fitness = False
-num_trials = 1
+num_trials = 8
 num_processes = 16
 num_sets = int(np.floor(num_trials / num_processes))
 randomize_genomes = True
-num_random_genomes = 4
+num_random_genomes = 2
 # if visualize is true, print the parameters to visualize
 # "averaged [param_name]" will print the average of the parameter across all trials
 visualize = True
@@ -51,18 +51,18 @@ csv_elements = [
 
 params = {
     "window_size": 440,  # unit seconds
-    "learn_rate": 0.1,
-    "conv_rate": 0.1,
-    "min_period": 440,  # unit seconds
-    "max_period": 4400,  # unit seconds
+    "learn_rate": 0.8,
+    "conv_rate": 0.8,
+    "min_period": 4400,  # unit seconds
+    "max_period": 10000,  # unit seconds
     "init_flux": 1,
-    "max_flux": 2,
-    "duration": 10000,  # unit seconds
+    "max_flux": 3,
+    "duration": 30000,  # unit seconds
     "size": 3,
-    "generator_type": "RPG",
+    "generator_type": "CPG",
     "tolerance": 0.00000,
-    "neuron_configuration": [0],
-    "record_every": 100,
+    "neuron_configuration": [0, 1, 2],
+    "record_every": 10,
 }
 
 # params = {

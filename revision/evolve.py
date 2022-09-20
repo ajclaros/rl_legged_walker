@@ -7,20 +7,21 @@ from fitnessFunction import fitnessFunction
 
 import matplotlib.pyplot as plt
 from matplotlib import cm, colors
+
 # Nervous System Parameters
 # Task Parameters
 
-popsize = 10# Population size
-recombProb = 0.5        # Recombination probability
-mutatProb = 0.01# Mutation probability
-demesize = 2            # Neighborhood size
-generations = 10# Number of generations
+popsize = 10  # Population size
+recombProb = 0.5  # Recombination probability
+mutatProb = 0.01  # Mutation probability
+demesize = 2  # Neighborhood size
+generations = 100  # Number of generations
 
-cmap = plt.get_cmap('tab10').colors
+cmap = plt.get_cmap("tab10").colors
 param_list = {
-    "size": [4],
-    "generator_type":["CPG", "RPG"],
-    "neuron_configuration":[[0, 1,2]]
+    "size": [3],
+    "generator_type": ["CPG"],
+    "neuron_configuration": [[0, 1, 2]],
 }
 
 # Evolve and visualize fitness over generations
@@ -31,15 +32,28 @@ for i, x in enumerate(itertools.product(*param_list.values())):
     params = {}
     for j, key in enumerate(param_list.keys()):
         params[key] = x[j]
-    size = params['size']
-    if len(params['neuron_configuration'])>size:
+    size = params["size"]
+    if len(params["neuron_configuration"]) > size:
         continue
-    genesize = size*size + 2*size
-    ga = ea.Microbial(fitnessFunction, popsize, genesize, recombProb, mutatProb, demesize, generations, generator_type = params['generator_type'], neuron_configuration=params['neuron_configuration'], size = size)
+    genesize = size * size + 2 * size
+    ga = ea.Microbial(
+        fitnessFunction,
+        popsize,
+        genesize,
+        recombProb,
+        mutatProb,
+        demesize,
+        generations,
+        generator_type=params["generator_type"],
+        neuron_configuration=params["neuron_configuration"],
+        size=size,
+    )
     ga.run()
     ga.showFitness(c=cmap[i])
     ga.save()
 
-plt.title(f"Microbial: Best and average fitness\nN:{size},neuron_config:{param_list['neuron_configuration'][0]}")
-ga.showFitness(c= cmap[1], save=True)
+plt.title(
+    f"Microbial: Best and average fitness\nN:{size},neuron_config:{param_list['neuron_configuration'][0]}"
+)
+ga.showFitness(c=cmap[1], save=True)
 plt.show()

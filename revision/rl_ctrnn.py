@@ -281,7 +281,6 @@ class RL_CTRNN(CTRNN):
         self.inner_flux_moments += dt
         if self.bias_flux_mode:
             self.bias_inner_flux_moments += dt
-
         for i in range(self.size):
             for j in range(self.size):
                 # if period is reached/exceeded randomize new one...
@@ -338,10 +337,10 @@ class RL_CTRNN(CTRNN):
         self.voltages += dt * (self.inv_time_constants * (-self.voltages + netinput))
 
         if self.bias_flux_mode:
-            self.outputs = expit(self.voltages + self.extended_biases.T)
+            self.outputs = sigmoid(self.voltages + self.extended_biases.T)
             # self.outputs = sigmoid( self.voltages + self.calc_bias_with_flux() )
         else:
-            self.outputs = expit(self.voltages + self.biases)
+            self.outputs = sigmoid(self.voltages + self.biases)
 
     def recoverParameters(self, inner=True):
         if inner:
