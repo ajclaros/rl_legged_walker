@@ -131,7 +131,6 @@ class WalkingTask(RL_CTRNN):
         self,
         body,
         datalogger=None,
-        track=False,
         learning_start=None,
         verbose=0.1,
         generator_type="RPG",
@@ -141,28 +140,11 @@ class WalkingTask(RL_CTRNN):
 
         if datalogger:
             datalogger.data["startgenome"] = self.recoverParameters()
-            # datalogger.data["track_fitness"] = np.zeros(
-            #     int(self.time.size * self.sample_rate)
-            # )
-            # datalogger.data["track_fitness"][0] = fitnessFunction(
-            #     datalogger.data["startgenome"],
-            #     N=self.size,
-            #     generator_type=generator_type,
-            #     configuration=configuration,
-            # )
         for i, t in enumerate(self.time):
 
-            # if track==Tree, runs fitnessfunction every given percentage:
             # verbose=0.1, runs fitnessFunction 10 at equal intervals
             if verbose > 0.0 and i % (self.time.size * verbose) == 0 and verbose < 1.0:
                 print("{}% completed...".format(i / self.time.size * 100))
-                if track:
-                    datalogger.data["track_fitness"][self.time_step] = fitnessFunction(
-                        self.recoverParameters(),
-                        N=self.size,
-                        generator_type=generator_type,
-                        configuration=configuration,
-                    )
             if generator_type == "RPG":
                 self.setInputs(np.array([body.anglefeedback()] * self.size))
             elif generator_type == "CPG":
@@ -187,14 +169,7 @@ class WalkingTask(RL_CTRNN):
             if datalogger and self.time_step % (1 / self.sample_rate) == 0:
                 position = int(self.time_step * self.sample_rate)
                 for key in datalogger.data.keys():
-                    if key in ["startgenome", "track_fitness"]:
-                        if (
-                            key == "track_fitness"
-                            and (position < self.time.size - 1) / self.stepsize
-                        ):
-                            datalogger.data["track_fitness"][
-                                self.time_step + 1
-                            ] = datalogger.data["track_fitness"][position]
+                    if key in ["startgenome"]:
                         continue
                     elif "hist" in key:
                         key_name = key.split("_")[0] + "_track"
@@ -214,7 +189,6 @@ class WalkingTask(RL_CTRNN):
 
         self.time_step = 0
         if datalogger:
-            # datalogger.data["track_fitness"][-1] = fitnessFunction(
             #     self.recoverParameters(),
             #     N=self.size,
             #     generator_type=generator_type,
@@ -228,4 +202,5 @@ class WalkingTask(RL_CTRNN):
             datalogger.data["stepsize"] = self.stepsize
             datalogger.data["sample_rate"] = self.sample_rate
             datalogger.data["metric"] = self.performance_func.__name__.split("_")[0]
+            datalogger.data["endgenome"] = self.recoverParameters()
             print(self.time_constants)

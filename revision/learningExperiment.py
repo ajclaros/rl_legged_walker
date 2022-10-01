@@ -7,6 +7,9 @@ from visdata import *
 import concurrent.futures
 import matplotlib.pyplot as plt
 from fitnessFunction import fitnessFunction
+import seaborn as sns
+from matplotlib.collections import LineCollection
+from matplotlib.colors import ListedColormap, BoundaryNorm
 import time
 
 # run a single configuration "num_trials" times
@@ -17,12 +20,11 @@ import time
 verbose = 0.1
 log_data = True
 record_csv = True
-track_fitness = False
-num_trials = 8
+num_trials = 16
 num_processes = 16
 num_sets = int(np.floor(num_trials / num_processes))
-randomize_genomes = True
-num_random_genomes = 2
+randomize_genomes = False
+num_random_genomes = 1
 # if visualize is true, print the parameters to visualize
 # "averaged [param_name]" will print the average of the parameter across all trials
 visualize = True
@@ -31,8 +33,8 @@ vis_weights = True
 vis_agent = True
 vis_params = [
     "averaged performance_average_hist",
-    #    "distribution flux_amp",
-    #    "distribution performance_hist",
+    # "distribution flux_amp",
+    # "distribution performance_hist",
     "averaged flux_amp",
 ]
 csv_name = "single_genome.csv"
@@ -55,14 +57,15 @@ params = {
     "conv_rate": 0.9,
     "min_period": 440,  # unit seconds
     "max_period": 4400,  # unit seconds
-    "init_flux": 2,
-    "max_flux": 1,
+    "init_flux": 2.5,
+    "max_flux": 3.5,
     "duration": 30000,  # unit seconds
-    "size": 3,
-    "generator_type": "CPG",
-    "tolerance": 0.00000,
-    "neuron_configuration": [0, 1, 2],
-    "record_every": 3,
+    "size": 2,
+    "generator_type": "RPG",
+    "tolerance": 0.0000,
+    "neuron_configuration": [0],
+    "record_every": 10,
+    "stepsize": 0.1,
 }
 
 # params = {
@@ -104,14 +107,14 @@ if not randomize_genomes:
     genome_list.append(
         np.array(
             [
-                0.99388489,
-                -0.19977217,
-                0.80557307,
-                0.66176187,
-                -0.41946752,
-                0.00756486,
-                -0.72451768,
-                -0.50670193,
+                -0.47155068,
+                0.12906448,
+                0.137953,
+                0.61473294,
+                -0.13618889,
+                0.09540692,
+                -0.16991449,
+                -0.47096263,
             ]
         )
     )
@@ -195,14 +198,12 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as execut
                     **params,
                     tracking_parameters=tracking_parameters,
                     folderName=folderName,
-                    track_fitness=track_fitness,
                     print_done=False,
                     trial=trial,
                     log_data=log_data,
                     verbose=print_verbose,
                     genome_num=i,
                     csv_name=csv_name,
-                    stepsize=0.10,
                 )
             )
             if len(results) == num_processes:

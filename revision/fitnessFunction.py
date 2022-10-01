@@ -18,6 +18,7 @@ def fitnessFunction(
     verbose=0,
     record=False,
     stepsize=0.1,
+    filename=None,
 ):
     # Create the agent's body
     legged = leggedwalker.LeggedAgent()
@@ -37,17 +38,33 @@ def fitnessFunction(
     time = np.arange(0.0, duration, stepsize)
     if record:
         datalogger = DataLogger()
+        datalogger.data["sample_rate"] = 1
         datalogger.data["stepsize"] = stepsize
+        datalogger.data["learning_start"] = 0
+        datalogger.data["duration"] = duration
+        datalogger.data["size"] = N
         datalogger.data["outputs"] = np.zeros(shape=(len(time), N))
         datalogger.data["distance"] = np.zeros(shape=(len(time)))
         datalogger.data["omega"] = np.zeros(shape=(len(time)))
         datalogger.data["angle"] = np.zeros(shape=(len(time)))
+        datalogger.data["footstate"] = np.zeros(shape=(len(time)))
+        datalogger.data["footX"] = np.zeros(shape=(len(time)))
+        datalogger.data["footY"] = np.zeros(shape=(len(time)))
+        datalogger.data["jointX"] = np.zeros(shape=(len(time)))
+        datalogger.data["jointY"] = np.zeros(shape=(len(time)))
+        datalogger.data["vx"] = np.zeros(shape=(len(time)))
     for i, t in enumerate(time):
         if record:
             datalogger.data["outputs"][i] = ns.outputs
             datalogger.data["distance"][i] = legged.cx
             datalogger.data["omega"][i] = legged.omega
             datalogger.data["angle"][i] = legged.angle
+            datalogger.data["footX"][i] = legged.footX
+            datalogger.data["footY"][i] = legged.footY
+            datalogger.data["vx"][i] = legged.vx
+            datalogger.data["footstate"][i] = legged.footstate
+            datalogger.data["jointX"][i] = legged.jointX
+            datalogger.data["jointY"][i] = legged.jointY
         if generator_type == "RPG":
             ns.setInputs(
                 np.array([legged.anglefeedback()] * N)
@@ -66,6 +83,11 @@ def fitnessFunction(
     if verbose == 1:
         print(ns.recoverParameters())
     if record:
-        filename = f"behavior-{generator_type}-{int(np.round(fit,5)*100000)}-s{ns.size}-c{'_'.join(str(num) for num in configuration)}"
-        datalogger.save(f"./data/microbial/{filename}")
+        datalogger.data["start_fitness"] = fit
+        datalogger.data["end_fitness"] = fit
+        if filename:
+            datalogger.save(f"./data/runs/{filename}")
+        else:
+            filename = f"behavior-{generator_type}-{int(np.round(fit,5)*100000)}-s{ns.size}-c{'_'.join(str(num) for num in configuration)}"
+            datalogger.save(f"./data/runs/{filename}")
     return fit

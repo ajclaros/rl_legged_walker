@@ -46,7 +46,6 @@ def learn(
     tracking_parameters=None,
     filename=None,
     folderName=None,
-    track_fitness=False,
     print_done=False,
     trial=0,
     csv_name=None,
@@ -105,7 +104,6 @@ def learn(
             generator_type=generator_type,
             configuration=neuron_configuration,
             tolerance=tolerance,
-            track=track_fitness,
         )
     else:
         learner.simulate(body, learning_start=4000, verbose=verbose)

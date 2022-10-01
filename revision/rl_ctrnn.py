@@ -186,6 +186,7 @@ class RL_CTRNN(CTRNN):
         # Shift amplitude by percentage of the current self.max_flux_amp   multipled by the reward
         #                               0.1  *     10.0          *  generally small value
         #
+        tolerance_mult = 0.005
 
         self.reward = reward
         if abs(reward) >= tolerance and learning:
@@ -216,7 +217,7 @@ class RL_CTRNN(CTRNN):
         if abs(reward) <= tolerance and learning:
             self.inner_weights = np.clip(
                 self.inner_weights
-                + self.learn_rate * inner_flux_center_displacements * 0.1,
+                + self.learn_rate * inner_flux_center_displacements * tolerance_mult,
                 -self.weight_range,
                 self.weight_range,
             )
@@ -232,7 +233,9 @@ class RL_CTRNN(CTRNN):
             if abs(reward) <= tolerance and learning:
                 self.biases = np.clip(
                     self.biases
-                    + self.learn_rate * bias_inner_flux_center_displacements * 0.1,
+                    + self.learn_rate
+                    * bias_inner_flux_center_displacements
+                    * tolerance_mult,
                     -self.bias_range,
                     self.bias_range,
                 )

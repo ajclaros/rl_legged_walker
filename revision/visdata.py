@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
 
 # folders = os.listdir("data")
 # generator_type = "RPG"
@@ -16,10 +17,11 @@ import matplotlib.pyplot as plt
 
 
 def plotWeightsBiases(
-    data, show=False, legend=True, extended=False, linewidth=2, save=False
+    data, show=False, legend=True, extended=False, linewidth=2, save=False, ax=None
 ):
+    if not ax:
+        fig, ax = plt.subplots()
     cmap = plt.get_cmap("tab20").colors
-    fig, ax = plt.subplots(figsize=(8, 4))
     time = np.arange(0, data["duration"], data["stepsize"] / data["sample_rate"])
 
     for i in range(data["size"]):
@@ -101,26 +103,38 @@ def plotChosenParam(
     filename, params, show=False, save=True, title=None, title_params=None
 ):
     numplots = int(np.ceil(np.sqrt(len(params))))
-    fig, ax = plt.subplots(nrows=numplots, ncols=numplots, figsize=(4, 4))
+    print(params)
+    fig, ax = plt.subplots(
+        nrows=numplots,
+        ncols=numplots,
+        figsize=(
+            numplots,
+            numplots,
+        ),
+    )
     data = np.load(f"./{filename}")
     time = np.arange(0, data["duration"], data["stepsize"] / data["sample_rate"])
-    for i, param in enumerate(params):
-        row = i // numplots
-        col = i % numplots
-        if type(param) == tuple:
-            for p in param:
-                ax[row][col].plot(time, data[p], label=p.replace("_", " "))
-                ax[row][col].legend()
-            param = [name.replace("_", " ") for name in param]
-            ax[row][col].title.set_text("\nvs\n".join(param))
-        else:
-            ax[row][col].plot(time, data[param])
-            ax[row][col].title.set_text(f"{param}")
-        ax[row][col].axvline(
-            data["learning_start"],
-            c="k",
-            ls="--",
-        )
+    if (len(params)) == 1:
+        ax.plot(time, data[params[0]])
+    else:
+        for i, param in enumerate(params):
+            row = i // numplots
+            col = i % numplots
+
+            if type(param) == tuple:
+                for p in param:
+                    ax[row][col].plot(time, data[p], label=p.replace("_", " "))
+                    ax[row][col].legend()
+                param = [name.replace("_", " ") for name in param]
+                ax[row][col].title.set_text("\nvs\n".join(param))
+            else:
+                ax[row][col].plot(time, data[param])
+                ax[row][col].title.set_text(f"{param}")
+            ax[row][col].axvline(
+                data["learning_start"],
+                c="k",
+                ls="--",
+            )
     if not title:
         fig.suptitle(
             f"startFit:{np.round(data['start_fitness'],3)}\nEndFit:{np.round(data['end_fitness'], 3)}\nDuration: {data['duration']}"
@@ -213,3 +227,41 @@ def plotDistributionParam(
 
 # plotWeightsBiases(data, show=True)
 # plotBehavior(data, show=True)
+
+
+def plot_NeuralOutputs(data, show=False, cmap="jet"):
+    fig, ax = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(6, 3))
+    outputs = data["outputs"].T
+    time = np.arange(0, data["learning_start"], data["stepsize"] / data["sample_rate"])
+    points = np.array(data["outputs"][: data["learning_start"]].T).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+    time = np.arange(0, data["learning_start"], data["stepsize"] / data["sample_rate"])
+    # Create a continuous norm to map from data points to colors
+    norm = plt.Normalize(time.min(), time.max())
+    lc = LineCollection(segments, cmap=cmap, norm=norm, linewidths=8)
+    # Set the values used for colormapping
+    lc.set_array(time)
+    lc.set_linewidth(8)
+    line = ax[0].add_collection(lc)
+    fig.colorbar(line, ax=ax[0])
+    points = np.array(data["outputs"][data["learning_start"] :].T).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+    time = np.arange(
+        data["learning_start"], data["duration"], data["stepsize"] / data["sample_rate"]
+    )
+    # Create a continuous norm to map from data points to colors
+    norm = plt.Normalize(time.min(), time.max())
+    lc = LineCollection(segments, cmap=cmap, norm=norm, linewidths=8)
+    # Set the values used for colormapping
+    lc.set_array(time)
+    lc.set_linewidth(8)
+    line = ax[1].add_collection(lc)
+    fig.colorbar(line, ax=ax[1])
+    ax[0].set_xlabel("Neuron 0")
+    ax[0].set_ylabel("Neuron 1")
+    ax[1].set_xlabel("Neuron 0")
+    ax[1].set_ylabel("Neuron 1")
+    plt.suptitle("Neural Outputs")
+    if show == True:
+        plt.legend()
+        plt.show()
