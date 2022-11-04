@@ -54,6 +54,7 @@ class WalkingTask(RL_CTRNN):
             TA=TA,
         )
         self.stepsize = stepsize
+        self.check_state = 0
         self.running_window_mode = running_window_mode
         self.running_window_size = int(running_window_size / self.stepsize)
         self.size = size
@@ -106,7 +107,6 @@ class WalkingTask(RL_CTRNN):
         self.performance_track[0] = self.window_a.mean() / (
             self.stepsize * self.window_a.size
         )
-
         self.distance_track = np.roll(self.distance_track, 1)
         self.window_a = np.roll(self.window_a, 1)
         self.window_b = np.roll(self.window_b, 1)
@@ -203,4 +203,83 @@ class WalkingTask(RL_CTRNN):
             datalogger.data["sample_rate"] = self.sample_rate
             datalogger.data["metric"] = self.performance_func.__name__.split("_")[0]
             datalogger.data["endgenome"] = self.recoverParameters()
-            print(self.time_constants)
+            print(self.performance_track[1])
+
+    def simulate2(
+        self,
+        body,
+        datalogger=None,
+        learning_start=None,
+        verbose=0.1,
+        generator_type="RPG",
+        configuration=[0],
+        tolerance=0.0,
+    ):
+
+        if datalogger:
+            datalogger.data["startgenome"] = self.recoverParameters()
+        for i, t in enumerate(self.time):
+            # verbose=0.1, runs fitnessFunction 10 at equal intervals
+            if verbose > 0.0 and i % (self.time.size * verbose) == 0 and verbose < 1.0:
+                print("{}% completed...".format(i / self.time.size * 100))
+            if generator_type == "RPG":
+                self.setInputs(np.array([body.anglefeedback()] * self.size))
+            elif generator_type == "CPG":
+                self.setInputs(np.array([0] * self.size))
+            # rl_ctrnn step
+            self.step(self.stepsize)
+            # body.step3(self.stepsize, self.outputs)
+            body.stepN(self.stepsize, self.outputs, configuration)
+
+            if (self.window_a.mean() - self.window_b.mean())!=0 and t>learning_start:
+                self.check_state += 1
+            else:
+                self.check_state = 0
+
+            if self.check_state>self.running_window_size:
+                self.learning_state = True
+            else:
+                self.learning_state = False
+            reward = self.reward_func(body, learning=self.learning_state)
+            self.reward = reward
+            self.update_weights_and_flux_amp_with_reward(
+                    reward, tolerance=tolerance
+            )
+            if datalogger and self.time_step % (1 / self.sample_rate) == 0:
+                position = int(self.time_step * self.sample_rate)
+                for key in datalogger.data.keys():
+                    if key in ["startgenome"]:
+                        continue
+                    elif "hist" in key:
+                        key_name = key.split("_")[0] + "_track"
+                        datalogger.data[key][position] = self.__dict__[key_name][1]
+                    elif "average" in key:
+                        key_name = key.split("_")[0] + "track"
+                        datalogger.data[key][position] = self.__dict__[key_name].mean()
+
+                    elif key in ["angle", "omega", "distance"]:
+                        datalogger.data["angle"][position] = body.angle
+                        datalogger.data["omega"][position] = body.omega
+                        datalogger.data["distance"][position] = body.cx
+                    else:
+                        datalogger.data[key][position] = self.__dict__[key]
+
+            self.time_step += 1
+
+        self.time_step = 0
+        if datalogger:
+            #     self.recoverParameters(),
+            #     N=self.size,
+            #     generator_type=generator_type,
+            #     configuration=configuration,
+            #     verbose=verbose,
+            # )
+            datalogger.data["learning_start"] = learning_start
+            datalogger.data["tolerance"] = tolerance
+            datalogger.data["size"] = self.size
+            datalogger.data["duration"] = self.duration
+            datalogger.data["stepsize"] = self.stepsize
+            datalogger.data["sample_rate"] = self.sample_rate
+            datalogger.data["metric"] = self.performance_func.__name__.split("_")[0]
+            datalogger.data["endgenome"] = self.recoverParameters()
+            print(self.performance_track[1])

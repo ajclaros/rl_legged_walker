@@ -22,8 +22,6 @@ def fitnessFunction(
 ):
     # Create the agent's body
     legged = leggedwalker.LeggedAgent()
-    if verbose > 0:
-        print(f"Running fitnessFunction: {generator_type}")
     # Create the nervous system
     ns = CTRNN(N)
     # Set the parameters of the nervous system according to the genotype-phenotype map
@@ -80,8 +78,6 @@ def fitnessFunction(
     # update neurons based on speed of movement (cx(t)-cx(t-1))/dt
     # Calculate the fitness based on distance covered over the duration of time
     fit = legged.cx / duration
-    if verbose == 1:
-        print(ns.recoverParameters())
     if record:
         datalogger.data["start_fitness"] = fit
         datalogger.data["end_fitness"] = fit

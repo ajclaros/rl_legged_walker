@@ -47,12 +47,13 @@ def learn(
     filename=None,
     folderName=None,
     print_done=False,
-    trial=0,
+    trial=None,
     csv_name=None,
     genome_num=None,
     performance_func=None,
     reward_func=None,
     record_every=1,
+    learning_start=0,
 ):
 
     learner = WalkingTask(
@@ -98,7 +99,7 @@ def learn(
                 datalogger.data[var] = np.zeros(int(duration / stepsize / record_every))
         learner.simulate(
             body,
-            learning_start=window_size,
+            #learning_start=learning_start,
             datalogger=datalogger,
             verbose=verbose,
             generator_type=generator_type,
@@ -185,4 +186,4 @@ def learn(
             print(
                 f"{generator_type}-{np.round(start_fitness,5)}-{np.round(end_fitness,5)}"
             )
-        return (genome_num, np.round(end_fitness, 3))
+        return end_fitness

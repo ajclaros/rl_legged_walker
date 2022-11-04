@@ -19,20 +19,19 @@ import time
 
 verbose = 0.1
 log_data = True
-record_csv = True
-num_trials = 16
+record_csv = False
+num_trials = 4
 num_processes = 16
-num_sets = int(np.floor(num_trials / num_processes))
-randomize_genomes = False
-num_random_genomes = 1
+randomize_genomes = True
+num_random_genomes = 4
 # if visualize is true, print the parameters to visualize
 # "averaged [param_name]" will print the average of the parameter across all trials
 visualize = True
-vis_behavior = True
-vis_weights = True
-vis_agent = True
+vis_behavior = False
+vis_weights = False
+vis_agent = False
 vis_params = [
-    "averaged performance_average_hist",
+    "averaged performance_hist",
     # "distribution flux_amp",
     # "distribution performance_hist",
     "averaged flux_amp",
@@ -50,21 +49,21 @@ csv_elements = [
     "window_size",
     "genome_num",
 ]
-
 params = {
     "window_size": 440,  # unit seconds
-    "learn_rate": 0.9,
-    "conv_rate": 0.9,
+    "learn_rate": 0.2,
+    "conv_rate": 0.2,
     "min_period": 440,  # unit seconds
     "max_period": 4400,  # unit seconds
     "init_flux": 2.5,
-    "max_flux": 3.5,
-    "duration": 30000,  # unit seconds
-    "size": 2,
+    "max_flux": 5.5,
+    "duration": 8000,  # unit seconds
+    "size": 3,
     "generator_type": "RPG",
-    "tolerance": 0.0000,
-    "neuron_configuration": [0],
-    "record_every": 10,
+    "tolerance": 0.000000001,
+    "neuron_configuration": [0, 1],
+    #"learning_start" : 600,
+    "record_every": 1,
     "stepsize": 0.1,
 }
 
@@ -84,8 +83,9 @@ params = {
 #     "tolerance": 0.00000,
 #     "neuron_configuration": [0],
 # }
-folderName = f"{params['generator_type']}_d{params['duration']}_initfx{params['init_flux']}_00_window{params['window_size']}_max_p{params['max_period']}"
-folderName += "recording"
+#folderName = f"{params['generator_type']}_d{params['duration']}_initfx{params['init_flux']}_00_window{params['window_size']}_max_p{params['max_period']}"
+#folderName += "recording"
+folderName = "test"
 if not os.path.exists(Path(f"./data/{folderName}")):
     print(f"creating folder:{folderName}")
     os.mkdir(f"./data/{folderName}")
@@ -247,7 +247,7 @@ if visualize:
                     "reward",
                     "flux_amp",
                     "distance",
-                    "performance_average_hist",
+                    "performance_hist",
                 ],
                 save=True,
             )
