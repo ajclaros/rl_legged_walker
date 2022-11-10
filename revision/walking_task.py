@@ -64,7 +64,7 @@ class WalkingTask(RL_CTRNN):
         self.sample_rate = 1 / record_every
         self.time = np.arange(0, self.duration, self.stepsize)
         self.distance_track = np.zeros((self.running_window_size))
-        self.performance_track = np.zeros((self.running_window_size))
+        self.performance_track = np.zeros(int(self.running_window_size / 2))
         if self.running_window_mode:
             self.sliding_window = np.zeros(self.running_window_size)
             self.window_a = np.zeros(int(self.running_window_size / 2))
@@ -131,7 +131,7 @@ class WalkingTask(RL_CTRNN):
         self,
         body,
         datalogger=None,
-        learning_start=None,
+        learning_start=0,
         verbose=0.1,
         generator_type="RPG",
         configuration=[0],
@@ -141,7 +141,6 @@ class WalkingTask(RL_CTRNN):
         if datalogger:
             datalogger.data["startgenome"] = self.recoverParameters()
         for i, t in enumerate(self.time):
-
             # verbose=0.1, runs fitnessFunction 10 at equal intervals
             if verbose > 0.0 and i % (self.time.size * verbose) == 0 and verbose < 1.0:
                 print("{}% completed...".format(i / self.time.size * 100))
@@ -149,102 +148,22 @@ class WalkingTask(RL_CTRNN):
                 self.setInputs(np.array([body.anglefeedback()] * self.size))
             elif generator_type == "CPG":
                 self.setInputs(np.array([0] * self.size))
-
-            # rl_ctrnn step
-            self.step(self.stepsize)
+            if t < learning_start:
+                self.step(self.stepsize)
+                self.reward_func(body, learning=False)
+            else:
+                self.stepRNN(self.stepsize)
+                if t + 1 == learning_start and verbose:
+                    print("Starting performance")
+                    print(self.performance_track.mean())
             # body.step3(self.stepsize, self.outputs)
             body.stepN(self.stepsize, self.outputs, configuration)
-            if self.time_step < learning_start:
-                self.reward = self.reward_func(body, learning=False)
-                # updating with 0 reward
-                self.update_weights_and_flux_amp_with_reward(
-                    self.reward, tolerance=tolerance, learning=False
-                )
-            else:
+            if t > learning_start:
                 reward = self.reward_func(body, learning=True)
                 self.reward = reward
                 self.update_weights_and_flux_amp_with_reward(
                     reward, tolerance=tolerance
                 )
-            if datalogger and self.time_step % (1 / self.sample_rate) == 0:
-                position = int(self.time_step * self.sample_rate)
-                for key in datalogger.data.keys():
-                    if key in ["startgenome"]:
-                        continue
-                    elif "hist" in key:
-                        key_name = key.split("_")[0] + "_track"
-                        datalogger.data[key][position] = self.__dict__[key_name][1]
-                    elif "average" in key:
-                        key_name = key.split("_")[0] + "track"
-                        datalogger.data[key][position] = self.__dict__[key_name].mean()
-
-                    elif key in ["angle", "omega", "distance"]:
-                        datalogger.data["angle"][position] = body.angle
-                        datalogger.data["omega"][position] = body.omega
-                        datalogger.data["distance"][position] = body.cx
-                    else:
-                        datalogger.data[key][position] = self.__dict__[key]
-
-            self.time_step += 1
-
-        self.time_step = 0
-        if datalogger:
-            #     self.recoverParameters(),
-            #     N=self.size,
-            #     generator_type=generator_type,
-            #     configuration=configuration,
-            #     verbose=verbose,
-            # )
-            datalogger.data["learning_start"] = learning_start
-            datalogger.data["tolerance"] = tolerance
-            datalogger.data["size"] = self.size
-            datalogger.data["duration"] = self.duration
-            datalogger.data["stepsize"] = self.stepsize
-            datalogger.data["sample_rate"] = self.sample_rate
-            datalogger.data["metric"] = self.performance_func.__name__.split("_")[0]
-            datalogger.data["endgenome"] = self.recoverParameters()
-            print(self.performance_track[1])
-
-    def simulate2(
-        self,
-        body,
-        datalogger=None,
-        learning_start=None,
-        verbose=0.1,
-        generator_type="RPG",
-        configuration=[0],
-        tolerance=0.0,
-    ):
-
-        if datalogger:
-            datalogger.data["startgenome"] = self.recoverParameters()
-        for i, t in enumerate(self.time):
-            # verbose=0.1, runs fitnessFunction 10 at equal intervals
-            if verbose > 0.0 and i % (self.time.size * verbose) == 0 and verbose < 1.0:
-                print("{}% completed...".format(i / self.time.size * 100))
-            if generator_type == "RPG":
-                self.setInputs(np.array([body.anglefeedback()] * self.size))
-            elif generator_type == "CPG":
-                self.setInputs(np.array([0] * self.size))
-            # rl_ctrnn step
-            self.step(self.stepsize)
-            # body.step3(self.stepsize, self.outputs)
-            body.stepN(self.stepsize, self.outputs, configuration)
-
-            if (self.window_a.mean() - self.window_b.mean())!=0 and t>learning_start:
-                self.check_state += 1
-            else:
-                self.check_state = 0
-
-            if self.check_state>self.running_window_size:
-                self.learning_state = True
-            else:
-                self.learning_state = False
-            reward = self.reward_func(body, learning=self.learning_state)
-            self.reward = reward
-            self.update_weights_and_flux_amp_with_reward(
-                    reward, tolerance=tolerance
-            )
             if datalogger and self.time_step % (1 / self.sample_rate) == 0:
                 position = int(self.time_step * self.sample_rate)
                 for key in datalogger.data.keys():

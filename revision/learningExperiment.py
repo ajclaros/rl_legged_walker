@@ -7,6 +7,7 @@ from visdata import *
 import concurrent.futures
 import matplotlib.pyplot as plt
 from fitnessFunction import fitnessFunction
+import leggedwalker
 import seaborn as sns
 from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
@@ -20,18 +21,18 @@ import time
 verbose = 0.1
 log_data = True
 record_csv = False
-num_trials = 4
+num_trials = 16
 num_processes = 16
-randomize_genomes = True
-num_random_genomes = 4
+randomize_genomes = False
+num_random_genomes = 1
 # if visualize is true, print the parameters to visualize
 # "averaged [param_name]" will print the average of the parameter across all trials
 visualize = True
 vis_behavior = False
-vis_weights = False
+vis_weights = True
 vis_agent = False
 vis_params = [
-    "averaged performance_hist",
+    "averaged performance_average_hist",
     # "distribution flux_amp",
     # "distribution performance_hist",
     "averaged flux_amp",
@@ -51,18 +52,35 @@ csv_elements = [
 ]
 params = {
     "window_size": 440,  # unit seconds
-    "learn_rate": 0.2,
-    "conv_rate": 0.2,
+    "learn_rate": 0.00100,
+    "conv_rate": 0.00100,
+    "min_period": 440,  # unit seconds0
+    "max_period": 4400,  # unit seconds
+    "init_flux": 0.1,
+    "max_flux": 0.1,
+    "duration": 2000,  # unit seconds
+    "size": 3,
+    "generator_type": "CPG",
+    "tolerance": 0.00000000,
+    "neuron_configuration": [0, 1, 2],
+    "learning_start": 600,
+    "record_every": 1,
+    "stepsize": 0.1,
+}
+{
+    "window_size": 220,  # unit seconds
+    "learn_rate": 0.000100,
+    "conv_rate": 0.000100,
     "min_period": 440,  # unit seconds
     "max_period": 4400,  # unit seconds
-    "init_flux": 2.5,
-    "max_flux": 5.5,
-    "duration": 8000,  # unit seconds
+    "init_flux": 0.00000001,
+    "max_flux": 0.0095,
+    "duration": 4000,  # unit seconds
     "size": 3,
-    "generator_type": "RPG",
-    "tolerance": 0.000000001,
-    "neuron_configuration": [0, 1],
-    #"learning_start" : 600,
+    "generator_type": "CPG",
+    "tolerance": 0.00000000,
+    "neuron_configuration": [0, 1, 2],
+    "learning_start": 440,
     "record_every": 1,
     "stepsize": 0.1,
 }
@@ -83,54 +101,23 @@ params = {
 #     "tolerance": 0.00000,
 #     "neuron_configuration": [0],
 # }
-#folderName = f"{params['generator_type']}_d{params['duration']}_initfx{params['init_flux']}_00_window{params['window_size']}_max_p{params['max_period']}"
-#folderName += "recording"
+# folderName = f"{params['generator_type']}_d{params['duration']}_initfx{params['init_flux']}_00_window{params['window_size']}_max_p{params['max_period']}"
+# folderName += "recording"
 folderName = "test"
 if not os.path.exists(Path(f"./data/{folderName}")):
     print(f"creating folder:{folderName}")
     os.mkdir(f"./data/{folderName}")
 
 
-def getAmp(end_fitness, start_fitness, max_flux):
-    start_flux = 0
-    if start_fitness == 0.0:
-        return max_flux
-    else:
-        return max_flux * start_fitness / end_fitness
-
-
 N = params["size"]
 genome_list = []
 # hard coded genomes
+load_genome = np.load("./evolved/fit-4314.6.npy")
 if not randomize_genomes:
-    # size = 2
-    genome_list.append(
-        np.array(
-            [
-                -0.47155068,
-                0.12906448,
-                0.137953,
-                0.61473294,
-                -0.13618889,
-                0.09540692,
-                -0.16991449,
-                -0.47096263,
-            ]
-        )
-    )
+    # size = 3
+    genome_list.append(load_genome)
     genome_list = np.array(genome_list)
     starting_genome = genome_list[0]
-
-    for i, val in enumerate(starting_genome):
-
-        # add noise to genome, keep within bounds [-1,1]
-        perturb = 0.2
-        # perturb  = np.random.binomial(1, p=0.5)*0.2
-        if val + perturb > 1 or val + perturb < -1:
-            starting_genome[i] += -perturb
-        else:
-            starting_genome[i] += perturb
-
 else:
     genome_list = np.random.uniform(-1, 1, size=(num_random_genomes, N * N + 2 * N))
 
@@ -177,13 +164,16 @@ results = []
 with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as executor:
     for i, starting_genome in enumerate(genome_list):
         print(f"Genome:{i}")
-        # start_fitness = fitnessFunction(
-        #     starting_genome,
-        #     N=params["size"],
-        #     generator_type=params["generator_type"],
-        #     configuration=params["neuron_configuration"],
-        # )
+        start_fitness = fitnessFunction(
+            starting_genome,
+            N=params["size"],
+            generator_type=params["generator_type"],
+            configuration=params["neuron_configuration"],
+        )
+        print("STARTFITNESS")
+        print(start_fitness)
         # params["init_flux"] = getAmp(0.625, start_fitness, params["max_flux"])
+
         N = params["size"]
         for trial in range(num_trials):
             np.random.seed(np.random.randint(10000))
@@ -228,7 +218,12 @@ if visualize:
             if "averaged" in tracked:
                 tracked = tracked.split(" ")[-1]
                 plotAverageParam(
-                    tracked, show=False, b=-1, pathname=pathname, save=True
+                    tracked,
+                    show=False,
+                    b=-1,
+                    pathname=pathname,
+                    save=True,
+                    baseline=start_fitness,
                 )
             if "distribution" in tracked:
                 tracked = tracked.split(" ")[-1]

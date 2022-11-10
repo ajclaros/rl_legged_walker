@@ -1,25 +1,28 @@
 import ea
 from fitnessFunction import fitnessFunction
 import matplotlib.pyplot as plt
+import numpy as np
+
+np.set_printoptions(formatter={"float": "{:.4f}".format})
 cmap = plt.get_cmap("tab10").colors
 # Nervous System Parameters
 # Task Parameters
-popsize = 16# Population size
-recombProb = 0.5  # Recombination probability
-mutatProb = 0.01  # Mutation probability
+popsize = 32  # Population size
+recombProb = 1.0  # Recombination probability
+mutatProb = 1.5  # Mutation probability
 demesize = 2  # Neighborhood size
 generations = 100  # Number of generations
 
 num_processes = 16
 params = {
     "window_size": 440,  # unit seconds
-    "learn_rate": 0.8,
-    "conv_rate": 0.8,
+    "learn_rate": 0.001,
+    "conv_rate": 0.001,
     "min_period": 440,  # unit seconds
     "max_period": 4400,  # unit seconds
-    "init_flux": 0.5,
-    "max_flux": 2.5,
-    "duration": 4000,  # unit seconds
+    "init_flux": 0.1,
+    "max_flux": 0.1,
+    "duration": 2000,  # unit seconds
     "size": 3,
     "generator_type": "CPG",
     "neuron_configuration": [0, 1, 2],
@@ -33,7 +36,7 @@ params = {
 # creates dictionary for specific instance of values
 size = params["size"]
 genesize = size * size + 2 * size
-ga = ea.Microbial(
+ga = ea.GaEliteLearn(
     fitnessFunction,
     popsize,
     genesize,
@@ -46,12 +49,12 @@ ga = ea.Microbial(
     size=size,
     num_processes=num_processes,
     params=params,
-
+    num_trials=5,
 )
 ga.run()
-ga.showFitness(c=cmap[0], label = "evol and learning")
+ga.showFitness(c=cmap[0], label="evol and learning")
 
-ga2 = ea.Microbial2(
+ga2 = ea.GaElite(
     fitnessFunction,
     popsize,
     genesize,
@@ -63,10 +66,8 @@ ga2 = ea.Microbial2(
     neuron_configuration=params["neuron_configuration"],
     size=size,
 )
-ga2.run()
-ga2.showFitness(c=cmap[1], label='evolution')
+ga2.run(savenp=True)
+ga2.showFitness(c=cmap[1], label="evolution")
 
-plt.title(
-    "Evolution vs Evolution and Learning"
-)
+plt.title("Evolution vs Evolution and Learning")
 plt.show()

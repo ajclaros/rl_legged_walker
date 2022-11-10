@@ -155,7 +155,9 @@ def plotChosenParam(
         plt.show()
 
 
-def plotAverageParam(param, show=False, save=True, b=60, pathname="./data"):
+def plotAverageParam(
+    param, show=False, save=True, b=60, pathname="./data", baseline=None
+):
     files = os.listdir(pathname)
     averaged = []
     genome_list = []
@@ -186,10 +188,12 @@ def plotAverageParam(param, show=False, save=True, b=60, pathname="./data"):
             skip += 1
             continue
     ax.axvline(data["learning_start"], ls="--")
+    if baseline:
+        ax.axhline(baseline, ls="--", c="r")
     ax.title.set_text(
         f"Averaged {param} over duration {data['duration']}\n all {len(files)-skip} trials\nUsing {data['metric']} measurement"
     )
-    ax.plot(time, np.mean(averaged, axis=0), c="k")
+    ax.plot(time, np.median(averaged, axis=0), c="k")
     if show:
         plt.show()
     if save:

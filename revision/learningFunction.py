@@ -99,7 +99,7 @@ def learn(
                 datalogger.data[var] = np.zeros(int(duration / stepsize / record_every))
         learner.simulate(
             body,
-            #learning_start=learning_start,
+            learning_start=learning_start,
             datalogger=datalogger,
             verbose=verbose,
             generator_type=generator_type,
@@ -107,7 +107,13 @@ def learn(
             tolerance=tolerance,
         )
     else:
-        learner.simulate(body, learning_start=4000, verbose=verbose)
+        learner.simulate(
+            body,
+            learning_start=learning_start,
+            generator_type=generator_type,
+            configuration=neuron_configuration,
+            verbose=verbose,
+        )
 
     start_fitness = fitnessFunction(
         starting_genome,
@@ -126,6 +132,7 @@ def learn(
         configuration=neuron_configuration,
         verbose=verbose,
     )
+    end_performance = learner.performance_track.mean()
 
     # if verbose>=0:
     #    print(f"startFitness: {start_fitness}\nendFitness:   {end_fitness}")
@@ -186,4 +193,4 @@ def learn(
             print(
                 f"{generator_type}-{np.round(start_fitness,5)}-{np.round(end_fitness,5)}"
             )
-        return end_fitness
+        return end_fitness, end_performance

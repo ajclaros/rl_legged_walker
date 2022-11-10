@@ -280,7 +280,7 @@ class RL_CTRNN(CTRNN):
         return fluxxed_bias.T
 
     # Replaces the step function from parent CTRNN class
-    def step(self, dt):
+    def stepRNN(self, dt):
         self.inner_flux_moments += dt
         if self.bias_flux_mode:
             self.bias_inner_flux_moments += dt
