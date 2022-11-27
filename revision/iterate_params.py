@@ -12,30 +12,29 @@ import time
 
 verbose = -1
 log_data = False
-num_trials = 100
+num_trials = 5
 num_processes = 16  # how many parallel processes to run, set 1 for no parallization
 randomize_genomes = False
 USE_GENOME_LIST = True
 num_random_genomes = 0
 folderName = "parameter_explore"
 record_csv = True
-csv_name = "data.csv"
+csv_name = "data"
 if USE_GENOME_LIST:
-    fit_low, fit_high = (0.3, 0.5)
+    fit_low, fit_high = (0.26, 0.6)
     num_genomes_per_configuration = 10
 
 # times to try each element in the permutation of parameters
 
 param_list = {
     "window_size": [440],  # , 600, 800, 1000],
-    "learn_rate": [0.9],
-    "conv_rate": [0.9],
+    "rates": [0.7 + 0.02 * i for i in range(10)],
     "min_period": [440],
     "max_period": [4400],
-    "init_flux": [1.0],
-    "max_flux": [2.5],
+    "init_flux": [0.75 + 0.25 * i for i in range(10)],
+    "max_flux": [1.0 + 0.25 * i for i in range(10)],
     "duration": [1500],
-    "size": [3],
+    "size": [2],
     "learning_start": [800],
     "record_every": [10],
     "generator_type": ["RPG"],
@@ -54,6 +53,8 @@ csv_elements = [
     "window_size",
     "genome_num",
     "end_perf",
+    "max_flux",
+    "rates",
 ]
 
 genome_list = []
@@ -95,19 +96,21 @@ else:
     genome_list = np.random.uniform(-1, 1, size=(num_random_genomes, N * N + 2 * N))
 
 if record_csv:
-    with open(f"./data/{csv_name}", "w") as f:
-        line = ", ".join(csv_elements)
-        line += "\n"
-        f.writelines(line)
-    with open(f"./data/{csv_name}_params.txt", "w") as f:
-        for key in param_list.keys():
-            f.writelines(f"{key}:{param_list[key]}\n")
-        if randomize_genomes:
-            f.writelines("Genomes:\n")
-            for i in range(genome_list.shape[0]):
-                genome = ", ".join(genome_list[i].astype(str).tolist())
-                genome += "\n\n"
-                f.writelines(genome)
+    for i in range(num_trials):
+        for j in range(num_genomes_per_configuration):
+            with open(f"./data/csv_folder/{csv_name}{j}_{i}.csv", "w") as f:
+                line = ", ".join(csv_elements)
+                line += "\n"
+                f.writelines(line)
+            with open(f"./data/csv_folder/{csv_name}_params.txt", "w") as f:
+                for key in param_list.keys():
+                    f.writelines(f"{key}:{param_list[key]}\n")
+                if randomize_genomes:
+                    f.writelines("Genomes:\n")
+                    for i in range(genome_list.shape[0]):
+                        genome = ", ".join(genome_list[i].astype(str).tolist())
+                        genome += "\n\n"
+                        f.writelines(genome)
 
 if log_data:
     for key in param_list.keys():
@@ -176,10 +179,15 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as execut
         # creates dictionary for specific instance of values
         params = {}
         for i, key in enumerate(param_list.keys()):
-            params[key] = x[i]
+            if key == "rates":
+                params["learn_rate"] = x[i]
+                params["conv_rate"] = x[i]
+            else:
+                params[key] = x[i]
         # list of filenames for perturbed genomes
         # iterate through each starting genome
         print(f"{np.round(completed/total_configurations,2)} completed:")
+        print(f"{completed}/{total_configurations}")
         for key in params.keys():
             if params[key] not in prev:
                 print(f"{key}:{params[key]}", end=" ")
@@ -247,7 +255,8 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as execut
                         log_data=log_data,
                         verbose=verbose,
                         genome_num=i,
-                        csv_name=csv_name,
+                        csv_name=f"{csv_name}{i}_{trial}.csv",
+                        starting_fitness=starting_fitness,
                     )
                 )
 

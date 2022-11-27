@@ -53,6 +53,7 @@ def learn(
     reward_func=None,
     record_every=1,
     learning_start=0,
+    starting_fitness=None,
 ):
 
     np.random.seed()
@@ -114,12 +115,13 @@ def learn(
             verbose=verbose,
         )
 
-    start_fitness = fitnessFunction(
-        starting_genome,
-        N=size,
-        generator_type=generator_type,
-        configuration=neuron_configuration,
-    )
+    if starting_fitness == None:
+        starting_fitness = fitnessFunction(
+            starting_genome,
+            N=size,
+            generator_type=generator_type,
+            configuration=neuron_configuration,
+        )
     if reward_func == None:
         params = learner.recoverParameters(inner=False)
     else:
@@ -137,10 +139,10 @@ def learn(
     #    print(f"startFitness: {start_fitness}\nendFitness:   {end_fitness}")
 
     if csv_name:
-        csv = os.listdir(f"./data/")
+        csv = os.listdir(f"./data/csv_folder/")
         csv = [name for name in csv if csv_name in name]  # [0]
         elements = {
-            "start_fit": start_fitness,
+            "start_fit": starting_fitness,
             "end_fit": end_fitness,
             "generator": generator_type,
             "configuration": neuron_configuration,
@@ -150,9 +152,13 @@ def learn(
             "window_size": window_size,
             "genome_num": genome_num,
             "end_perf": end_performance,
+            "max_flux": max_flux,
+            "rates": learn_rate,
         }
         append_dict_as_row(
-            f"./data/{csv_name}", field_names=elements.keys(), elements=elements
+            f"./data/csv_folder/{csv_name}",
+            field_names=elements.keys(),
+            elements=elements,
         )
 
     if log_data:
@@ -161,7 +167,7 @@ def learn(
         datalogger.data["init_flux"] = init_flux
         datalogger.data["generator_type"] = generator_type
         datalogger.data["neuron_configuration"] = neuron_configuration
-        datalogger.data["start_fitness"] = start_fitness
+        datalogger.data["start_fitness"] = starting_fitness
         datafiles = os.listdir(f"./data/{folderName}")
         existing_files = [
             int(name.split("i")[-1].split(".")[0])
@@ -191,4 +197,4 @@ def learn(
             print(
                 f"{generator_type}-{np.round(start_fitness,5)}-{np.round(end_fitness,5)}"
             )
-        return start_fitness, end_fitness
+        return starting_fitness, end_fitness
