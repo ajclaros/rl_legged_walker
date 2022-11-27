@@ -167,13 +167,15 @@ def plotAverageParam(
     genome = data["startgenome"]
     genome_list = genome.reshape((1, genome.size))
     fig, ax = plt.subplots()
-    cmap = plt.get_cmap("tab10").colors
+    cmap = plt.get_cmap("tab20").colors
+    genome_fitness = []
     skip = 0
     for i, name in enumerate(files):
         try:
             if i == b:
                 break
             data = np.load(f"{pathname}/{name}")
+            genome_fitness.append(data["start_fitness"])
             genome = data["startgenome"]
 
             genome_list = np.vstack([genome_list, genome])
@@ -188,8 +190,13 @@ def plotAverageParam(
             skip += 1
             continue
     ax.axvline(data["learning_start"], ls="--")
+    # ax.set_xlim((time[-1] * 0.8, time[-1]))
     if baseline:
-        ax.axhline(baseline, ls="--", c="r")
+        genome_fitness = np.unique(genome_fitness)
+        for gene in genome_fitness:
+            ax.axhline(gene, ls="--", color="k")
+        # ax.axhline(baseline, ls="--", c="r")
+        # ax.axhline(data["startingperf"], ls="--", c="m")
     ax.title.set_text(
         f"Averaged {param} over duration {data['duration']}\n all {len(files)-skip} trials\nUsing {data['metric']} measurement"
     )
@@ -201,28 +208,36 @@ def plotAverageParam(
 
 
 def plotDistributionParam(
-    param, show=False, save=True, b=60, pathname="./data", bins=20
+    param, show=False, save=True, b=60, pathname="./data", bins=60, baseline=None
 ):
     files = os.listdir(pathname)
     files = [name for name in files if ".npz" in name]
     data = np.load(f"{pathname}/{files[0]}")
-    time = np.arange(0, data["duration"], data["stepsize"] * data["sample_rate"])
-    fig, ax = plt.subplots()
-    param_data = []
+    print(len(files))
+    genome_dict = {}
+    figs = []
+    plots = []
     skip = 0
     for i, name in enumerate(files):
         try:
             if i == b:
                 break
             data = np.load(f"{pathname}/{name}")
-            param_data.append(data[param][-1])
+            if float(data["start_fitness"]) not in genome_dict.keys():
+                genome_dict[float(data["start_fitness"])] = []
+                (f, ax) = plt.subplots()
+                figs.append(f)
+                plots.append(ax)
+            genome_dict[float(data["start_fitness"])].append(data[param][-1])
         except:
             skip += 1
-
-    ax.title.set_text(
-        f"Histogram {param} over duration {data['duration']}\n all {len(files)-skip} trials\n using {data['metric']} measurement"
-    )
-    ax.hist(param_data, bins=bins, density=True)
+    # ax.title.set_text(
+    #    f"Histogram {param} over duration {data['duration']}\n all {len(files)-skip} trials\n using {data['metric']} measurement"
+    # )
+    for i, key in enumerate(genome_dict.keys()):
+        print(len(genome_dict[key]))
+        plots[i].hist(genome_dict[key], bins=bins, density=False)
+        plots[i].axvline(key, color="r")
     if show:
         plt.show()
     if save:

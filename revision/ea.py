@@ -41,206 +41,7 @@ class Microbial:
         generator_type,
         neuron_configuration,
         size,
-        num_processes=1,
-        params=None,
-        learning=True,
-        num_trials=1,
-    ):
-        self.num_trials = num_trials
-        self.fitnessFunction = fitnessFunction
-        self.popsize = popsize
-        self.genesize = genesize
-        self.recombProb = recombProb
-        self.mutatProb = mutatProb
-        self.demeSize = int(demeSize / 2)
-        self.generations = generations
-        self.tournaments = generations * popsize
-        self.pop = np.random.rand(popsize, genesize) * 2 - 1
-        self.fitness = np.zeros(popsize)
-        self.learned_fitness = np.zeros(popsize)
-        self.performance = np.zeros(popsize)
-        self.avgHistory = np.zeros(generations)
-        self.size = size
-        self.bestHistory = np.zeros(generations)
-        self.generator_type = generator_type
-        self.neuron_configuration = neuron_configuration
-        self.gen = 0
-        self.num_processes = num_processes
-        self.params = params
-
-    def getFitnessIndex(self, idx, genome):
-        self.fitness[idx] = self.fitnessFunction(
-            self.pop[idx],
-            N=params["size"],
-            generator_type=self.params["generator_type"],
-            configuration=self.params["neuron_configuration"],
-        )
-
-    def showFitness(self, label="", c="k", save=False):
-        plt.plot(
-            self.bestHistory,
-            label=label + " bestHist " + self.generator_type,
-            color=c,
-            ls="dashed",
-        )
-        plt.plot(
-            self.avgHistory,
-            label=label + " averageHist " + self.generator_type,
-            color=c,
-            ls="solid",
-        )
-        plt.xlabel("Generations")
-        plt.ylabel("Fitness")
-        plt.legend()
-        if save:
-            filename = f"{self.generator_type}-s{self.size}-c{'_'.join(str(num) for num in self.neuron_configuration)}"
-            plt.savefig(Path(f"./data/microbial/{filename}"))
-
-    def fitStats(self):
-        bestind = np.argmax(self.performance)
-        best_genome = self.pop[np.argmax(self.performance)]
-        bestfit = np.max(self.fitness)
-        avgfit = np.mean(self.fitness)
-        print("Best")
-        print("------------------")
-        print("fitness:")
-        print(self.fitness[bestind])
-        print("learned fitness :")
-        print(self.learned_fitness[bestind])
-        print("performance:")
-        print(self.performance[bestind])
-        print("genome")
-        print(best_genome)
-        self.avgHistory[self.gen] = avgfit
-        self.bestHistory[self.gen] = bestfit
-        return avgfit, bestfit, bestind
-
-    def save(self, filename=None):
-        af, bf, bi = self.fitStats()
-        if not filename:
-            filename = f"{self.generator_type}-s{self.size}-c{'_'.join(str(num) for num in self.neuron_configuration)}"
-        np.savez(
-            Path(f"./data/microbial/genomes/{filename}"),
-            avghist=self.avgHistory,
-            besthist=self.bestHistory,
-            bestind=bi,
-        )
-
-    def run(self):
-        results = []
-        with concurrent.futures.ProcessPoolExecutor(
-            max_workers=self.num_processes
-        ) as executor:
-            # Calculate all fitness once
-            print("init agent:")
-            for i in range(self.popsize):
-                self.fitness[i] = self.fitnessFunction(
-                    self.pop[i],
-                    N=self.size,
-                    generator_type=self.generator_type,
-                    configuration=self.neuron_configuration,
-                )
-                results.append(
-                    executor.submit(
-                        getIndex,
-                        i,
-                        self.pop[i],
-                        params=self.params,
-                        num_trials=self.num_trials,
-                    )
-                )
-                if len(results) == self.num_processes:
-                    for future in concurrent.futures.as_completed(results):
-                        idx, end_fit, end_perf = future.result()
-                        self.learned_fitness[idx] = end_fit
-                        self.performance[idx] = end_perf
-                        results = []
-                    print()
-            for i, future in enumerate(concurrent.futures.as_completed(results)):
-                idx, end_fit, end_perf = future.result()
-                self.learned_fitness[idx] = end_fit
-                self.performance[idx] = end_perf
-                results = []
-            # Evolutionary loop
-            print("\ngeneration:")
-            for g in range(self.generations):
-                print(f"Generation: {g}")
-                print("Start fitness, performance, end fitness")
-                for i in range(self.popsize):
-                    print(
-                        f"{i}: {np.round(self.fitness[i],5)}, {np.round(self.performance[i], 5)}, {np.round(self.learned_fitness[i], 5)}"
-                    )
-                self.gen = g
-                # Report statistics every generation
-                self.fitStats()
-                # print("Evaluations:")
-                # print(f"mean:{np.mean(self.learned_fitness)}|max:{max(self.fitness)}")
-                for i in range(self.popsize):
-                    # Step 1: Pick 2 individuals
-                    a = np.random.randint(0, self.popsize - 1)
-                    b = (
-                        np.random.randint(a - self.demeSize, a + self.demeSize - 1)
-                        % self.popsize
-                    )  ### Restrict to demes
-                    while a == b:  # Make sure they are two different individuals
-                        b = (
-                            np.random.randint(a - self.demeSize, a + self.demeSize - 1)
-                            % self.popsize
-                        )  ### Restrict to demes
-                    # Step 2: Compare their fitness
-                    if self.performance[a] > self.performance[b]:
-                        winner = a
-                        loser = b
-                    else:
-                        winner = b
-                        loser = a
-                    # Step 3: Transfect loser with winner --- Could be made more efficient using Numpy
-                    for j in range(self.genesize):
-                        if np.random.random() < self.recombProb:
-                            self.pop[loser][j] = self.pop[winner][j]
-                    # Step 4: Mutate loser and make sure new organism stays within bounds
-                    self.pop[loser] += np.random.normal(
-                        0.0, self.mutatProb, size=self.genesize
-                    )
-                    self.pop[loser] = np.clip(self.pop[loser], -1, 1)
-                    # Save fitness
-                    #
-                    results.append(
-                        executor.submit(
-                            getIndex,
-                            loser,
-                            self.pop[loser],
-                            params=self.params,
-                            num_trials=self.num_trials,
-                        )
-                    )
-                    if (len(results) == self.num_processes) or (i + 1 == self.popsize):
-                        for future in concurrent.futures.as_completed(results):
-                            idx, end_fit, end_perf = future.result()
-                            self.learned_fitness[idx] = end_fit
-                            self.performance[idx] = end_perf
-                            results = []
-                    self.fitness[loser] = self.fitnessFunction(
-                        self.pop[loser],
-                        N=self.size,
-                        generator_type=self.generator_type,
-                        configuration=self.neuron_configuration,
-                    )
-
-
-class Microbial2:
-    def __init__(
-        self,
-        fitnessFunction,
-        popsize,
-        genesize,
-        recombProb,
-        mutatProb,
-        demeSize,
-        generations,
-        generator_type,
-        neuron_configuration,
-        size,
+        verbose=None,
     ):
         self.fitnessFunction = fitnessFunction
         self.popsize = popsize
@@ -254,9 +55,11 @@ class Microbial2:
         self.fitness = np.zeros(popsize)
         self.avgHistory = np.zeros(generations)
         self.size = size
+        self.verbose = verbose
         self.bestHistory = np.zeros(generations)
         self.generator_type = generator_type
         self.neuron_configuration = neuron_configuration
+        self.neuron_conf_str = list(map(str, self.neuron_configuration))
         self.gen = 0
 
     def showFitness(self, label="", c="k", save=False):
@@ -298,11 +101,13 @@ class Microbial2:
             bestind=bi,
         )
 
-    def run(self):
+    def run(self, savenp):
         # Calculate all fitness once
-        print("init agent:")
+        if self.verbose:
+            print("init agent:")
         for i in range(self.popsize):
-            print(f"{i}", end=" ", flush=False)
+            if self.verbose:
+                print(f"{i}", end=" ", flush=False)
             self.fitness[i] = self.fitnessFunction(
                 self.pop[i],
                 N=self.size,
@@ -310,9 +115,22 @@ class Microbial2:
                 configuration=self.neuron_configuration,
             )
         # Evolutionary loop
-        print("\ngeneration:")
+        if self.verbose:
+            print("\ngeneration:")
         for g in range(self.generations):
-            print(f"{g}", end=" ", flush=False)
+            max_fit = np.argmax(self.fitness)
+            if self.verbose:
+                print(f"Max fit: {self.fitness[max_fit]}")
+
+            fit_string = str(int(self.fitness[max_fit] * 100000))
+            fit_string = fit_string.zfill(5)
+            np.save(
+                f"./evolved/{self.generator_type}/{self.size}/{''.join(self.neuron_conf_str)}/fit-{fit_string}",
+                self.pop[max_fit],
+            )
+
+            if self.verbose:
+                print(f"{g}", end=" ", flush=False)
             self.gen = g
 
             # Report statistics every generation
@@ -381,6 +199,7 @@ class GaEliteLearn:
         self.genesize = genesize
         self.recombProb = recombProb
         self.mutatProb = mutatProb
+        self.mutateVar = mutatProb
         self.demeSize = int(demeSize / 2)
         self.generations = generations
         self.tournaments = generations * popsize
@@ -450,14 +269,15 @@ class GaEliteLearn:
             plt.savefig(Path(f"./data/microbial/{filename}"))
 
     def fitStats(self):
-        bestind = np.argmax(self.performance)
-        best_genome = self.pop[np.argmax(self.performance)]
+        bestind = np.argmax(self.learned_fitness)
+        best_genome = self.pop[np.argmax(self.learned_fitness)]
         bestfit = np.max(self.fitness)
         learnedFit = self.learned_fitness[bestind]
         average_learned_fit = self.learned_fitness.mean()
         avgfit = np.mean(self.fitness)
         best_perf = self.performance[bestind]
         avg_perf = np.mean(self.performance)
+        print(f"Generation:{self.gen}")
         print("Best")
         print("------------------")
         print(f"idx:{bestind}")
@@ -496,6 +316,7 @@ class GaEliteLearn:
             # Calculate all fitness once
             print("init agent:")
             for i in range(self.popsize):
+                np.random.seed(np.random.randint(10000))
                 self.fitness[i] = self.fitnessFunction(
                     self.pop[i],
                     N=self.size,
@@ -535,20 +356,26 @@ class GaEliteLearn:
                 self.gen = g
                 # Report statistics every generation
                 self.fitStats()
-                max_fit = np.argmax(self.performance)
+                max_fit = np.argmax(self.learned_fitness)
                 # print("Evaluations:")
                 # print(f"mean:{np.mean(self.learned_fitness)}|max:{max(self.fitness)}")
                 for i in range(self.popsize):
+                    np.random.seed(np.random.randint(10000))
                     # Step 1: Pick 2 individuals
                     if i != max_fit:
                         for j in range(self.genesize):
                             if np.random.random() < self.recombProb:
                                 self.pop[i][j] = self.pop[max_fit][j]
                         # Step 4: Mutate loser and make sure new organism stays within bounds
-                        self.pop[i] += np.random.normal(
-                            0.0, self.mutatProb, size=self.genesize
-                        )
-                        self.pop[i] = np.clip(self.pop[i], -1, 1)
+                        magnitude = np.random.normal(0, self.mutateVar)
+                        temp = np.random.rand(self.genesize)
+                        temp = temp / np.linalg.norm(temp)
+                        self.pop[i] = np.clip(self.pop[i] + magnitude * temp, -1, 1)
+
+                        # self.pop[i] += np.random.normal(
+                        #     0.0, self.mutatProb, size=self.genesize
+                        # )
+                        # self.pop[i] = np.clip(self.pop[i], -1, 1)
                     # Save fitness
                     results.append(
                         executor.submit(
@@ -586,12 +413,14 @@ class GaElite:
         generator_type,
         neuron_configuration,
         size,
+        verbose=None,
     ):
         self.fitnessFunction = fitnessFunction
         self.popsize = popsize
         self.genesize = genesize
         self.recombProb = recombProb
         self.mutatProb = mutatProb
+        self.mutateVar = mutatProb
         self.demeSize = int(demeSize / 2)
         self.generations = generations
         self.tournaments = generations * popsize
@@ -602,7 +431,9 @@ class GaElite:
         self.bestHistory = np.zeros(generations)
         self.generator_type = generator_type
         self.neuron_configuration = neuron_configuration
+        self.neuron_conf_str = list(map(str, self.neuron_configuration))
         self.gen = 0
+        self.verbose = verbose
 
     def showFitness(self, label="", c="k", save=False):
         plt.plot(
@@ -621,7 +452,7 @@ class GaElite:
         plt.ylabel("Fitness")
         plt.legend()
         if save:
-            filename = f"{self.generator_type}-s{self.size}-c{'_'.join(str(num) for num in self.neuron_configuration)}"
+            filename = f"{self.generator_type}-s{self.size}-c{'_'.join(str(num) for num in self.neuron_conf_str)}"
             plt.savefig(Path(f"./data/microbial/{filename}"))
 
     def fitStats(self):
@@ -645,7 +476,6 @@ class GaElite:
 
     def run(self, savenp):
         # Calculate all fitness once
-        print("init agent:")
         for i in range(self.popsize):
             print(f"{i}", end=" ", flush=False)
             self.fitness[i] = self.fitnessFunction(
@@ -655,9 +485,11 @@ class GaElite:
                 configuration=self.neuron_configuration,
             )
         # Evolutionary loop
-        print("\ngeneration:")
+        if self.verbose:
+            print("\ngeneration:")
         for g in range(self.generations):
-            print(f"Generation: {g}")
+            if self.verbose:
+                print(f"Generation: {g}")
             self.gen = g
 
             # Report statistics every generation
@@ -666,12 +498,14 @@ class GaElite:
             # print(f"mean:{np.mean(self.fitness)}|max:{max(self.fitness)}")
 
             max_fit = np.argmax(self.fitness)
-            print(f"Max fit: {self.fitness[max_fit]}")
-            if self.fitness[max_fit] > 0.126 and savenp:
-                np.save(
-                    f"./evolved/fit-{np.round(self.fitness[max_fit], 5)*10000}",
-                    self.pop[max_fit],
-                )
+            if self.verbose:
+                print(f"Max fit: {self.fitness[max_fit]}")
+            fit_string = str(int(self.fitness[max_fit] * 100000))
+            fit_string = fit_string.zfill(5)
+            np.save(
+                f"./evolved/{self.generator_type}/{self.size}/{''.join(self.neuron_conf_str)}/fit-{fit_string}",
+                self.pop[max_fit],
+            )
             for i in range(self.popsize):
                 if i == max_fit:
                     continue
@@ -679,10 +513,15 @@ class GaElite:
                     if np.random.random() < self.recombProb:
                         self.pop[i][j] = self.pop[max_fit][j]
                 # Step 4: Mutate loser and make sure new organism stays within bounds
-                self.pop[i] += np.random.normal(0.0, self.mutatProb, size=self.genesize)
-                self.pop[i] = np.clip(self.pop[i], -1, 1)
+
+                magnitude = np.random.normal(0, self.mutateVar)
+                temp = np.random.rand(self.genesize)
+                np.random.rand
+                temp = temp / np.linalg.norm(temp)
+                self.pop[i] = np.clip(self.pop[i] + magnitude * temp, -1, 1)
+                # self.pop[i] += np.random.normal(0.0, self.mutatProb, size=self.genesize)
+                # self.pop[i] = np.clip(self.pop[i], -1, 1)
                 # Save fitness
-                #
                 self.fitness[i] = self.fitnessFunction(
                     self.pop[i],
                     N=self.size,

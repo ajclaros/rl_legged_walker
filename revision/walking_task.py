@@ -104,8 +104,8 @@ class WalkingTask(RL_CTRNN):
             self.distance_track[self.window_a.size]
             - self.distance_track[self.running_window_size - 1]
         )
-        self.performance_track[0] = self.window_a.mean() / (
-            self.stepsize * self.window_a.size
+        self.performance_track[0] = self.window_b.mean() / (
+            self.stepsize * self.window_b.size
         )
         self.distance_track = np.roll(self.distance_track, 1)
         self.window_a = np.roll(self.window_a, 1)
@@ -135,7 +135,6 @@ class WalkingTask(RL_CTRNN):
         verbose=0.1,
         generator_type="RPG",
         configuration=[0],
-        tolerance=0.0,
     ):
 
         if datalogger:
@@ -159,11 +158,10 @@ class WalkingTask(RL_CTRNN):
             # body.step3(self.stepsize, self.outputs)
             body.stepN(self.stepsize, self.outputs, configuration)
             if t > learning_start:
+                self.starting_perf = self.performance_track.mean()
                 reward = self.reward_func(body, learning=True)
                 self.reward = reward
-                self.update_weights_and_flux_amp_with_reward(
-                    reward, tolerance=tolerance
-                )
+                self.update_weights_and_flux_amp_with_reward(reward)
             if datalogger and self.time_step % (1 / self.sample_rate) == 0:
                 position = int(self.time_step * self.sample_rate)
                 for key in datalogger.data.keys():
@@ -194,11 +192,10 @@ class WalkingTask(RL_CTRNN):
             #     verbose=verbose,
             # )
             datalogger.data["learning_start"] = learning_start
-            datalogger.data["tolerance"] = tolerance
             datalogger.data["size"] = self.size
             datalogger.data["duration"] = self.duration
             datalogger.data["stepsize"] = self.stepsize
             datalogger.data["sample_rate"] = self.sample_rate
             datalogger.data["metric"] = self.performance_func.__name__.split("_")[0]
             datalogger.data["endgenome"] = self.recoverParameters()
-            print(self.performance_track[1])
+            datalogger.data["startingperf"] = self.starting_perf

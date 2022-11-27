@@ -17,7 +17,7 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 # verbose>=0: print out starting and ending fitness
 # verbose in (0,1), print out progress of trial every % time passes for example
 
-duration = 220
+duration = 500
 verbose = 0.1
 log_data = True
 record_csv = False
@@ -58,7 +58,7 @@ params = {
     "max_flux": 0.0050000,
     "duration": 4000,  # unit seconds
     "size": 3,
-    "generator_type": "RPG",
+    "generator_type": "CPG",
     "tolerance": 0.00000000,
     "neuron_configuration": [0],
     "learning_start": 200,
@@ -93,7 +93,7 @@ if not os.path.exists(Path(f"./data/{folderName}")):
 N = params["size"]
 genome_list = []
 # hard coded genomes
-load_genome = np.load("./evolved/fit-3426.5.npy")
+load_genome = np.load("./evolved/fit-4314.6.npy")
 if not randomize_genomes:
     # size = 3
     genome_list.append(load_genome)
@@ -133,42 +133,58 @@ learner.setTimeConstants(starting_genome[size * size + size :])
 learner.initializeState(np.zeros(size))
 body = leggedwalker.LeggedAgent()
 
+performance = np.zeros(int(440 / 2))
+window_a = np.zeros(int(440 / 2))
+window_b = np.zeros(int(440 / 2))
+past_dist = 0
+
 time = np.arange(0, duration, 0.1)
-x = np.arange(-5, 0, 0.1)
-y_vec = np.zeros(x.size)
-
+t = np.arange(-5, 0, 0.1)
+instant_step = np.zeros(t.size)
+distance = np.zeros(int(440 / 0.1))
+window_a = np.zeros(t.size)
 line1 = []
+line2 = []
+
+fig, ax = plt.subplots(nrows=1, ncols=2)
 
 
-def live_plotter(x_vec, y1_data, line1, identfier="", pause_time=0.1):
+def live_plotter(
+    x_vec, y1_data, line1, identfier="", pause_time=0.1, ax=None, ymin=0, ymax=1
+):
     if line1 == []:
         plt.ion()
-        fig = plt.figure(figsize=(13, 6))
-        ax = fig.add_subplot(111)
+        if not ax:
+            fig = plt.figure(figsize=(13, 6))
+            ax = fig.add_subplot(111)
         (line1,) = ax.plot(x_vec, y1_data, "-o", alpha=0.8)
-        plt.ylabel = "time"
-        plt.title("Distance traveled v time")
-        plt.ylim((0, 1))
+        ax.set_ylabel = "time"
+        ax.title.set_text("Distance traveled v time")
+        ax.set_ylim((0, 1))
         plt.show()
 
     line1.set_ydata(y1_data)
     line1.set_xdata(x_vec)
-    plt.xlim((x_vec[0], x_vec[-1]))
+    ax.set_xlim((x_vec[0], x_vec[-1]))
+    ax.set_ylim((ymin, ymax))
     plt.pause(pause_time)
     return line1
 
 
-past_dist = 0
 for i in time:
     # learner.step(0.1)
     learner.setInputs(np.array([body.anglefeedback()] * 3))
     learner.step(0.1)
     body.stepN(0.1, learner.outputs, params["neuron_configuration"])
-    y_vec[-1] = body.cx - past_dist
+    distance[0] = body.cx
+    window_b[0] = distance[0] - distance[window_b.size - 1]
+
+    instant_step[-1] = body.cx - past_dist
     past_dist = body.cx
     if i - int(i) == 0 and i % 5 == 0:
-        line1 = live_plotter(x, y_vec, line1)
-    x = np.roll(x, -1)
-    x[-1] = x[-2] + 0.1
-    y_vec = np.roll(y_vec, -1)
-print(body.cx / duration)
+        line1 = live_plotter(t, instant_step, line1, ax=ax[0])
+        line1 = live_plotter(t, instant_step, line1, ax=ax[0])
+    t = np.roll(t, -1)
+    t[-1] = t[-2] + 0.1
+    instant_step = np.roll(instant_step, -1)
+    distance = np.roll(distance, -1)

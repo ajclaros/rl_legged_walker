@@ -21,21 +21,27 @@ import time
 verbose = 0.1
 log_data = True
 record_csv = False
-num_trials = 16
+num_trials = 200
 num_processes = 16
 randomize_genomes = False
-num_random_genomes = 1
+USE_GENOME_LIST = True
+if USE_GENOME_LIST:
+    fit_low, fit_high = (0.12, 0.5)
+
+    sample_size = 10
+num_random_genomes = 10
 # if visualize is true, print the parameters to visualize
 # "averaged [param_name]" will print the average of the parameter across all trials
 visualize = True
 vis_behavior = False
-vis_weights = True
+vis_weights = False
 vis_agent = False
 vis_params = [
-    "averaged performance_average_hist",
+    "averaged performance_hist",
+    # "averaged performance_average_hist",
     # "distribution flux_amp",
-    # "distribution performance_hist",
-    "averaged flux_amp",
+    "distribution performance_hist",
+    # "averaged flux_amp",
 ]
 csv_name = "single_genome.csv"
 
@@ -52,36 +58,18 @@ csv_elements = [
 ]
 params = {
     "window_size": 440,  # unit seconds
-    "learn_rate": 0.00100,
-    "conv_rate": 0.00100,
+    "learn_rate": 0.9,
+    "conv_rate": 0.9,
     "min_period": 440,  # unit seconds0
     "max_period": 4400,  # unit seconds
-    "init_flux": 0.1,
-    "max_flux": 0.1,
-    "duration": 2000,  # unit seconds
+    "init_flux": 1.0,
+    "max_flux": 2.5,
+    "duration": 1500,  # unit seconds
     "size": 3,
-    "generator_type": "CPG",
-    "tolerance": 0.00000000,
-    "neuron_configuration": [0, 1, 2],
-    "learning_start": 600,
-    "record_every": 1,
-    "stepsize": 0.1,
-}
-{
-    "window_size": 220,  # unit seconds
-    "learn_rate": 0.000100,
-    "conv_rate": 0.000100,
-    "min_period": 440,  # unit seconds
-    "max_period": 4400,  # unit seconds
-    "init_flux": 0.00000001,
-    "max_flux": 0.0095,
-    "duration": 4000,  # unit seconds
-    "size": 3,
-    "generator_type": "CPG",
-    "tolerance": 0.00000000,
-    "neuron_configuration": [0, 1, 2],
-    "learning_start": 440,
-    "record_every": 1,
+    "generator_type": "RPG",
+    "neuron_configuration": [0, 1],
+    "learning_start": 800,
+    "record_every": 10,
     "stepsize": 0.1,
 }
 
@@ -100,7 +88,7 @@ params = {
 #     "generator_type": "RPG",
 #     "tolerance": 0.00000,
 #     "neuron_configuration": [0],
-# }
+# }()
 # folderName = f"{params['generator_type']}_d{params['duration']}_initfx{params['init_flux']}_00_window{params['window_size']}_max_p{params['max_period']}"
 # folderName += "recording"
 folderName = "test"
@@ -111,14 +99,46 @@ if not os.path.exists(Path(f"./data/{folderName}")):
 
 N = params["size"]
 genome_list = []
+
 # hard coded genomes
-load_genome = np.load("./evolved/fit-4314.6.npy")
-if not randomize_genomes:
+
+if not randomize_genomes and USE_GENOME_LIST:
+    print("USING GENOME LIST")
+    neuron_conf_str = list(map(str, params["neuron_configuration"]))
+    neuron_conf_str = "".join(neuron_conf_str)
+    genome_fitnesses = [
+        float(name.split("-")[1].split(".")[0]) / 100000
+        for name in os.listdir(
+            f"./evolved/{params['generator_type']}/{params['size']}/{neuron_conf_str}"
+        )
+    ]
+    hard_coded_genomes = [
+        name
+        for i, name in enumerate(
+            os.listdir(
+                f"./evolved/{params['generator_type']}/{params['size']}/{neuron_conf_str}"
+            )
+        )
+        if genome_fitnesses[i] > fit_low and genome_fitnesses[i] < fit_high
+    ]
+    samples = np.random.randint(0, len(hard_coded_genomes), size=sample_size)
+    for samp in samples:
+        genome_list.append(
+            np.load(
+                f"./evolved/{params['generator_type']}/{params['size']}/{neuron_conf_str}/{hard_coded_genomes[samp]}"
+            )
+        )
+    genome_list = np.array(genome_list)
+
+elif not randomize_genomes and not USE_GENOME_LIST:
+    print("NOT USING GENOME LIST")
+    load_genome = np.load("./evolved/fit-4314.6.npy")
     # size = 3
     genome_list.append(load_genome)
     genome_list = np.array(genome_list)
     starting_genome = genome_list[0]
 else:
+    print("-----------------------")
     genome_list = np.random.uniform(-1, 1, size=(num_random_genomes, N * N + 2 * N))
 
 tracking_parameters = []
@@ -160,6 +180,7 @@ params["bias_max_flux"] = params["max_flux"]
 params["bias_min_period"] = params["min_period"]
 params["bias_max_period"] = params["max_period"]
 params["bias_conv_rate"] = params["conv_rate"]
+
 results = []
 with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as executor:
     for i, starting_genome in enumerate(genome_list):
@@ -176,11 +197,12 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as execut
 
         N = params["size"]
         for trial in range(num_trials):
-            np.random.seed(np.random.randint(10000))
+            np.random.seed(np.random.randint(10000000))
             if len(results) == 0:
                 print_verbose = verbose
             else:
                 print_verbose = -1
+            # np.random.seed(np.random.randint(1000000 * (trial + 1)))
             results.append(
                 executor.submit(
                     learn,
@@ -226,9 +248,16 @@ if visualize:
                     baseline=start_fitness,
                 )
             if "distribution" in tracked:
+                print("distribution")
                 tracked = tracked.split(" ")[-1]
                 plotDistributionParam(
-                    tracked, show=False, pathname=pathname, bins=10, save=True
+                    tracked,
+                    show=False,
+                    pathname=pathname,
+                    b=-1,
+                    bins=10,
+                    save=True,
+                    baseline=start_fitness,
                 )
 
         if vis_behavior:

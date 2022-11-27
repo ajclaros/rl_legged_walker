@@ -42,7 +42,6 @@ def learn(
     verbose=1.00,
     generator_type="RPG",
     neuron_configuration=[0],
-    tolerance=None,
     tracking_parameters=None,
     filename=None,
     folderName=None,
@@ -56,6 +55,7 @@ def learn(
     learning_start=0,
 ):
 
+    np.random.seed()
     learner = WalkingTask(
         duration=duration,
         size=size,
@@ -104,7 +104,6 @@ def learn(
             verbose=verbose,
             generator_type=generator_type,
             configuration=neuron_configuration,
-            tolerance=tolerance,
         )
     else:
         learner.simulate(
@@ -150,6 +149,7 @@ def learn(
             "max_period": max_period,
             "window_size": window_size,
             "genome_num": genome_num,
+            "end_perf": end_performance,
         }
         append_dict_as_row(
             f"./data/{csv_name}", field_names=elements.keys(), elements=elements
@@ -162,8 +162,6 @@ def learn(
         datalogger.data["generator_type"] = generator_type
         datalogger.data["neuron_configuration"] = neuron_configuration
         datalogger.data["start_fitness"] = start_fitness
-        if "tolerance" in tracking_parameters:
-            datalogger.data["tolerance"] = tolerance
         datafiles = os.listdir(f"./data/{folderName}")
         existing_files = [
             int(name.split("i")[-1].split(".")[0])
@@ -193,4 +191,4 @@ def learn(
             print(
                 f"{generator_type}-{np.round(start_fitness,5)}-{np.round(end_fitness,5)}"
             )
-        return end_fitness, end_performance
+        return start_fitness, end_fitness
