@@ -139,24 +139,27 @@ def learn(
     #    print(f"startFitness: {start_fitness}\nendFitness:   {end_fitness}")
 
     if csv_name:
-        csv = os.listdir(f"./data/csv_folder/")
+        configuration = [str(a) for a in neuron_configuration]
+        configuration = "|".join(configuration)
+        configuration = "|" + configuration + "|"
+        csv = os.listdir(f"./data/csv_focused/")
         csv = [name for name in csv if csv_name in name]  # [0]
         elements = {
             "start_fit": starting_fitness,
             "end_fit": end_fitness,
             "generator": generator_type,
-            "configuration": neuron_configuration,
+            "configuration": configuration,
             "init_flux": init_flux,
+            "max_flux": max_flux,
             "min_period": min_period,
             "max_period": max_period,
             "window_size": window_size,
             "genome_num": genome_num,
             "end_perf": end_performance,
-            "max_flux": max_flux,
             "rates": learn_rate,
         }
         append_dict_as_row(
-            f"./data/csv_folder/{csv_name}",
+            f"./data/csv_focused/{csv_name}",
             field_names=elements.keys(),
             elements=elements,
         )

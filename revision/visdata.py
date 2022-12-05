@@ -204,7 +204,8 @@ def plotAverageParam(
     if show:
         plt.show()
     if save:
-        plt.savefig(f"./data/images/all_files-{data['metric']}-{param}.png")
+        name = pathname.split("/")[-1]
+        plt.savefig(f"./data/images/{name}-{data['metric']}-{param}.png")
 
 
 def plotDistributionParam(
@@ -241,7 +242,8 @@ def plotDistributionParam(
     if show:
         plt.show()
     if save:
-        plt.savefig(f"./data/images/{param}-{data['metric']}-distribution.png")
+        name = pathname.split("/")[-1]
+        plt.savefig(f"./data/images/{name}-{param}-{data['metric']}-distribution.png")
 
 
 # plotWeightsBiases(data, show=True)

@@ -21,13 +21,12 @@ import time
 verbose = 0.1
 log_data = True
 record_csv = False
-num_trials = 200
-num_processes = 16
+num_trials = 1
+num_processes = 200
 randomize_genomes = False
 USE_GENOME_LIST = True
 if USE_GENOME_LIST:
     fit_low, fit_high = (0.12, 0.5)
-
     sample_size = 10
 num_random_genomes = 10
 # if visualize is true, print the parameters to visualize
@@ -58,12 +57,12 @@ csv_elements = [
 ]
 params = {
     "window_size": 440,  # unit seconds
-    "learn_rate": 0.9,
-    "conv_rate": 0.9,
+    "learn_rate": 0.6,
+    "conv_rate": 0.6,
     "min_period": 440,  # unit seconds0
     "max_period": 4400,  # unit seconds
     "init_flux": 1.0,
-    "max_flux": 2.5,
+    "max_flux": 3.0,
     "duration": 1500,  # unit seconds
     "size": 3,
     "generator_type": "RPG",
@@ -91,7 +90,7 @@ params = {
 # }()
 # folderName = f"{params['generator_type']}_d{params['duration']}_initfx{params['init_flux']}_00_window{params['window_size']}_max_p{params['max_period']}"
 # folderName += "recording"
-folderName = "test"
+folderName = "focused"
 if not os.path.exists(Path(f"./data/{folderName}")):
     print(f"creating folder:{folderName}")
     os.mkdir(f"./data/{folderName}")
@@ -184,6 +183,7 @@ params["bias_conv_rate"] = params["conv_rate"]
 results = []
 with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as executor:
     for i, starting_genome in enumerate(genome_list):
+        print(f"{i}/{genome_list.shape[0]} done")
         print(f"Genome:{i}")
         start_fitness = fitnessFunction(
             starting_genome,
@@ -216,6 +216,7 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as execut
                     verbose=print_verbose,
                     genome_num=i,
                     csv_name=csv_name,
+                    starting_fitness=start_fitness,
                 )
             )
             if len(results) == num_processes:
@@ -245,7 +246,7 @@ if visualize:
                     b=-1,
                     pathname=pathname,
                     save=True,
-                    baseline=start_fitness,
+                    baseline=True,
                 )
             if "distribution" in tracked:
                 print("distribution")
@@ -257,7 +258,7 @@ if visualize:
                     b=-1,
                     bins=10,
                     save=True,
-                    baseline=start_fitness,
+                    baseline=True,
                 )
 
         if vis_behavior:
