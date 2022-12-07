@@ -175,16 +175,16 @@ def learn(
         existing_files = [
             int(name.split("i")[-1].split(".")[0])
             for name in datafiles
-            if f"{generator_type}-{int(np.round(start_fitness, 5)*100000)}-{int(np.round(end_fitness, 5)*100000)}"
+            if f"{generator_type}-{int(np.round(starting_fitness, 5)*100000)}-{int(np.round(end_fitness, 5)*100000)}"
             in name
         ]
         if not filename:
             if len(existing_files) > 0:
                 iteration = max(existing_files) + 1
-                filename = f"{generator_type}-{int(np.round(start_fitness,5)*100000)}-{int(np.round(end_fitness,5)*100000)}i{iteration}"
+                filename = f"{generator_type}-{int(np.round(starting_fitness,5)*100000)}-{int(np.round(end_fitness,5)*100000)}i{iteration}"
             else:
                 iteration = len(existing_files)
-                filename = f"{generator_type}-{int(np.round(start_fitness,5)*100000)}-{int(np.round(end_fitness,5)*100000)}-i{iteration}"
+                filename = f"{generator_type}-{int(np.round(starting_fitness,5)*100000)}-{int(np.round(end_fitness,5)*100000)}-i{iteration}"
         if folderName:
             filepath = Path(f"./data/{folderName}/{filename}")
         else:
@@ -198,6 +198,6 @@ def learn(
     else:
         if print_done:
             print(
-                f"{generator_type}-{np.round(start_fitness,5)}-{np.round(end_fitness,5)}"
+                f"{generator_type}-{np.round(starting_fitness,5)}-{np.round(end_fitness,5)}"
             )
         return starting_fitness, end_fitness

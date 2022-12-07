@@ -14,7 +14,6 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 import time
 
 visualize = True
-visualize = True
 vis_behavior = False
 vis_weights = False
 vis_agent = False
@@ -27,9 +26,10 @@ vis_params = [
     # "averaged performance_average_hist",
     # "distribution flux_amp",
     "distribution performance_hist",
+    "distribution end_fitness",
     # "averaged flux_amp",
 ]
-folderName = "focused"
+folderName = "test"
 
 pathname = f"./data/{folderName}"
 files = os.listdir(pathname)
@@ -79,4 +79,3 @@ if visualize:
             ],
             save=True,
         )
-plt.show()

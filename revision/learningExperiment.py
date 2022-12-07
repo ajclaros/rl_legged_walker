@@ -18,15 +18,15 @@ import time
 # verbose>=0: print out starting and ending fitness
 # verbose in (0,1), print out progress of trial every % time passes for example
 
-verbose = 0.1
+verbose = 0.10
 log_data = True
 record_csv = False
-num_trials = 1
-num_processes = 200
+num_trials = 200
+num_processes = 128
 randomize_genomes = False
 USE_GENOME_LIST = True
 if USE_GENOME_LIST:
-    fit_low, fit_high = (0.12, 0.5)
+    fit_low, fit_high = (0.2, 0.7)
     sample_size = 10
 num_random_genomes = 10
 # if visualize is true, print the parameters to visualize
@@ -40,9 +40,10 @@ vis_params = [
     # "averaged performance_average_hist",
     # "distribution flux_amp",
     "distribution performance_hist",
-    # "averaged flux_amp",
+    "distribution end_fitness",
+    "averaged flux_amp",
 ]
-csv_name = "single_genome.csv"
+csv_name = None
 
 csv_elements = [
     "start_fit",
@@ -55,22 +56,39 @@ csv_elements = [
     "window_size",
     "genome_num",
 ]
+
 params = {
-    "window_size": 440,  # unit seconds
-    "learn_rate": 0.6,
-    "conv_rate": 0.6,
-    "min_period": 440,  # unit seconds0
-    "max_period": 4400,  # unit seconds
-    "init_flux": 1.0,
-    "max_flux": 3.0,
-    "duration": 1500,  # unit seconds
+    "window_size": 1000,  # unit seconds
+    "learn_rate": 0.08,
+    "conv_rate": 0.08,
+    "min_period": 2000,  # unit seconds0
+    "max_period": 5000,  # unit seconds
+    "init_flux": 0.25,
+    "max_flux": 0.25,
+    "duration": 4000,  # unit seconds
     "size": 3,
     "generator_type": "RPG",
     "neuron_configuration": [0, 1],
-    "learning_start": 800,
-    "record_every": 10,
+    "learning_start": 1000,
+    "record_every": 100,
     "stepsize": 0.1,
 }
+# params = {
+#     "window_size": 440,  # unit seconds
+#     "learn_rate": 0.05,
+#     "conv_rate": 0.05,
+#     "min_period": 440,  # unit seconds0
+#     "max_period": 4400,  # unit seconds
+#     "init_flux": 0.02,
+#     "max_flux": 0.05,
+#     "duration": 1500,  # unit seconds
+#     "size": 3,
+#     "generator_type": "RPG",
+#     "neuron_configuration": [0, 1],
+#     "learning_start": 800,
+#     "record_every": 10,
+#     "stepsize": 0.1,
+# }
 
 # params = {
 #     "reward_func": "secondary",
@@ -90,7 +108,7 @@ params = {
 # }()
 # folderName = f"{params['generator_type']}_d{params['duration']}_initfx{params['init_flux']}_00_window{params['window_size']}_max_p{params['max_period']}"
 # folderName += "recording"
-folderName = "focused"
+folderName = "test"
 if not os.path.exists(Path(f"./data/{folderName}")):
     print(f"creating folder:{folderName}")
     os.mkdir(f"./data/{folderName}")
@@ -183,7 +201,6 @@ params["bias_conv_rate"] = params["conv_rate"]
 results = []
 with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as executor:
     for i, starting_genome in enumerate(genome_list):
-        print(f"{i}/{genome_list.shape[0]} done")
         print(f"Genome:{i}")
         start_fitness = fitnessFunction(
             starting_genome,
@@ -216,7 +233,6 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as execut
                     verbose=print_verbose,
                     genome_num=i,
                     csv_name=csv_name,
-                    starting_fitness=start_fitness,
                 )
             )
             if len(results) == num_processes:
@@ -246,7 +262,7 @@ if visualize:
                     b=-1,
                     pathname=pathname,
                     save=True,
-                    baseline=True,
+                    baseline=start_fitness,
                 )
             if "distribution" in tracked:
                 print("distribution")
@@ -258,7 +274,7 @@ if visualize:
                     b=-1,
                     bins=10,
                     save=True,
-                    baseline=True,
+                    baseline=start_fitness,
                 )
 
         if vis_behavior:

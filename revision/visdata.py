@@ -156,7 +156,7 @@ def plotChosenParam(
 
 
 def plotAverageParam(
-    param, show=False, save=True, b=60, pathname="./data", baseline=None
+    param, show=False, save=True, b=60, pathname="./data", baseline=None, filename=None
 ):
     files = os.listdir(pathname)
     averaged = []
@@ -166,7 +166,7 @@ def plotAverageParam(
     time = np.arange(0, data["duration"], data["stepsize"] / data["sample_rate"])
     genome = data["startgenome"]
     genome_list = genome.reshape((1, genome.size))
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(10, 6))
     cmap = plt.get_cmap("tab20").colors
     genome_fitness = []
     skip = 0
@@ -204,12 +204,22 @@ def plotAverageParam(
     if show:
         plt.show()
     if save:
-        name = pathname.split("/")[-1]
-        plt.savefig(f"./data/images/{name}-{data['metric']}-{param}.png")
+        if filename:
+            name = filename
+        else:
+            name = pathname.split("/")[-1]
+        plt.savefig(f"./data/images/{name}-{data['metric']}-{param}.png", dpi=300)
 
 
 def plotDistributionParam(
-    param, show=False, save=True, b=60, pathname="./data", bins=60, baseline=None
+    param,
+    show=False,
+    save=True,
+    b=60,
+    pathname="./data",
+    bins=60,
+    baseline=None,
+    filename=None,
 ):
     files = os.listdir(pathname)
     files = [name for name in files if ".npz" in name]
@@ -226,24 +236,34 @@ def plotDistributionParam(
             data = np.load(f"{pathname}/{name}")
             if float(data["start_fitness"]) not in genome_dict.keys():
                 genome_dict[float(data["start_fitness"])] = []
-                (f, ax) = plt.subplots()
-                figs.append(f)
-                plots.append(ax)
-            genome_dict[float(data["start_fitness"])].append(data[param][-1])
+            if "hist" in param:
+                genome_dict[float(data["start_fitness"])].append(data[param][-1])
+            else:
+                genome_dict[float(data["start_fitness"])].append(float(data[param]))
         except:
             skip += 1
     # ax.title.set_text(
     #    f"Histogram {param} over duration {data['duration']}\n all {len(files)-skip} trials\n using {data['metric']} measurement"
     # )
     for i, key in enumerate(genome_dict.keys()):
+        (f, ax) = plt.subplots()
+        figs.append(f)
+        plots.append(ax)
         print(len(genome_dict[key]))
+
+        ax.title.set_text(f"Distribution of {param}, compared with {key}")
         plots[i].hist(genome_dict[key], bins=bins, density=False)
         plots[i].axvline(key, color="r")
+        if save:
+            if filename:
+                name = filename
+            else:
+                name = pathname.split("/")[-1]
+            plt.savefig(
+                f"./data/images/{name}-{param}-gene{i}-distribution.png", dpi=300
+            )
     if show:
         plt.show()
-    if save:
-        name = pathname.split("/")[-1]
-        plt.savefig(f"./data/images/{name}-{param}-{data['metric']}-distribution.png")
 
 
 # plotWeightsBiases(data, show=True)
