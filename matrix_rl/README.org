@@ -36,7 +36,8 @@ for example in the case of an RPG with 3 neurons and neurons 0, 1, and 2 driving
 - Note this folder will not work with evolution and learning as it has not been implemented yet.
 
 * Running single_trial.py
-- Current state of the parameters will generally show learning on a CPG with 3 neurons and a neuron configuration of 0, 1 ,2.
+- Current state of the parameters will generally show learning for generator:RPG, size:3, neuron 0 driving leg movement
+
 
 After trial will plot:
 1) Real time performance
