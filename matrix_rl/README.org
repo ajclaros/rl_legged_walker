@@ -1,0 +1,16 @@
+#+title: Matrix Based RL
+
+* Parametrization
+Given a network of $M$ nodes and a maximum of $N$ parameters per node, we can create a $M\times N$ matrix to map all the parameters of a system. For example in the case of a 3 node ctrnn we can create:
+|          |   | $N_0$   | $N_{1}$  | $N_{2}$  |
+| -------  | - | ------- | ----- | ----- |
+|          |   |         |       |       |
+| $w_{{0,j}}$ |   |         |       |       |
+| $w_{}_{1,j$}   |   |         |       |       |
+| $w_{{2,j}$} |   |         |       |       |
+| $b_{j}$     |   |         |       |       |
+| $\tau_{j}$     |   |         |       |       |
+
+This enables the capacity for the learning rule to be applied generally to a heterogeneous system where all parameters (initial and max flux amplitudes, period ranges, parameter bounds) can be specifically tuned for each parameter. For this specific implementation, $\tau$'s are not learning parameters, therefore their associated positions associated for init_flux, max_flux are 0.
+
+In the case of a heterogeneous system (systems that have different intrinsic properties such as neurons that learn at different rates, a system containing neurons and muscles,  or heterogeneous servo motors physical robotics) one can specify each parameter to have their own learning and convergence rates. Because this specific system is homogeneous learning and convergence rates are just floats.
