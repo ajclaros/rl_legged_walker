@@ -17,7 +17,7 @@ class LRule:
         init_flux: npt.NDArray = np.zeros((2, 2)),
         max_flux: npt.NDArray = np.zeros((2, 2)),
     ) -> None:
-        self.duration = duration
+
         self.learn_rate = learn_rate
         self.conv_rate = conv_rate
 
@@ -25,7 +25,7 @@ class LRule:
         self.center_mat = center_mat
         self.flux_displacements = np.zeros(center_mat.shape)
         self.extended_mat = self.center_mat.copy()
-        # Enables specific tuning of period and flux ranges for a heterogenous system
+
         # p_min, p_max are bounds on a parameter's
         self.size = self.center_mat.shape[1]
         self.flux_per_node = self.center_mat.shape[0]

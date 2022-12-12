@@ -7,8 +7,6 @@ from scipy.special import expit
 
 
 class RL_CTRNN(CTRNN):
-    # Constructor including boundaries of acceptable range
-    #### kwargs must include:
     def __init__(
         self,
         size: int,
@@ -44,6 +42,8 @@ class RL_CTRNN(CTRNN):
             TR=TR,
             TA=TA,
         )
+
+        # map 1D genome to their correct parameter ranges for a CTRNN
         self.size = size
         self.stepsize = stepsize
         self.delay = int(delay / self.stepsize)
@@ -57,6 +57,8 @@ class RL_CTRNN(CTRNN):
         self.mapped_genome = np.vstack(
             [self.inner_weights, self.biases, self.inv_time_constants]
         )
+
+        # initialize learning rule
         self.sim = LRule(
             duration=duration,
             learn_rate=learn_rate,
@@ -70,30 +72,32 @@ class RL_CTRNN(CTRNN):
             init_flux=init_flux,
             max_flux=max_flux,
         )
+
+        # map inner_centers and extended weights to CTRNN
         self.inner_weights = self.sim.center_mat[:size]
         self.biases = self.sim.center_mat[size]
         self.inv_time_constants = self.sim.center_mat[size + 1]
         self.extended_weights = self.sim.extended_mat[:size]
         self.extended_biases = self.sim.extended_mat[size]
+
+        # set parameters
         self.window_size = int(window_size / self.stepsize)
         self.size = size
-        self.time_step = 0
         self.duration = duration
         self.reward = 0
-        self.distance_track = np.zeros(int(self.window_size + 3000))
+        self.distance_track = np.zeros(int(self.window_size + self.delay))
         self.performance_track = np.zeros(int(self.window_size / 2))
         self.window_a = np.zeros(int(self.window_size / 2))
         self.window_b = np.zeros(int(self.window_size / 2))
 
     def initializeState(self, v):
-        # allow init flux to be used
         super().initializeState(v)
 
     def stepRL(self, dt):
-        self.sim.iter_moment(dt)
         netinput = self.inputs + np.dot(self.extended_weights.T, self.outputs)
         self.voltages += dt * (self.inv_time_constants * (-self.voltages + netinput))
         self.outputs = expit(self.voltages + self.extended_biases.T)
+        self.sim.iter_moment(dt)
 
     def reward_func(self, distance, learning=True):
         self.performance_func(distance)
@@ -102,6 +106,10 @@ class RL_CTRNN(CTRNN):
         return self.window_b.mean() - self.window_a.mean()
 
     def performance_func(self, distance):
+        """
+        This function uses a rolling queue to track distance and performance
+        the window size for distance is window_size+delay size
+        """
         self.distance_track[self.delay] = distance
         self.window_b[0] = (
             self.distance_track[0] - self.distance_track[-(self.window_b.size - 1)]
@@ -111,15 +119,12 @@ class RL_CTRNN(CTRNN):
             - self.distance_track[-2 * (self.window_a.size - 1)]
         ) / (self.window_a.size * self.stepsize)
 
-        #
-        #     / self.window_a.size
-        #     * self.stepsize
-        # )
         self.distance_track = np.roll(self.distance_track, -1)
         self.window_b = np.roll(self.window_b, -1)
         self.window_a = np.roll(self.window_a, -1)
 
     def recoverParameters(self, inner=True):
+        # maps values for weights, biases and taus to interval [-1, 1]
         if inner:
             return np.append(
                 self.inner_weights.reshape(self.inner_weights.size) / self.WR,

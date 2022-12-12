@@ -66,13 +66,14 @@ genome = np.load(f"{pathname}/{genome_list[params['index']]}")
 # parameter minimum and maxima
 p_min = np.ones((size + 2, size)) * -16
 p_max = np.ones((size + 2, size)) * 16
-# time_constants are not fluctuating
-period_min[-1] = duration
-period_max[-1] = duration
 
 # period range
 period_min = np.ones((size + 2, size)) * params["period_min"]
 period_max = np.ones((size + 2, size)) * params["period_max"]
+
+# time_constants are not fluctuating, therefore set their fluctuations to zero
+period_min[-1] = duration
+period_max[-1] = duration
 
 # flux
 init_flux = np.ones((size + 2, size)) * params["init_flux"]
