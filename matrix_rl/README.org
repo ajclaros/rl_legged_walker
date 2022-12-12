@@ -14,12 +14,13 @@ This enables the capacity for the learning rule to be applied generally to a het
 In the case of a heterogeneous system (systems that have different intrinsic properties such as neurons that learn at different rates, a system containing neurons and muscles,  or heterogeneous servo motors physical robotics) one can specify each parameter to have their own learning and convergence rates. Because this specific system is homogeneous learning and convergence rates are just floats.
 
 - The script to run is single_trial.py
-- The difference between CTRNN and RL_CTRNN is:
-(1) Step function uses the fluctuating weights
-(2) Step function calculates the next moment of the fluctuating weights
-(3) RL_CTRNN implements the reward and performance functions.
-
 - All functions of learning rule are contained within learning_rule.py.
+
+- The difference between CTRNN and RL_CTRNN is:
+  + Step function uses the fluctuating weights
+  + Step function calculates the next moment of the fluctuating weights
+  + RL_CTRNN implements the reward and performance functions.
+
 
 
 
