@@ -2,13 +2,13 @@
 
 * Parametrization
 Given a network of $M$ nodes and a maximum of $N$ parameters per node, we can create a $M\times N$ matrix to map all the parameters of a system. For example in the case of a 3 node ctrnn we can create:
-|             | $N_0$   | $N_{1}$  | $N_{2}$  |
-|             |         |       |       |
-| $w_{{0,j}}$    |         |       |       |
-| $w_{}_{1,j$}      |         |       |       |
-| $w_{{2,j}$}    |         |       |       |
-| $b_{j}$        |         |       |       |
-| $\tau_{j}$        |         |       |       |
+|      | $N_0$ | $N_{}1$ | $N_2$ |
+|      |       |      |       |
+| w_{0,j} |       |      |       |
+| w_{}_{1,j} |       |      |       |
+| w_{2,j} |       |      |       |
+| b_j  |       |      |       |
+| \tau_j  |       |      |       |
 
 This enables the capacity for the learning rule to be applied generally to a heterogeneous system where all parameters (initial and max flux amplitudes, period ranges, parameter bounds) can be specifically tuned for each parameter. For this specific implementation, $\tau$'s are not learning parameters, therefore their associated positions associated for init_flux, max_flux are 0.
 
