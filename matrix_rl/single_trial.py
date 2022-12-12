@@ -1,7 +1,7 @@
 import leggedwalker
 from ctrnn import CTRNN
-from simulator import simulator2 as sim2
-from rl_ctrnn import RL_CTRNN2
+from learning_rule import LRule
+from rl_ctrnn import RL_CTRNN
 import matplotlib.pyplot as plt
 import os
 import numpy as np

@@ -2,7 +2,7 @@ import numpy as np
 import numpy.typing as npt
 
 
-class simulator2:
+class LRule:
     def __init__(
         self,
         duration: int = 2000,

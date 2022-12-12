@@ -19,19 +19,19 @@ import time
 # verbose in (0,1), print out progress of trial every % time passes for example
 
 verbose = 0.10
-log_data = True
+log_data = False
 record_csv = False
-num_trials = 10
-num_processes = 16
+num_trials = 1
+num_processes = 1
 randomize_genomes = False
 USE_GENOME_LIST = True
 if USE_GENOME_LIST:
     fit_low, fit_high = (0.2, 0.7)
-    sample_size = 10
+    sample_size = 1
 num_random_genomes = 3
 # if visualize is true, print the parameters to visualize
 # "averaged [param_name]" will print the average of the parameter across all trials
-visualize = True
+visualize = False
 vis_behavior = False
 vis_weights = False
 vis_agent = False
@@ -81,7 +81,7 @@ params = {
     "max_period": 4400,  # unit seconds
     "init_flux": 2.25,
     "max_flux": 2.25,
-    "duration": 1000,  # unit seconds
+    "duration": 10000,  # unit seconds
     "size": 3,
     "generator_type": "RPG",
     "neuron_configuration": [0, 1],
