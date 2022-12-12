@@ -2,7 +2,7 @@
 
 * Parametrization
 Given a network of $M$ nodes and a maximum of $N$ parameters per node, we can create a $M\times N$ matrix to map all the parameters of a system. For example in the case of a 3 node ctrnn we can create:
-|           | $N_0$ | $N_{}1$ | $N_2$ |
+|           | $N_0$ | $N_1$   | $N_2$ |
 |           |       |         |       |
 | w_{0j}    |       |         |       |
 | w_{1j}    |       |         |       |
