@@ -92,17 +92,17 @@ class WalkingTask(RL_CTRNN):
             return 0
 
         return (self.window_b.mean() - self.window_a.mean()) / (
-            self.window_b.size / self.stepsize
+            self.window_b.size * self.stepsize
         )
 
     def default_performance_func(self, body):
         self.distance_track[0] = body.cx
         self.window_b[0] = (
-            self.distance_track[0] - self.distance_track[self.window_b.size - 1]
+            self.distance_track[0] - self.distance_track[-(self.window_b.size - 1)]
         )
         self.window_a[0] = (
-            self.distance_track[self.window_a.size]
-            - self.distance_track[self.running_window_size - 1]
+            self.distance_track[-self.window_a.size]
+            - self.distance_track[-2 * self.window_b.size + 1]
         )
         self.performance_track[0] = self.window_b.mean() / (
             self.stepsize * self.window_b.size
@@ -150,15 +150,13 @@ class WalkingTask(RL_CTRNN):
             if t < learning_start:
                 self.step(self.stepsize)
                 self.reward_func(body, learning=False)
+            elif t == learning_start:
+                self.starting_perf = self.performance_track.mean()
             else:
                 self.stepRNN(self.stepsize)
-                if t + 1 == learning_start and verbose:
-                    print("Starting performance")
-                    print(self.performance_track.mean())
             # body.step3(self.stepsize, self.outputs)
             body.stepN(self.stepsize, self.outputs, configuration)
             if t > learning_start:
-                self.starting_perf = self.performance_track.mean()
                 reward = self.reward_func(body, learning=True)
                 self.reward = reward
                 self.update_weights_and_flux_amp_with_reward(reward)

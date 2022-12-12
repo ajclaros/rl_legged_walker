@@ -54,6 +54,7 @@ def learn(
     record_every=1,
     learning_start=0,
     starting_fitness=None,
+    tolerance=0.0,
 ):
 
     np.random.seed()

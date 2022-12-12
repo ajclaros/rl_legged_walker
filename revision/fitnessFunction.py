@@ -11,7 +11,7 @@ stepsize = 0.1
 
 def fitnessFunction(
     genotype,
-    duration=800.0,
+    duration=220.0,
     N=2,
     generator_type="RPG",
     configuration=[0],
