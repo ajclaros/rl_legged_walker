@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 from pathlib import Path
-import os
-from learningFunction import learn
 import concurrent.futures
 import time
 import numpy as np
@@ -499,32 +497,19 @@ class GaElite:
             # print(f"mean:{np.mean(self.fitness)}|max:{max(self.fitness)}")
 
             max_fit = np.argmax(self.fitness)
-            for i in range(self.popsize):
-                if self.verbose:
-                    print(f"Max fit: {self.fitness[i]}")
-                fit_string = str(int(self.fitness[i] * 100000))
-                fit_string = fit_string.zfill(5)
-                print(f"saving:{self.fitness[i]}")
-                files = os.listdir(
-                    f"./evolved/{self.generator_type}/{self.size}/{''.join(self.neuron_conf_str)}"
-                )
-                print(files)
-                fitnesses = [
-                    float(name.split("-")[1].split(".")[0]) / 100000 for name in files
-                ]
-                print(np.unique(fitnesses))
-                if (
-                    round(
-                        int(self.fitness[i] * 100) * 100,
-                    )
-                    not in fitnesses
-                    and self.fitness[i] > 0.1
-                ):
-                    print(f"saving:{fit_string}")
-                    np.save(
-                        f"./evolved/{self.generator_type}/{self.size}/{''.join(self.neuron_conf_str)}/fit-{fit_string}",
-                        self.pop[i],
-                    )
+            if self.verbose:
+                print(f"Max fit: {self.fitness[max_fit]}")
+            fit_string = str(int(self.fitness[max_fit] * 100000))
+            fit_string = fit_string.zfill(5)
+
+            pathname = f"./evolved/{self.generator_type}/{self.size}/{''.join(self.neuron_conf_str)}/fit-{fit_string}"
+
+            print(f"Max fitness:{self.fitness[max_fit]}")
+            print(f"Saved to: {pathname}")
+            np.save(
+                pathname,
+                self.pop[max_fit],
+            )
             for i in range(self.popsize):
                 if i == max_fit:
                     continue
