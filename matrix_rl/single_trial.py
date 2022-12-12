@@ -71,7 +71,7 @@ conf_list = [int(a) for a in params["config"]]
 period_min[-1] = duration
 
 period_max[-1] = duration
-agent = RL_CTRNN2(
+agent = RL_CTRNN(
     size,
     genome,
     duration,
