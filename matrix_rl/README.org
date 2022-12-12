@@ -12,3 +12,35 @@ Given a network of $M$ nodes and a maximum of $N$ parameters per node, we can cr
 This enables the capacity for the learning rule to be applied generally to a heterogeneous system where all parameters (initial and max flux amplitudes, period ranges, parameter bounds) can be specifically tuned for each parameter. For this specific implementation, $\tau$'s are not learning parameters, therefore their associated positions associated for init_flux, max_flux are 0.
 
 In the case of a heterogeneous system (systems that have different intrinsic properties such as neurons that learn at different rates, a system containing neurons and muscles,  or heterogeneous servo motors physical robotics) one can specify each parameter to have their own learning and convergence rates. Because this specific system is homogeneous learning and convergence rates are just floats.
+
+- The script to run is single_trial.py
+- The difference between CTRNN and RL_CTRNN is:
+ (1) Step function uses the fluctuating weights
+ (2) Step function calculates the next moment of the fluctuating weights
+(3) RL_CTRNN implements the reward and performance functions.
+
+- All functions of learning rule are contained within learning_rule.py.
+
+
+
+* Generating genomes
+ Before running single_trial.py, genomes must be first generated and saved in the folder of the form:
+
+/evolved/{generator}/{size}/{configuration}
+
+for example in the case of an RPG with 3 neurons and neurons 0, 1, and 2 driving the leg. Pathname will be
+
+/evolved/RPG/3/012
+
+- Then by modifying the parameters in evolveAndLearn.py for their respective generator, size and neuron configuration the elitist evolutionary algorithm will save the top performing genome in each generation in the correct folder.
+- Note this folder will not work with evolution and learning as it has not been implemented yet.
+
+* Running single_trial.py
+- Current state of the parameters will generally show learning on a CPG with 3 neurons and a neuron configuration of 0, 1 ,2.
+
+After trial will plot:
+1) Real time performance
+2) Performance as seen by the agent
+3) Mean of both averaging windows (window_b refers to the current performance and window_a refers to past performance)
+4) Difference of the two windows which will pass in to the agent as a reward modulatory signal
+4) Fluctuation amplitude

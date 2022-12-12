@@ -10,27 +10,29 @@ from matplotlib.widgets import Slider, Button, CheckButtons
 
 params = {
     "duration": 8000,
-    "size": 3,  # original 2
-    "delay": 220,
-    "generator": "CPG",  # original CPG
-    "config": "01",
-    "window_size": 440,
+    "size": 3,
+    "delay": 220,  # changes in performance are observed in the averaging windows ~200 time units after the real time performance
+    # compare end performance using delay==220 with delay=0 to test learning efficacy
+    "generator": "CPG",
+    "config": "012",
+    "window_size": 440,  # size of the two averaging windows. Fitness function runs for 220 time units
     # "learn_rate": 0.00001,
     # "conv_rate": 0.0007,
     # "init_flux": 0.001,  # RPG 0
     # "max_flux": 0.001,
-    "learn_rate": 0.000001,
-    "conv_rate": 0.000001,  # CPG 012 fit 20288
-    "init_flux": 0.00001,
-    "max_flux": 0.0001,
-    "period_min": 440,
-    "period_max": 4400,
-    "learning_start": 800,
-    "record_every": 100,
-    "tolerance": 0.00,
+    "learn_rate": 0.000001,  #
+    "conv_rate": 0.000001,  # Params identified for generator:CPG, size:3, config:012 and fitness ~0.2
+    "init_flux": 0.00001,  #
+    "max_flux": 0.0001,  #
+    "period_min": 440,  # integer time units
+    "period_max": 4400,  # integer time units
+    "learning_start": 800,  # integer time units, determines how long the agent will gather data from static weights.
+    "tolerance": 0.0020,  # ignore abs(reward) below tolerance and only update moment
+    "fit_range": (0.2, 0.70),  # select genomes within (min, max) fitness range
+    "index": 0,  # given all genomes matching "$generator/$size/$configuration"
+    # choose
     "stepsize": 0.1,
-    "fit_range": (0.2, 0.70),
-    "index": 0,
+    "record_every": 100,  # not currently implemented. When logging data, records every n time steps
 }
 
 
@@ -99,7 +101,7 @@ avg_window_b = np.zeros(time.size)
 
 window_a = np.zeros(time.size)
 avg_window_a = np.zeros(time.size)
-reward_track = np.zeros(time.size)
+flux_track = np.zeros(time.size)
 difference_track = np.zeros(time.size)
 weight_track = np.zeros((time.size, size, size))
 for i, t in enumerate(time):
@@ -113,7 +115,7 @@ for i, t in enumerate(time):
     else:
         agent.stepRL(params["stepsize"])
         reward = agent.reward_func(body.cx, learning=True)
-        reward_track[i] = agent.sim.flux_mat[0, 0]
+        flux_track[i] = agent.sim.flux_mat[0, 0]
         agent.sim.update_weights_with_reward(reward)
     body.stepN(agent.stepsize, agent.outputs, conf_list)
     distance[i] = body.cx
@@ -131,13 +133,15 @@ for i, t in enumerate(time):
     agent.extended_weights = agent.sim.extended_mat[:size].copy()
     agent.extended_biases = agent.sim.extended_mat[size].copy()
 fig, ax = plt.subplots(nrows=2)
-ax[0].plot(time, performance, label="current performance1")
-# ax[0].plot(time, performance2, label="delayed performance2")
-# ax[0].plot(time, window_b, label="window_b")
-# ax[0].plot(time, window_a, label="window_a")
-ax[1].plot(time, reward_track)
-ax[0].plot(time, difference_track, label="difference")
-ax[0].plot(time, avg_window_b, label="avg_window_b")
-ax[0].plot(time, avg_window_a, label="avg_window_a")
+ax[0].plot(time, performance, label="Real time performance")
+# ax[0].plot(time, window_b, label="window_b")  # current performance as observed by agent
+# ax[0].plot(time, window_a, label="window_a")  #past performance as observed by agent
+ax[1].plot(time, flux_track, label="Fluctuation size")
+ax[0].plot(
+    time, difference_track, label="difference"
+)  # difference in averaged performance windows, the neuromodulatory single
+ax[0].plot(time, avg_window_b, label="avg_window_b")  # average current performance
+ax[0].plot(time, avg_window_a, label="avg_window_a")  #
 ax[0].legend()
+ax[1].legend()
 plt.show()
