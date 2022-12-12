@@ -15,8 +15,8 @@ In the case of a heterogeneous system (systems that have different intrinsic pro
 
 - The script to run is single_trial.py
 - The difference between CTRNN and RL_CTRNN is:
- (1) Step function uses the fluctuating weights
- (2) Step function calculates the next moment of the fluctuating weights
+(1) Step function uses the fluctuating weights
+(2) Step function calculates the next moment of the fluctuating weights
 (3) RL_CTRNN implements the reward and performance functions.
 
 - All functions of learning rule are contained within learning_rule.py.
