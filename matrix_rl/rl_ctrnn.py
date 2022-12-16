@@ -106,10 +106,6 @@ class RL_CTRNN(CTRNN):
         return self.window_b.mean() - self.window_a.mean()
 
     def performance_func(self, distance):
-        """
-        This function uses a rolling queue to track distance and performance
-        the window size for distance is window_size+delay size
-        """
         self.distance_track[self.delay] = distance
         self.window_b[0] = (
             self.distance_track[0] - self.distance_track[-(self.window_b.size - 1)]
@@ -138,3 +134,23 @@ class RL_CTRNN(CTRNN):
                     (self.time_constants - self.TA) / self.TR,
                 ],
             )
+
+    def reward_func2(self, distance, learning=True):
+        self.performance_func2(distance)
+        if not learning:
+            return 0
+        return self.window_b[-1] - self.window_a[-1]  # .mean() - self.window_a.mean()
+
+    def performance_func2(self, distance):
+        self.distance_track[self.delay] = distance
+        self.window_b[0] = (
+            self.distance_track[0] - self.distance_track[-(self.window_b.size - 1)]
+        ) / (self.window_b.size * self.stepsize)
+        self.window_a[0] = (
+            self.distance_track[-(self.window_a.size)]
+            - self.distance_track[-2 * (self.window_a.size - 1)]
+        ) / (self.window_a.size * self.stepsize)
+
+        self.distance_track = np.roll(self.distance_track, -1)
+        self.window_b = np.roll(self.window_b, -1)
+        self.window_a = np.roll(self.window_a, -1)

@@ -64,6 +64,7 @@ class LRule:
                 self.p_min,
                 self.p_max,
             )
+
         self.flux_displacements = self.flux_mat * np.sin(
             self.moments / self.periods * 2 * np.pi
         )
