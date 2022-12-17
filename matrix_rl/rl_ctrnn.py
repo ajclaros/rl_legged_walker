@@ -87,8 +87,8 @@ class RL_CTRNN(CTRNN):
         self.reward = 0
         self.distance_track = np.zeros(int(self.window_size + self.delay))
         self.performance_track = np.zeros(int(self.window_size / 2))
-        self.window_a = np.zeros(int(self.window_size / 2))
-        self.window_b = np.zeros(int(self.window_size / 2))
+        self.window_a_track = np.zeros(int(self.window_size / 2))
+        self.window_b_track = np.zeros(int(self.window_size / 2))
 
     def initializeState(self, v):
         super().initializeState(v)
@@ -103,21 +103,22 @@ class RL_CTRNN(CTRNN):
         self.performance_func(distance)
         if not learning:
             return 0
-        return self.window_b.mean() - self.window_a.mean()
+        return self.window_b_track.mean() - self.window_a_track.mean()
 
     def performance_func(self, distance):
         self.distance_track[self.delay] = distance
-        self.window_b[0] = (
-            self.distance_track[0] - self.distance_track[-(self.window_b.size - 1)]
-        ) / (self.window_b.size * self.stepsize)
-        self.window_a[0] = (
-            self.distance_track[-(self.window_a.size)]
-            - self.distance_track[-2 * (self.window_a.size - 1)]
-        ) / (self.window_a.size * self.stepsize)
+        self.window_b_track[0] = (
+            self.distance_track[0]
+            - self.distance_track[-(self.window_b_track.size - 1)]
+        ) / (self.window_b_track.size * self.stepsize)
+        self.window_a_track[0] = (
+            self.distance_track[-(self.window_a_track.size)]
+            - self.distance_track[-2 * (self.window_a_track.size - 1)]
+        ) / (self.window_a_track.size * self.stepsize)
 
         self.distance_track = np.roll(self.distance_track, -1)
-        self.window_b = np.roll(self.window_b, -1)
-        self.window_a = np.roll(self.window_a, -1)
+        self.window_b_track = np.roll(self.window_b_track, -1)
+        self.window_a_track = np.roll(self.window_a_track, -1)
 
     def recoverParameters(self, inner=True):
         # maps values for weights, biases and taus to interval [-1, 1]
@@ -139,18 +140,21 @@ class RL_CTRNN(CTRNN):
         self.performance_func2(distance)
         if not learning:
             return 0
-        return self.window_b[-1] - self.window_a[-1]  # .mean() - self.window_a.mean()
+        return (
+            self.window_b_track[-1] - self.window_a_track[-1]
+        )  # .mean() - self.window_a_track.mean()
 
     def performance_func2(self, distance):
         self.distance_track[self.delay] = distance
-        self.window_b[0] = (
-            self.distance_track[0] - self.distance_track[-(self.window_b.size - 1)]
-        ) / (self.window_b.size * self.stepsize)
-        self.window_a[0] = (
-            self.distance_track[-(self.window_a.size)]
-            - self.distance_track[-2 * (self.window_a.size - 1)]
-        ) / (self.window_a.size * self.stepsize)
+        self.window_b_track[0] = (
+            self.distance_track[0]
+            - self.distance_track[-(self.window_b_track.size - 1)]
+        ) / (self.window_b_track.size * self.stepsize)
+        self.window_a_track[0] = (
+            self.distance_track[-(self.window_a_track.size)]
+            - self.distance_track[-2 * (self.window_a_track.size - 1)]
+        ) / (self.window_a_track.size * self.stepsize)
 
         self.distance_track = np.roll(self.distance_track, -1)
-        self.window_b = np.roll(self.window_b, -1)
-        self.window_a = np.roll(self.window_a, -1)
+        self.window_b_track = np.roll(self.window_b_track, -1)
+        self.window_a_track = np.roll(self.window_a_track, -1)

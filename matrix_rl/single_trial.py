@@ -6,12 +6,12 @@ import numpy as np
 import concurrent.futures
 
 num_processes = 10
-num_trials = 3
+num_trials = 2
 random_genomes_in_range = False
-indices = [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16]
-num_genomes = 8
+indices = [0, 1, 2, 3, 4]  # , 5, 6, 7]
+num_genomes = len(indices)
 params = {
-    "duration": 20000,
+    "duration": 5000,
     "size": 3,
     "delay": 600,  # changes in performance are observed in the averaging windows ~200 time units after the real time performance
     # compare end performance using delay==220 with delay=0 to test learning efficacy
@@ -125,21 +125,22 @@ def learn(
     body = leggedwalker.LeggedAgent()
     time = np.arange(0, int(duration), params["stepsize"] * sample_rate)
 
+    track = []
+    mat = []
+    avg = []
+    no_delay = []
     data = {}
+    for name in output:
+        if "avg" in name:
+            avg.append(name)
+        elif "no_delay" in name:
+            no_delay.append(name)
+        elif "track" in name:
+            track.append(name)
+        elif "mat" in name:
+            mat.append(name)
+        data[name] = np.zeros(time.size)
     # initialize parameters to record
-    data["distance"] = np.zeros(time.size)  # real time distance
-    data["agent_distance"] = np.zeros(time.size)  # agent recorded distance with delay
-    data["performance"] = np.zeros(time.size)
-    data["inst_perf"] = np.zeros(time.size)
-    data["agent_performance"] = np.zeros(time.size)
-    data["window_b"] = np.zeros(time.size)
-    data["avg_window_b"] = np.zeros(time.size)
-    data["window_a"] = np.zeros(time.size)
-    data["avg_window_a"] = np.zeros(time.size)
-    data["flux_track"] = np.zeros(time.size)
-    data["difference_track"] = np.zeros(time.size)
-    data["weight_track"] = np.zeros((time.size, size, size))
-
     if verbose > 0:
         for i, t in enumerate(time):
             if verbose > 0.0 and i % (time.size * verbose) == 0 and verbose < 1.0:
@@ -158,7 +159,6 @@ def learn(
                 # learning phase
                 agent.stepRL(params["stepsize"])
                 reward = agent.reward_func(body.cx, learning=True)
-                data["flux_track"][i] = agent.sim.flux_mat[0, 0]
                 agent.sim.update_weights_with_reward(reward)
             body.stepN(agent.stepsize, agent.outputs, conf_list)
 
@@ -169,25 +169,16 @@ def learn(
             agent.extended_biases = agent.sim.extended_mat[size].copy()
             # record data to plot
             if i % record_every == 0:
-                data["distance"][i] = body.cx
-                data["performance"][i] = (
-                    data["distance"][i] - data["distance"][i - (2200 - 1)]
-                ) / 220
-                data["inst_perf"][i] = (
-                    data["distance"][i] - data["distance"][i - 1]
-                ) / 0.1
-                data["agent_distance"][i] = agent.distance_track[0]
-                data["agent_performance"][i] = (
-                    data["agent_distance"][i] - data["agent_distance"][i - (2200 - 1)]
-                ) / 220
-                data["weight_track"][i] = agent.extended_weights
-                data["window_b"][i] = agent.window_b[-1]
-                data["window_a"][i] = agent.window_a[-1]
-                data["avg_window_b"][i] = agent.window_b.mean()
-                data["avg_window_a"][i] = agent.window_a.mean()
-                data["difference_track"][i] = (
-                    data["avg_window_b"][i] - data["avg_window_a"][i]
-                )
+                for name in avg:
+                    t_name = name.split(" ")[1]
+                    data[name][i] = agent.__dict__[t_name].mean()
+                for name in no_delay:
+                    t_name = name.split(" ")[1]
+                    data[name][i] = agent.__dict__[t_name][params["delay"] - 1]
+                for name in track:
+                    data[name][i] = agent.__dict__[name][-1]
+                for name in mat:
+                    data[name][i] = agent.sim.__dict__[name][0, 0]
     else:
         for i, t in enumerate(time):
             if params["generator"] == "RPG":
@@ -204,7 +195,6 @@ def learn(
                 # learning phase
                 agent.stepRL(params["stepsize"])
                 reward = agent.reward_func(body.cx, learning=True)
-                data["flux_track"][i] = agent.sim.flux_mat[0, 0]
                 agent.sim.update_weights_with_reward(reward)
             body.stepN(agent.stepsize, agent.outputs, conf_list)
             # update center and fluctuating weights
@@ -214,25 +204,16 @@ def learn(
             agent.extended_biases = agent.sim.extended_mat[size].copy()
             # record data to plot
             if i % record_every == 0:
-                data["distance"][i] = body.cx
-                data["performance"][i] = (
-                    data["distance"][i] - data["distance"][i - (2200 - 1)]
-                ) / 220
-                data["inst_perf"][i] = (
-                    data["distance"][i] - data["distance"][i - 1]
-                ) / 0.1
-                data["agent_distance"][i] = agent.distance_track[0]
-                data["agent_performance"][i] = (
-                    data["agent_distance"][i] - data["agent_distance"][i - (2200 - 1)]
-                ) / 220
-                data["weight_track"][i] = agent.extended_weights
-                data["window_b"][i] = agent.window_b[-1]
-                data["window_a"][i] = agent.window_a[-1]
-                data["avg_window_b"][i] = agent.window_b.mean()
-                data["avg_window_a"][i] = agent.window_a.mean()
-                data["difference_track"][i] = (
-                    data["avg_window_b"][i] - data["avg_window_a"][i]
-                )
+                for name in avg:
+                    t_name = name.split(" ")[1]
+                    data[name][i] = agent.__dict__[t_name].mean()
+                for name in no_delay:
+                    t_name = name.split(" ")[1]
+                    data[name][i] = agent.__dict__[t_name][params["delay"] - 1]
+                for name in track:
+                    data[name][i] = agent.__dict__[name][-1]
+                for name in mat:
+                    data[name][i] = agent.sim.__dict__[name][0, 0]
     data["ix"] = ix
     # ax[0].plot(time, performance, label="Real time performance", color=cmap[c * 4 + 0])
     # ax[1].plot(time, flux_track, label="Fluctuation size", color=cmap[c * 4 + 0])
@@ -258,7 +239,7 @@ fig, ax = plt.subplots(nrows=2)
 results = []
 verbose = 0.1
 plots = []
-output = ["performance", "flux_track"]
+output = ["no_delay performance_track", "avg window_b_track", "flux_mat"]
 with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as executor:
     for ix, g in enumerate(genomes):
         for trial in range(num_trials):
@@ -273,11 +254,7 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as execut
                     g,
                     print_verbose,
                     params,
-                    output=[
-                        "avg_window_b",
-                        "performance",
-                        "flux_track",
-                    ],
+                    output=output,
                     ix=ix,
                 )
             )
@@ -300,7 +277,7 @@ for param in output:
 for param in output:
     print(param)
     for key in means.keys():
-        if param == "flux_track":
+        if param == "flux_mat":
             ax[1].plot(time, np.mean(means[key][param], axis=0), color=cmap[key])
         else:
             ax[0].plot(time, np.mean(means[key][param], axis=0), color=cmap[key])
