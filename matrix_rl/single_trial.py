@@ -6,14 +6,14 @@ import numpy as np
 import concurrent.futures
 
 num_processes = 10
-num_trials = 2
+num_trials = 4
 random_genomes_in_range = False
 indices = [0, 1, 2, 3, 4]  # , 5, 6, 7]
 num_genomes = len(indices)
 params = {
     "duration": 5000,
     "size": 3,
-    "delay": 600,  # changes in performance are observed in the averaging windows ~200 time units after the real time performance
+    "delay": 220,  # changes in performance are observed in the averaging windows ~200 time units after the real time performance
     # compare end performance using delay==220 with delay=0 to test learning efficacy
     "generator": "CPG",
     "config": "0",
@@ -35,7 +35,7 @@ params = {
     # "max_flux": 0.005,
     "period_min": 440,  # integer time units
     "period_max": 4400,  # integer time units
-    "learning_start": 2000,  # integer time units, determines how long the agent will gather data from static weights.
+    "learning_start": 1200,  # integer time units, determines how long the agent will gather data from static weights.
     "tolerance": 0.001,  # ignore abs(reward) below tolerance and only update moment
     "fit_range": (0.2, 0.7),  # select genomes within (min, max) fitness range
     "index": 0,  # given all genomes matching "$generator/$size/$configuration"
