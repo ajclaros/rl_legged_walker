@@ -6,19 +6,22 @@ import numpy as np
 import concurrent.futures
 import time as ti
 
+from initial_run import checkdir  # first
+
 x = ti.time()
 num_processes = 16
 num_trials = 4
 random_genomes_in_range = False
 indices = [0, 1, 2, 3]  # , 4, 5, 6, 7, 8, 9]
 num_genomes = len(indices)
-output = ["avg window_b_track", "avg window_a_track", "flux_mat"]
+output = ["avg window_b_track", "flux_mat"]
 params = {
-    "duration": 20000,
+    "duration": 40000,
     "size": 3,
-    "delay": 220,  # changes in performance are observed in the averaging windows ~200 time units after the real time performance
-    # compare end performance using delay==310 with delay=0 to test learning efficacy
+    "delay": 300,  # changes in performance are observed in the averaging windows ~200 time units after the real time performance
+    # compare end performance using delay \in [250, 350] with delay=0 to test learning efficacy
     # effect prominant as task becomes more difficult (from 3N RPG, [0] -> 3N CPG [0,1,2] )
+    # on the simplist task, agent can still learn with 0 delay.
     "generator": "CPG",
     "config": "012",
     "window_size": 440,  # size of the two averaging windows. Fitness function runs for 220 time units
@@ -28,11 +31,11 @@ params = {
     # "init_flux": 0.00015,  # Params identified for generator:RPG, size:3, config:0, fitness ~0.234
     # "max_flux": 0.002,  # May be robust to different starting positions
     # ------------------------------------------------------------------------------------------------
-    "learn_rate": 0.000009,  #
-    "conv_rate": 0.000008,  # Params identified for generator:CPG, size:3, config:0 and fitness ~0.2
-    "init_flux": 0.00015,  # less likely to be robust to different genomes/starting fitnesses
-    "max_flux": 0.001,  #
-    # ------------------------------------------------------------------------------------------------
+    "learn_rate": 0.000004,  #
+    "conv_rate": 0.000004,  # Params identified for generator:CPG
+    "init_flux": 0.00025,  # less likely to be robust to different genomes/starting fitnesses
+    "max_flux": 0.0001,  #
+    # -------------
     # "learn_rate": 0.000005,
     # "conv_rate": 0.000000,
     # "init_flux": 0.0001,  # experimental with exponential growth rate
@@ -42,10 +45,10 @@ params = {
     "learning_start": 600,  # integer time units, determines how long the agent will gather data from static weights.
     # -------------------------------------------------------------------------------------------------
     # Parameters for reward below a value
-    "tolerance": 0.0250,  # ignore abs(reward) below tolerance and only update moment.
-    "performance_bias": 0.0,  # penalize for reward below value -> increase amplitude if reward below value
+    "tolerance": 0.0200,  # ignore abs(reward) below tolerance and only update moment.
+    "performance_bias": 0.000,  # penalize for reward below value -> increase amplitude if reward below value
     # -------------------------------------------------------------------------------------------------
-    "fit_range": (0.4, 0.7),  # select genomes within (min, max) fitness range
+    "fit_range": (0.2, 0.7),  # select genomes within (min, max) fitness range
     "index": 0,  # given all genomes matching "$generator/$size/$configuration"
     # choose the file at specified index position
     "stepsize": 0.1,
@@ -53,6 +56,13 @@ params = {
 }
 
 pathname = f"./evolved/{params['generator']}/{params['size']}/{params['config']}"
+if not os.path.exists(pathname):
+    os.makedirs(pathname)
+checkdir(
+    pathname,
+    fit_range=params["fit_range"],
+    min_files=100,
+)
 files = os.listdir(pathname)
 genome_list = []
 genome_fitness = []

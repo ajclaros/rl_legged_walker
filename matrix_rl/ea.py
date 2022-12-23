@@ -5,6 +5,7 @@ from pathlib import Path
 import concurrent.futures
 import time
 import numpy as np
+import os
 
 data = np.zeros(20)
 durations = np.random.randint(0, 20, 20)
@@ -30,18 +31,22 @@ def getIndex(idx, genome, params=None, num_trials=1):
 class Microbial:
     def __init__(
         self,
-        fitnessFunction,
-        popsize,
-        genesize,
-        recombProb,
-        mutatProb,
-        demeSize,
-        generations,
-        generator_type,
-        neuron_configuration,
-        size,
+        fitnessFunction=None,
+        popsize=100,
+        genesize=8,
+        recombProb=0.5,
+        mutatProb=0.05,
+        demeSize=2,
+        generations=100,
+        generator_type="RPG",
+        neuron_configuration=[0],
+        pathname=None,
+        fit_range=None,
+        size=2,
         verbose=None,
     ):
+        self.pathname = pathname
+        self.fit_range = fit_range
         self.fitnessFunction = fitnessFunction
         self.popsize = popsize
         self.genesize = genesize
@@ -58,7 +63,7 @@ class Microbial:
         self.bestHistory = np.zeros(generations)
         self.generator_type = generator_type
         self.neuron_configuration = neuron_configuration
-        self.neuron_conf_str = list(map(str, self.neuron_configuration))
+        self.neuron_conf_str = list(map(int, self.neuron_configuration))
         self.gen = 0
 
     def showFitness(self, label="", c="k", save=False):
@@ -121,13 +126,16 @@ class Microbial:
             if self.verbose:
                 print(f"Max fit: {self.fitness[max_fit]}")
 
-            fit_string = str(int(self.fitness[max_fit] * 100000))
-            fit_string = fit_string.zfill(5)
-            np.save(
-                f"./evolved/{self.generator_type}/{self.size}/{''.join(self.neuron_conf_str)}/fit-{fit_string}",
-                self.pop[max_fit],
-            )
-
+            for i in range(self.fitness.size):
+                if (
+                    self.fitness[i] > self.fit_range[0]
+                    and self.fitness[i] < self.fit_range[1]
+                ):
+                    fit_string = str(int(self.fitness[i] * 100000))
+                    fit_string = str(fit_string.zfill(5))
+                    fit_string = "fit-" + fit_string
+                    print(f"saved:{fit_string}")
+                    np.save(self.pathname + fit_string, self.pop[i])
             if self.verbose:
                 print(f"{g}", end=" ", flush=False)
             self.gen = g
