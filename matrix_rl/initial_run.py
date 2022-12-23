@@ -5,7 +5,6 @@ from fitnessFunction import fitnessFunction
 import numpy as np
 import concurrent.futures
 
-# TODO finish automatic saving and add into single_trial
 np.set_printoptions(formatter={"float": "{:.4f}".format})
 popsize = 50  # Population size
 recombProb = 0.5  # Recombination probability

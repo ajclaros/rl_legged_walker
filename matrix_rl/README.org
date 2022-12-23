@@ -20,6 +20,11 @@ In the case of a heterogeneous system (systems that have different intrinsic pro
   + Step function uses the fluctuating weights
   + Step function calculates the next moment of the fluctuating weights
   + RL_CTRNN implements the reward and performance functions.
+  + RL has two versions for updating. the functions denoted with a "2" contain manually implemented ring buffers whereas the original updating functions use np.roll.
+  + the manual implementation of the ring buffer decreases runtime by ~1.8 as np.roll creates a new array each time.
+
+
+
 
 
 
@@ -35,9 +40,9 @@ In the case of a heterogeneous system (systems that have different intrinsic pro
 - These genomes are starting points for learning algorithm to use
 - Current state of the parameters will generally show learning for generator:RPG, size:3, neuron 0 driving leg movement
 
-After trial will plot:
-1) Real time performance
-2) Performance as seen by the agent
-3) Mean of both averaging windows (window_b refers to the current performance and window_a refers to past performance)
-4) Difference of the two windows which will pass in to the agent as a reward modulatory signal
-4) Fluctuation amplitude
+*** Plotting variables:
+Variables of an agent can be tracked using /plot_vars/. Use the parameter "record_every" to dictate recording data every nth step. There are three tags associated with the agent:
+- "track": Agent window variables (window_a, window_b, distance). Note that when recording performance the agent is recording performance as perceived by the agent, which is offset by a delay.
+- "avg": Take the window's average and track it throughout the trial.
+- "mat": tracks the agents matrix variables. Only tracks the variable associated in location [0,0]
+- TODO: "no_delay" is buggy. Should show performance alongside the first averaging window irrespective of delay

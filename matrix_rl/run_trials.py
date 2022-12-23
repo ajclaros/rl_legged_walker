@@ -5,20 +5,25 @@ import os
 import numpy as np
 import concurrent.futures
 import time as ti
-
 from initial_run import checkdir  # first
+from aux import lighten
 
 x = ti.time()
 num_processes = 16
 num_trials = 4
 random_genomes_in_range = False
-indices = [0, 1, 2, 3]  # , 4, 5, 6, 7, 8, 9]
+indices = [
+    4,
+    5,
+    6,
+    7,
+]  # indices of the sorted genomes. Index 0 will have the lowest fitness in the group
 num_genomes = len(indices)
-output = ["avg window_b_track", "flux_mat"]
+plot_vars = ["flux_mat", "performance_track", "avg window_b_track"]
 params = {
-    "duration": 40000,
+    "duration": 4000,
     "size": 3,
-    "delay": 300,  # changes in performance are observed in the averaging windows ~200 time units after the real time performance
+    "delay": 0,  # changes in performance are observed in the averaging windows ~200 time units after the real time performance
     # compare end performance using delay \in [250, 350] with delay=0 to test learning efficacy
     # effect prominant as task becomes more difficult (from 3N RPG, [0] -> 3N CPG [0,1,2] )
     # on the simplist task, agent can still learn with 0 delay.
@@ -89,7 +94,7 @@ def learn(
     genome,
     verbose=0,
     params=None,
-    output=[],
+    plot_vars=[],
     ix=0,
     record_every=1,
 ):
@@ -146,7 +151,7 @@ def learn(
     avg = []
     no_delay = []
     data = {}
-    for name in output:
+    for name in plot_vars:
         if "avg" in name:
             avg.append(name)
         elif "no_delay" in name:
@@ -157,7 +162,6 @@ def learn(
             mat.append(name)
         data[name] = np.zeros(time.size)
     data["distance"] = np.zeros(time.size)
-    data["performance"] = np.zeros(time.size)
     # initialize parameters to record
     if verbose > 0:
         for i, t in enumerate(time):
@@ -193,9 +197,20 @@ def learn(
                         % (agent.__dict__[t_name].size)
                     ]
                 for name in track:
-                    data[name][i] = agent.__dict__[name][
-                        agent.index % agent.__dict__[name].size
-                    ]
+                    if name == "performance_track":
+                        data["performance_track"][i] = (
+                            agent.distance_track[
+                                agent.delayed % agent.distance_track.size
+                            ]
+                            - agent.distance_track[
+                                (agent.delayed - agent.window_b_track.size)
+                                % agent.distance_track.size
+                            ]
+                        ) / (agent.stepsize * agent.window_b_track.size)
+                    else:
+                        data[name][i] = agent.__dict__[name][
+                            agent.index % agent.__dict__[name].size
+                        ]
                 for name in mat:
                     data[name][i] = agent.sim.__dict__[name][0, 0]
     else:
@@ -229,9 +244,22 @@ def learn(
                         % agent.__dict__[t_name].size
                     ]
                 for name in track:
-                    data[name][i] = agent.__dict__[name][
-                        agent.index % agent.__dict__[name].size
-                    ]
+
+                    if name == "performance_track":
+                        data["performance_track"][i] = (
+                            agent.distance_track[
+                                agent.delayed % agent.distance_track.size
+                            ]
+                            - agent.distance_track[
+                                (agent.delayed - agent.window_b_track.size)
+                                % agent.distance_track.size
+                            ]
+                        ) / (agent.stepsize * agent.window_b_track.size)
+                    else:
+                        data[name][i] = agent.__dict__[name][
+                            agent.index % agent.__dict__[name].size
+                        ]
+
                 for name in mat:
                     data[name][i] = agent.sim.__dict__[name][0, 0]
     data["ix"] = ix
@@ -249,7 +277,7 @@ def learn(
     # ax[0].plot(time, window_b, label="window_b")  # current performance as observed by agent
     # ax[0].plot(time, window_a, label="window_a")  #past performance as observed by agent
     # ax[0].plot(time, inst_perf, label="instant perf")
-    x = {key: item for key, item in data.items() if key in output}
+    x = {key: item for key, item in data.items() if key in plot_vars}
     x["ix"] = ix
     # x["performance"] = data["performance"]
     return x
@@ -260,7 +288,6 @@ fig, ax = plt.subplots(nrows=2)
 results = []
 verbose = 0.1
 plots = []
-# output = ["avg window_b_track", "flux_mat"]
 with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as executor:
     for ix, g in enumerate(genomes):
         for trial in range(num_trials):
@@ -275,7 +302,7 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as execut
                     g,
                     print_verbose,
                     params,
-                    output=output,
+                    plot_vars=plot_vars,
                     ix=ix,
                 )
             )
@@ -290,21 +317,35 @@ print("Plotting")
 
 means = {ix: {} for ix in range(num_genomes)}
 
-for param in output:
+for param in plot_vars:
     for ix in range(num_genomes):
         means[ix][param] = []
         for p in plots:
             if p["ix"] == ix:
                 means[ix][param].append(p[param])
 
-for param in output:
+for param in plot_vars:
     print(param)
     for key in means.keys():
+        color = None
         if param == "flux_mat":
             ax[1].plot(time, np.mean(means[key][param], axis=0), color=cmap[key])
         else:
+            print(param)
+            if param == "avg window_b_track":
+                color = "k"  # lighten(cmap[key], 1.7)
+                lw = 5
+                ls = "dashed"
+            if param == "avg window_a_track":
+                color = lighten(cmap[key], 1.4)
+                lw = 3
+                ls = "dashed"
+            else:
+                color = cmap[key]
+                lw = 1
+                ls = "solid"
             for i in range(len(means[key][param])):
-                ax[0].plot(time, means[key][param][i], color=cmap[key])
+                ax[0].plot(time, means[key][param][i], color=color, lw=lw, ls=ls)
             # ax[0].plot(time, np.mean(means[key][param], axis=0), color=c)
 
 print(ti.time() - x)
