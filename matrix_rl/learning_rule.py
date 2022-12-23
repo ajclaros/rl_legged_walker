@@ -16,10 +16,12 @@ class LRule:
         period_max: npt.NDArray = np.zeros((2, 2)),
         init_flux: npt.NDArray = np.zeros((2, 2)),
         max_flux: npt.NDArray = np.zeros((2, 2)),
+        performance_bias: float = 0.00,
     ) -> None:
 
         self.learn_rate = learn_rate
         self.conv_rate = conv_rate
+        self.performance_bias = performance_bias
 
         # variables for weight centers and weight fluctuations
         self.center_mat = center_mat
@@ -51,18 +53,18 @@ class LRule:
         )
 
     def update_weights_with_reward(self, reward, tolerance=0.0, learning=True):
-        self.reward = reward
+        self.reward = reward - self.performance_bias  # - tolerance
         # update fluctuation size and weight centers
-        if abs(reward) >= tolerance and learning:
+        if abs(tolerance) >= tolerance and learning:
             # print(self.conv_rate * reward)
             self.flux_mat -= self.conv_rate * reward
-            self.flux_mat = np.clip(self.flux_mat, 0, self.max_flux)
+            self.flux_mat = np.clip(self.flux_mat, 0, self.max_flux, out=self.flux_mat)
             self.extended_mat += self.flux_displacements
-            self.extended_mat = np.clip(self.extended_mat, self.p_min, self.p_max)
+            self.extended_mat = np.clip(
+                self.extended_mat, self.p_min, self.p_max, out=self.extended_mat
+            )
             self.center_mat = np.clip(
-                self.center_mat,
-                self.p_min,
-                self.p_max,
+                self.center_mat, self.p_min, self.p_max, out=self.center_mat
             )
 
         self.flux_displacements = self.flux_mat * np.sin(

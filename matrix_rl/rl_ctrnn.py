@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 from ctrnn import CTRNN
@@ -45,6 +44,7 @@ class RL_CTRNN(CTRNN):
 
         # map 1D genome to their correct parameter ranges for a CTRNN
         self.size = size
+        self.index = 0
         self.stepsize = stepsize
         self.delay = int(delay / self.stepsize)
         weights = genome[0 : size * size].reshape(size, size)
@@ -86,7 +86,6 @@ class RL_CTRNN(CTRNN):
         self.duration = duration
         self.reward = 0
         self.distance_track = np.zeros(int(self.window_size + self.delay))
-        self.performance_track = np.zeros(int(self.window_size / 2))
         self.window_a_track = np.zeros(int(self.window_size / 2))
         self.window_b_track = np.zeros(int(self.window_size / 2))
 
@@ -108,11 +107,7 @@ class RL_CTRNN(CTRNN):
 
     def update_performance(self, distance):
         self.distance_track[self.delay] = distance
-        self.performance_track[0] = (
-            self.distance_track[self.delay - 1] - self.distance_track[-1]
-        ) / (self.window_b_track.size * self.stepsize)
         self.distance_track = np.roll(self.distance_track, -1)
-        self.performance_track = np.roll(self.performance_track, -1)
 
     def update_windows(self, distance):
         self.window_b_track[0] = (
@@ -120,7 +115,7 @@ class RL_CTRNN(CTRNN):
             - self.distance_track[-(self.window_b_track.size - 1)]
         ) / (self.window_b_track.size * self.stepsize)
         self.window_a_track[0] = (
-            self.distance_track[-(self.window_a_track.size)]
+            self.distance_track[-(self.window_a_track.size - 1)]
             - self.distance_track[-2 * (self.window_a_track.size - 1)]
         ) / (self.window_a_track.size * self.stepsize)
 
@@ -143,25 +138,33 @@ class RL_CTRNN(CTRNN):
                 ],
             )
 
+    # reward_func2, update_windows2, update_performance2 manually implement a ring buffer
+    # this cuts runtime to ~1.9 of np.roll where a new array is created each time
+
     def reward_func2(self, distance, learning=True):
-        self.performance_func2(distance)
+
+        self.delayed = self.index + self.delay
+        self.windowed = self.index - self.window_b_track.size + 1
+        self.windowed2 = self.index - 2 * self.window_b_track.size + 2
+
+        self.window_index = self.index % self.window_b_track.size
+        self.distance_index = self.index % self.distance_track.size
+        self.update_performance2(distance)
+        self.update_windows2(distance)
+        self.index += 1
         if not learning:
             return 0
-        return (
-            self.window_b_track[-1] - self.window_a_track[-1]
-        )  # .mean() - self.window_a_track.mean()
+        return self.window_b_track.mean() - self.window_a_track.mean()
 
-    def performance_func2(self, distance):
-        self.distance_track[self.delay] = distance
-        self.window_b_track[0] = (
-            self.distance_track[0]
-            - self.distance_track[-(self.window_b_track.size - 1)]
+    def update_performance2(self, distance):
+        self.distance_track[(self.delayed) % self.distance_track.size] = distance
+
+    def update_windows2(self, distance):
+        self.window_b_track[self.window_index] = (
+            self.distance_track[self.distance_index]
+            - self.distance_track[(self.windowed) % self.distance_track.size]
         ) / (self.window_b_track.size * self.stepsize)
-        self.window_a_track[0] = (
-            self.distance_track[-(self.window_a_track.size)]
-            - self.distance_track[-2 * (self.window_a_track.size - 1)]
+        self.window_a_track[self.window_index] = (
+            self.distance_track[(self.windowed) % self.distance_track.size]
+            - self.distance_track[(self.windowed2) % self.distance_track.size]
         ) / (self.window_a_track.size * self.stepsize)
-
-        self.distance_track = np.roll(self.distance_track, -1)
-        self.window_b_track = np.roll(self.window_b_track, -1)
-        self.window_a_track = np.roll(self.window_a_track, -1)
