@@ -14,12 +14,6 @@ demesize = 2  # Neighborhood size
 generations = 300  # Number of generations
 runs = 16
 
-num_processes = 1
-min_files_in_range = 100
-paramlist = [
-    ("RPG", 3, [0, 1], (0.16, 0.3))  # Generator, size, neuron configuration, fit range
-]
-
 
 def evolve(
     verbose=False,
@@ -51,7 +45,7 @@ def evolve(
     ga.run(savenp=True)
 
 
-def checkdir(pathname, fit_range, min_files=100):
+def checkdir(pathname, fit_range, min_files=100, num_processes=1):
     (generator, size, conf_str) = pathname.split("/")[2:]
     size = int(size)
     conf = list(map(int, conf_str))

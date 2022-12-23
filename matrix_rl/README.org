@@ -24,21 +24,16 @@ In the case of a heterogeneous system (systems that have different intrinsic pro
 
 
 
-* Generating genomes
- Before running single_trial.py, genomes must be first generated and saved in the folder of the form:
+* Running run_trials.py
+** Generating genomes
+- If this is the first time the script is run, genomes will be generated. Parallel evolutionary runs will execute depending on the /num_processes/ variable.
 
-/evolved/{generator}/{size}/{configuration}
+- If the specified agent parameters do not exist within the /evolved/ folder, single_trial.py will create the folder and run an evolutionary algorithm to generate genomes
+- If it does exist, the function checks if there is a minimum amount of genomes within a fitness range. If not, the evolutionary algorithm will run and save genomes within the specified range
 
-for example in the case of an RPG with 3 neurons and neurons 0, 1, and 2 driving the leg. Pathname will be
-
-/evolved/RPG/3/012
-
-- Then by modifying the parameters in evolveAndLearn.py for their respective generator, size and neuron configuration the elitist evolutionary algorithm will save the top performing genome in each generation in the correct folder.
-- Note this folder will not work with evolution and learning as it has not been implemented yet.
-
-* Running single_trial.py
+** Running trials
+- These genomes are starting points for learning algorithm to use
 - Current state of the parameters will generally show learning for generator:RPG, size:3, neuron 0 driving leg movement
-
 
 After trial will plot:
 1) Real time performance

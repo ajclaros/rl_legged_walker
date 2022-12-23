@@ -59,9 +59,7 @@ pathname = f"./evolved/{params['generator']}/{params['size']}/{params['config']}
 if not os.path.exists(pathname):
     os.makedirs(pathname)
 checkdir(
-    pathname,
-    fit_range=params["fit_range"],
-    min_files=100,
+    pathname, fit_range=params["fit_range"], min_files=100, num_processes=num_processes
 )
 files = os.listdir(pathname)
 genome_list = []
