@@ -16,12 +16,13 @@ In the case of a heterogeneous system (systems that have different intrinsic pro
 - The script to run is single_trial.py
 - All functions of learning rule are contained within learning_rule.py.
 
+- RLCTRNN has two versions for updating. the functions denoted with a "2" contain manually implemented ring buffers whereas the original updating functions use np.roll.
+- the manual implementation of the ring buffer decreases runtime by ~1.8 as np.roll creates a new array each time.
+
 - The difference between CTRNN and RL_CTRNN is:
   + Step function uses the fluctuating weights
   + Step function calculates the next moment of the fluctuating weights
   + RL_CTRNN implements the reward and performance functions.
-  + RL has two versions for updating. the functions denoted with a "2" contain manually implemented ring buffers whereas the original updating functions use np.roll.
-  + the manual implementation of the ring buffer decreases runtime by ~1.8 as np.roll creates a new array each time.
 
 
 
@@ -39,6 +40,7 @@ In the case of a heterogeneous system (systems that have different intrinsic pro
 ** Running trials
 - These genomes are starting points for learning algorithm to use
 - Current state of the parameters will generally show learning for generator:RPG, size:3, neuron 0 driving leg movement
+- Harder tasks are less stable at higher performance values (~0.5)
 
 *** Plotting variables:
 Variables of an agent can be tracked using /plot_vars/. Use the parameter "record_every" to dictate recording data every nth step. There are three tags associated with the agent:

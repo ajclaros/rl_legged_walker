@@ -9,6 +9,7 @@ from scipy.special import expit
 class CTRNN:
 
     # Constructor including boundaries of acceptable range
+
     def __init__(
         self,
         size,
@@ -47,6 +48,7 @@ class CTRNN:
         self.outputs = np.zeros(self.size)
 
     # allow runs to be easily reproduced while still assigning random initial starting states
+
     def randomize_parameters_with_seed(self, seed):
         np.random.seed(seed)
         self.randomize_parameters()
@@ -88,6 +90,7 @@ class CTRNN:
         self.outputs = expit(self.voltages + self.biases)
 
     # step without input - used for oscillator task
+
     def step(self, dt):
         netinput = self.inputs + np.dot(self.inner_weights.T, self.outputs)
         self.voltages += dt * (self.inv_time_constants * (-self.voltages + netinput))
@@ -106,6 +109,7 @@ class CTRNN:
         )
 
     # always go through weights, bias, time constants
+
     def get_normalized_parameters(self):
         #                  NxN w           bias, tc
         genesize = self.size * self.size + 2 * self.size
@@ -129,24 +133,6 @@ class CTRNN:
         return genes
 
     # IMPORTANT: always go through weights, bias, time constants
-    def set_normalized_parameters(self, genotype):
-        k = 0
-        for i in range(self.size):
-            for j in range(self.size):
-                self.inner_weights[i][j] = genotype[k] * self.weight_range
-                k += 1
-        for i in range(self.size):
-            self.biases[i] = genotype[k] * self.bias_range
-            k += 1
-        for i in range(self.size):
-            if self.tc_max == self.tc_min:
-                self.time_constants[i] = self.tc_min
-            else:
-                self.time_constants[i] = ((genotype[k] + 1) / 2) * (
-                    self.tc_max - self.tc_min
-                ) + self.tc_min
-            k += 1
-        self.inv_time_constants = 1.0 / self.time_constants
 
 
 def sigmoid(x):

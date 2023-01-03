@@ -135,7 +135,7 @@ class Microbial:
                     fit_string = str(fit_string.zfill(5))
                     fit_string = "fit-" + fit_string
                     print(f"saved:{fit_string}")
-                    np.save(self.pathname + fit_string, self.pop[i])
+                    np.save(self.pathname + "/" + fit_string, self.pop[i])
             if self.verbose:
                 print(f"{g}", end=" ", flush=False)
             self.gen = g

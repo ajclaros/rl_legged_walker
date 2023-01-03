@@ -2,6 +2,9 @@ import leggedwalker
 import numpy as np
 from ctrnn import CTRNN
 from datalogger import DataLogger
+import matplotlib.pyplot as plt
+
+import os
 
 # Task Parameters
 duration = 220.0
@@ -19,6 +22,8 @@ def fitnessFunction(
     record=False,
     stepsize=0.1,
     filename=None,
+    plot=None,
+    save=False,
 ):
     # Create the agent's body
     legged = leggedwalker.LeggedAgent()
@@ -78,7 +83,9 @@ def fitnessFunction(
     # update neurons based on speed of movement (cx(t)-cx(t-1))/dt
     # Calculate the fitness based on distance covered over the duration of time
     fit = legged.cx / duration
-    if record:
+    if plot:
+        plt.plot(np.diff(abs(datalogger.data[plot])))
+    if record and save:
         datalogger.data["start_fitness"] = fit
         datalogger.data["end_fitness"] = fit
         if filename:
@@ -87,3 +94,28 @@ def fitnessFunction(
             filename = f"behavior-{generator_type}-{int(np.round(fit,5)*100000)}-s{ns.size}-c{'_'.join(str(num) for num in configuration)}"
             datalogger.save(f"./data/runs/{filename}")
     return fit
+
+
+# genome_list = []
+# genome_fitness = []
+# files = os.listdir("./evolved/RPG/3/0/")
+# fitnesses = [float(name.split("-")[1].split(".")[0]) / 100000 for name in files]
+# for i, fitness in enumerate(fitnesses):
+#     if fitness > 0.5:
+#         print("hello")
+#         genome_list.append(files[i])
+#         genome_fitness.append(fitness)
+#         break
+# for i, fitness in enumerate(fitnesses):
+#     if fitness > 0.0 and fitness < 0.2:
+#         genome_list.append(files[i])
+#         genome_fitness.append(fitness)
+#         break
+# fitnessFunction(
+#     np.load(f"./evolved/RPG/3/0/{genome_list[0]}"), record=True, plot="omega", N=3,
+# )
+# plt.ylim(0, 0.1)
+# fitnessFunction(
+#     np.load(f"./evolved/RPG/3/0/{genome_list[1]}"), record=True, plot="omega", N=3
+# )
+# plt.show()

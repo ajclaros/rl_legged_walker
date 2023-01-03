@@ -29,6 +29,7 @@ class LeggedAgent:
         self.footY = self.jointY + LegLength * np.cos(
             self.angle
         )  # Y-position of the foot
+        self.leglength = LegLength
 
     def state(self):
         return np.array([self.angle, self.omega, self.footstate])
@@ -207,7 +208,7 @@ class LeggedAgent:
         if (self.cx - self.footX > 20) and (self.footX - self.cx > 20):
             self.vx = 0.0
 
-    def stepN(self, stepsize, u, neuron_configuration=[0, 0, 0]):
+    def stepN(self, stepsize, u, neuron_configuration=[0]):
         force = 0.0
         if len(neuron_configuration) == 1:
             if u[neuron_configuration[0]] > 0.5:
