@@ -33,44 +33,44 @@ indices = [
 num_genomes = len(indices)
 plot_vars = ["avg window_b_track", "flux_mat"]
 params = {
-    "duration": 40000,
+    "duration": 792000,
     "size": 3,
     "delay": 330,  # changes in performance are observed in the averaging windows ~200 time units after the real time performance
     # compare end performance using delay \in [250, 350] with delay=0 to test learning efficacy
-    # effect prominant as task becomes more difficult (from 3N RPG, [0] -> 3N CPG [0,1,2] )
+    # effect prominant as task becomes more difficult (from 3n rpg, [0] -> 3n cpg [0,1,2] )
     # on the simplist task, agent can still learn with 0 delay.
-    "generator": "RPG",
+    "generator": "rpg",
     "config": "012",
-    "window_size": 440,  # size of the two averaging windows. Fitness function runs for 220 time units
-    "period_min": 440,  # integer time units
-    "period_max": 4400,  # integer time units
+    "window_size": 440,  # size of the two averaging windows. fitness function runs for 220 time units
+    "period_min":  264000,  # integer time units
+    "period_max": ,  # integer time units
     # "learn_rate": 0.1000000,
     # "conv_rate": 0.00001000,
-    # "init_flux": 0.1,  # Params identified for generator:RPG, size:3, config:0, fitness ~0.234
-    # "max_flux": 0.1,  # May be robust to different starting positions
+    # "init_flux": 0.1,  # params identified for generator:rpg, size:3, config:0, fitness ~0.234
+    # "max_flux": 0.1,  # may be robust to different starting positions
     # "min_flux": 0.0000000,  # stop flux from slamming down to zero
     # -----------------------------------------------------------------------------------------------
     # "learn_rate": 0.010,
     # "conv_rate": 0.0000010,
-    # "init_flux": 0.22,  # Params identified for generator:CPG, size:3, config:0, fitness ~0.234
-    # "max_flux": 0.22,  # May be robust to different starting positions
+    # "init_flux": 0.22,  # params identified for generator:cpg, size:3, config:0, fitness ~0.234
+    # "max_flux": 0.22,  # may be robust to different starting positions
     # "min_flux": 0.0000000,  # stop flux from slamming down to zero
     # ------------------------------------------------------------------------------------------------
     # "learn_rate": 0.010,
     # "conv_rate": 0.00000010,
-    # "init_flux": 0.22,  # Params identified for generator:RPG, size:3, config:01, fitness ~0.234
-    # "max_flux": 0.22,  # May be robust to different starting positions
+    # "init_flux": 0.22,  # params identified for generator:rpg, size:3, config:01, fitness ~0.234
+    # "max_flux": 0.22,  # may be robust to different starting positions
     # "min_flux": 0.0000000,  # stop flux from slamming down to zero
     # ------------------------------------------------------------------------------------------------
     "learn_rate": 0.01,
     "conv_rate": 0.000000010,
-    "init_flux": 0.15,  # Params identified for generator:RPG, size:3, config:012, fitness ~0.234
-    "max_flux": 0.15,  # May be robust to different starting positions
+    "init_flux": 0.15,  # params identified for generator:rpg, size:3, config:012, fitness ~0.234
+    "max_flux": 0.15,  # may be robust to different starting positions
     "min_flux": 0.0000000,  # stop flux from slamming down to zero
     # ------------------------------------------------------------------------------------------------
     "learning_start": 2000,  # integer time units, determines how long the agent will gather data from static weights.
     # -------------------------------------------------------------------------------------------------
-    # Parameters for reward below a value
+    # parameters for reward below a value
     "tolerance": 0.000,  # ignore abs(reward) below tolerance and only update moment (and subsequently update extended weights)
     "performance_bias": 0.004,  # penalize for reward below value -> increase amplitude if reward below value
     # -------------------------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ params = {
     "index": 0,  # given all genomes matching "$generator/$size/$configuration"
     # choose the file at specified index position
     "stepsize": 0.1,
-    "record_every": 1000,  # not currently implemented. When logging data, records every n time steps
+    "record_every": 1000,  # not currently implemented. when logging data, records every n time steps
 }
 
 pathname = f"./evolved/{params['generator']}/{params['size']}/{params['config']}"

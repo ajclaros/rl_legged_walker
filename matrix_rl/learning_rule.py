@@ -53,9 +53,19 @@ class LRule:
         self.moments += self.dt
         new_period = np.where(self.moments > self.periods)
         self.moments[new_period] = 0
-        self.periods[new_period] = np.random.uniform(
-            low=self.period_min[new_period],
-            high=self.period_max[new_period],
+        # using uniform distribution for period
+        # self.periods[new_period] = np.random.uniform(
+        #     low=self.period_min[new_period],
+        #     high=self.period_max[new_period],
+        #     size=new_period[0].size,
+        # )
+        # using normal distribution for period
+        flux_period_center = (self.period_max + self.period_min) / 2
+        dev = (self.period_max - self.period_min) / 4
+
+        self.periods[new_period] = np.random.normal(
+            loc=flux_period_center[new_period],
+            scale=dev[new_period],
             size=new_period[0].size,
         )
 
