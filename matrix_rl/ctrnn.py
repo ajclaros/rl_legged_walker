@@ -7,9 +7,7 @@ from scipy.special import expit
 
 
 class CTRNN:
-
     # Constructor including boundaries of acceptable range
-
     def __init__(
         self,
         size,
@@ -96,44 +94,64 @@ class CTRNN:
         self.voltages += dt * (self.inv_time_constants * (-self.voltages + netinput))
         self.outputs = expit(self.voltages + self.biases)
 
-    def getBounds(self):
-        return [self.size, self.weight_range, self.bias_range, self.tc_min, self.tc_max]
-
-    def setBounds(self, size, weight_range, bias_range, tc_min, tc_max):
-        self.size, self.weight_range, self.bias_range, self.tc_min, self.tc_max = (
-            size,
-            weight_range,
-            bias_range,
-            tc_min,
-            tc_max,
+    def mapGenome(self, genome):
+        self.setWeights(genome[0 : self.size * self.size].reshape(self.size, self.size))
+        self.setBiases(
+            genome[self.size * self.size : self.size * self.size + self.size]
         )
-
-    # always go through weights, bias, time constants
-
-    def get_normalized_parameters(self):
-        #                  NxN w           bias, tc
-        genesize = self.size * self.size + 2 * self.size
-        genes = np.zeros(genesize)
-        k = 0
-        for i in range(self.size):
-            for j in range(self.size):
-                genes[k] = self.inner_weights[i][j] / self.weight_range
-                k += 1
-        for i in range(self.size):
-            genes[k] = self.biases[i] / self.bias_range
-            k += 1
-        for i in range(self.size):
-            if self.tc_max == self.tc_min:
-                genes[k] = self.tc_max
-            else:
-                genes[k] = (self.time_constants[i] - self.tc_min) / (
-                    self.tc_max - self.tc_min
-                ) * 2 - 1
-            k += 1
-        return genes
-
-    # IMPORTANT: always go through weights, bias, time constants
+        self.setTimeConstants(genome[self.size * self.size + self.size :])
 
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
+
+
+# import matplotlib.pyplot as plt
+
+# from ctrnn import CTRNN
+
+# t0 = ti.time()
+# x = CTRNN(3)
+testgenome = np.array(
+    [
+        0.04774359502446968,
+        -0.683711607305986,
+        0.45036338411104737,
+        0.9721092700062304,
+        0.7891519578423444,
+        -0.00960243655211588,
+        -0.9358149684117485,
+        -0.8152701212733787,
+        0.6207119728559448,
+        0.28996795347325205,
+        0.3639871362038097,
+        -0.6154338363438252,
+        0.4644851766806753,
+        -0.4605993067803686,
+        -0.4491022368326481,
+    ]
+)
+# x.mapGenome(testgenome)
+# x.initializeState(np.zeros(3))
+
+
+def runCTRNN(duration, dt=0.1):
+    time = np.arange(0, duration, dt)
+    outputs = np.zeros((time.size, 3))
+    for (
+        i,
+        t,
+    ) in enumerate(time):
+        x.step(0.1)
+        outputs[i, :] = x.outputs
+    return outputs
+
+
+# outputs = runCTRNN(220)
+# print(outputs[-1,-1])
+# for i in range(100):
+#     print(outputs[i][-1])
+
+# duration = 1
+# outputs = runCTRNN(duration)
+# print(outputs[-1])

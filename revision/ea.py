@@ -100,7 +100,9 @@ class Microbial:
             bestind=bi,
         )
 
-    def run(self, savenp):
+    def run(
+        self,
+    ):
         # Calculate all fitness once
         if self.verbose:
             print("init agent:")
@@ -473,7 +475,7 @@ class GaElite:
             bestind=bi,
         )
 
-    def run(self, savenp):
+    def run(self):
         # Calculate all fitness once
         for i in range(self.popsize):
             print(f"{i}", end=" ", flush=False)

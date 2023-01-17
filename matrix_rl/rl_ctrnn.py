@@ -21,6 +21,7 @@ class RL_CTRNN(CTRNN):
         period_max: npt.NDArray = np.zeros((2, 2)),
         init_flux: npt.NDArray = np.zeros((2, 2)),
         max_flux: npt.NDArray = np.zeros((2, 2)),
+        min_flux: npt.NDArray = np.zeros((2, 2)),
         weight_range: int = 16,
         bias_range: int = 16,
         tc_min: int = 1,
@@ -30,6 +31,7 @@ class RL_CTRNN(CTRNN):
         TR: float = 5.0,
         TA: float = 6.0,
         stepsize: float = 0.1,
+        performance_bias: float = 0.0,
     ):
 
         super().__init__(
@@ -47,6 +49,8 @@ class RL_CTRNN(CTRNN):
         self.index = 0
         self.stepsize = stepsize
         self.delay = int(delay / self.stepsize)
+
+        # map genome to individual weights, biases and inv time constants
         weights = genome[0 : size * size].reshape(size, size)
         biases = genome[size * size : size * size + size]
         tc = genome[size * size + size :]
@@ -54,9 +58,10 @@ class RL_CTRNN(CTRNN):
         self.setWeights(self.genome_arr[:size])
         self.setBiases(self.genome_arr[size])
         self.setTimeConstants(self.genome_arr[size + 1])
-        self.mapped_genome = np.vstack(
-            [self.inner_weights, self.biases, self.inv_time_constants]
-        )
+
+        # create single matrix of weights, biases and inv time constants
+        # to pass into LRule
+        self.mapped_genome = np.vstack([self.inner_weights, self.biases])
 
         # initialize learning rule
         self.sim = LRule(
@@ -71,12 +76,14 @@ class RL_CTRNN(CTRNN):
             period_max=period_max,
             init_flux=init_flux,
             max_flux=max_flux,
+            min_flux=min_flux,
+            performance_bias=performance_bias,
         )
 
-        # map inner_centers and extended weights to CTRNN
+        # remap LRule's extendedd matrix to RL_CTRNN parameters via pointers
+        # this is done to avid copying the matrix slices every iteration
         self.inner_weights = self.sim.center_mat[:size]
         self.biases = self.sim.center_mat[size]
-        self.inv_time_constants = self.sim.center_mat[size + 1]
         self.extended_weights = self.sim.extended_mat[:size]
         self.extended_biases = self.sim.extended_mat[size]
 
@@ -93,10 +100,15 @@ class RL_CTRNN(CTRNN):
         super().initializeState(v)
 
     def stepRL(self, dt):
+        self.inner_weights = self.sim.center_mat[: self.size].view()
+        self.biases = (self.sim.center_mat[self.size]).view()
+        self.extended_weights = self.sim.extended_mat[: self.size].view()
+        self.extended_biases = self.sim.extended_mat[self.size].view()
         netinput = self.inputs + np.dot(self.extended_weights.T, self.outputs)
         self.voltages += dt * (self.inv_time_constants * (-self.voltages + netinput))
-        self.outputs = expit(self.voltages + self.extended_biases.T)
-        self.sim.iter_moment(dt)
+
+        self.outputs = expit(self.voltages + self.extended_biases)
+        self.sim.iter_moment()
 
     def reward_func(self, distance, learning=True):
         self.update_performance(distance)
@@ -140,7 +152,6 @@ class RL_CTRNN(CTRNN):
 
     # reward_func2, update_windows2, update_performance2 manually implement a ring buffer
     # this cuts runtime to ~1.9 of np.roll where a new array is created each time
-
     def reward_func2(self, distance, learning=True):
 
         self.delayed = self.index + self.delay

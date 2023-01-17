@@ -1,9 +1,9 @@
 import leggedwalker
 import numpy as np
 from ctrnn import CTRNN
+from ctrnn import runCTRNN
 from datalogger import DataLogger
 import matplotlib.pyplot as plt
-
 import os
 
 # Task Parameters
@@ -96,26 +96,10 @@ def fitnessFunction(
     return fit
 
 
-# genome_list = []
-# genome_fitness = []
-# files = os.listdir("./evolved/RPG/3/0/")
-# fitnesses = [float(name.split("-")[1].split(".")[0]) / 100000 for name in files]
-# for i, fitness in enumerate(fitnesses):
-#     if fitness > 0.5:
-#         print("hello")
-#         genome_list.append(files[i])
-#         genome_fitness.append(fitness)
-#         break
-# for i, fitness in enumerate(fitnesses):
-#     if fitness > 0.0 and fitness < 0.2:
-#         genome_list.append(files[i])
-#         genome_fitness.append(fitness)
-#         break
 # fitnessFunction(
-#     np.load(f"./evolved/RPG/3/0/{genome_list[0]}"), record=True, plot="omega", N=3,
+#     testgenome,
+#     duration=220,
+#     N=3,
+#     generator_type="CPG",
+#     configuration=[0, 1, 2],
 # )
-# plt.ylim(0, 0.1)
-# fitnessFunction(
-#     np.load(f"./evolved/RPG/3/0/{genome_list[1]}"), record=True, plot="omega", N=3
-# )
-# plt.show()

@@ -48,3 +48,35 @@ Variables of an agent can be tracked using /plot_vars/. Use the parameter "recor
 - "avg": Take the window's average and track it throughout the trial.
 - "mat": tracks the agents matrix variables. Only tracks the variable associated in location [0,0]
 - TODO: "no_delay" is buggy. Should show performance alongside the first averaging window irrespective of delay
+*** Tolerance value
+- Due to the nature of the agent's walking the specific walking cycle will have a different period length resulting in unequal averaging windows even though performance has not changed. This can be mitigated with larger window sizes (e.g. size 1000), but there will always be a different which leads to the agent learning off of inherent noise in the walking. To mitigate this, there is a "tolerance" parameter such that if the abs(reward) is lower than a specified tolerance there will be no reward administered, and the next moment will generate.
+*** Premature convergence
+- The fitness landscape for this task may lead to premature convergence in two ways.
+  1. The agent explores in a wrong direction and rapidly drops in performance, if the drop is high enough, the maximum flux size will be achieved. When recovering with  a negative reward, the agent can likely recover to its original fitness, but the flux size then decreases close to 0
+  2. As the agent increases its performance, the fluctuation decreases to zero before being close to the maximum fitness.
+- To mitigate this, it may be beneficial to incorporate an additional growth function that  (a) Increases slowly initially and (b) Approaches a maximum value.
+A slow growth is a proxy negative abs(reward)<value for a duration of time. A low absolute reward indicates that the agent's performance has not changed much in either a positive or negative direction. As the amount of time spent where the reward is low, the agent's flux size increases, but it will asymptotically approach a specified value. After the reward is greater than a specified value, this growth value then decreases to zero.
+- It may be productive to use the "tolerance" as
+- Tested function that satisfied the behavior of slow growth and level off value is the Gompertz curve which is sigmoidal
+- A side effect of adding this function is less stable performance
+$a e^{-b e^{-c x + d}}$ Where $a$ is the asymptotic value, $b$ is the displacement along the x axis, $c$ is the growth/level off rate.
+Experiment with the function [[https://www.desmos.com/calculator/xgsorl8bdx][here]]
+#+BEGIN_SRC python
+tmp=0
+a = 0.0001
+b = 1.8
+c = 0.001001
+def run(tmp):
+    #learning phase
+    agent.stepRL(params["stepsize"])
+    reward = agent.reward_func2(body.cx, learning=True)
+    agent.sim.update_weights_with_reward(reward)
+    if abs(reward) < params['tolerance']:
+        # Gompertz curve performs best with CPG size 3, 3neuron config
+        agent.sim.flux_mat += a * np.exp(-b * np.exp(-c * tmp + 0.5))
+        # agent.sim.flux_mat = agent.sim.flux_mat * (np.log(tmp) * 0.001)
+        tmp += 1
+    elif tmp > 0:
+        tmp -= 2
+    return tmp
+#+END_SRC

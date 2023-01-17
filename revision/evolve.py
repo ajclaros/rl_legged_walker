@@ -4,6 +4,7 @@ import leggedwalker
 import numpy as np
 import itertools
 from fitnessFunction import fitnessFunction
+import time
 
 import matplotlib.pyplot as plt
 from matplotlib import cm, colors
@@ -11,9 +12,9 @@ from matplotlib import cm, colors
 # Nervous System Parameters
 # Task Parameters
 
-popsize = 10  # Population size
+popsize = 100  # Population size
 recombProb = 0.5  # Recombination probability
-mutatProb = 0.01  # Mutation probability
+mutatProb = 0.05  # Mutation probability
 demesize = 2  # Neighborhood size
 generations = 100  # Number of generations
 
@@ -21,7 +22,7 @@ cmap = plt.get_cmap("tab10").colors
 param_list = {
     "size": [3],
     "generator_type": ["CPG"],
-    "neuron_configuration": [[0, 1, 2]],
+    "neuron_configuration": [[0, 1]],
 }
 
 # Evolve and visualize fitness over generations
@@ -47,10 +48,14 @@ for i, x in enumerate(itertools.product(*param_list.values())):
         generator_type=params["generator_type"],
         neuron_configuration=params["neuron_configuration"],
         size=size,
+        verbose=True,
     )
+
+    print("Starting evolution")
+    t1 = time.time()
     ga.run()
     ga.showFitness(c=cmap[i])
-    ga.save()
+    print("Time taken: ", time.time() - t1)
 
 plt.title(
     f"Microbial: Best and average fitness\nN:{size},neuron_config:{param_list['neuron_configuration'][0]}"

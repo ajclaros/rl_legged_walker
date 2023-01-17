@@ -36,7 +36,7 @@ class Microbial:
         genesize=8,
         recombProb=0.5,
         mutatProb=0.05,
-        demeSize=2,
+        demeSize=5,
         generations=100,
         generator_type="RPG",
         neuron_configuration=[0],
@@ -110,8 +110,6 @@ class Microbial:
         if self.verbose:
             print("init agent:")
         for i in range(self.popsize):
-            if self.verbose:
-                print(f"{i}", end=" ", flush=False)
             self.fitness[i] = self.fitnessFunction(
                 self.pop[i],
                 N=self.size,
@@ -131,19 +129,17 @@ class Microbial:
                     self.fitness[i] > self.fit_range[0]
                     and self.fitness[i] < self.fit_range[1]
                 ):
+                    if self.fitness[i] < 0:
+                        continue
                     fit_string = str(int(self.fitness[i] * 100000))
                     fit_string = str(fit_string.zfill(5))
                     fit_string = "fit-" + fit_string
                     print(f"saved:{fit_string}")
                     np.save(self.pathname + "/" + fit_string, self.pop[i])
-            if self.verbose:
-                print(f"{g}", end=" ", flush=False)
             self.gen = g
 
             # Report statistics every generation
             self.fitStats()
-            # print("Evaluations:")
-            # print(f"mean:{np.mean(self.fitness)}|max:{max(self.fitness)}")
             for i in range(self.popsize):
                 # Step 1: Pick 2 individuals
                 a = np.random.randint(0, self.popsize - 1)
@@ -345,7 +341,6 @@ class GaEliteLearn:
                         self.learned_fitness[idx] = end_fit
                         self.performance[idx] = end_perf
                         results = []
-                    print()
             for i, future in enumerate(concurrent.futures.as_completed(results)):
                 idx, end_fit, end_perf = future.result()
                 self.learned_fitness[idx] = end_fit
@@ -364,8 +359,6 @@ class GaEliteLearn:
                 # Report statistics every generation
                 self.fitStats()
                 max_fit = np.argmax(self.learned_fitness)
-                # print("Evaluations:")
-                # print(f"mean:{np.mean(self.learned_fitness)}|max:{max(self.fitness)}")
                 for i in range(self.popsize):
                     np.random.seed(np.random.randint(10000))
                     # Step 1: Pick 2 individuals
@@ -379,11 +372,6 @@ class GaEliteLearn:
                         temp = temp / np.linalg.norm(temp)
                         self.pop[i] = np.clip(self.pop[i] + magnitude * temp, -1, 1)
 
-                        # self.pop[i] += np.random.normal(
-                        #     0.0, self.mutatProb, size=self.genesize
-                        # )
-                        # self.pop[i] = np.clip(self.pop[i], -1, 1)
-                    # Save fitness
                     results.append(
                         executor.submit(
                             getIndex,
@@ -501,8 +489,6 @@ class GaElite:
 
             # Report statistics every generation
             self.fitStats()
-            # print("Evaluations:")
-            # print(f"mean:{np.mean(self.fitness)}|max:{max(self.fitness)}")
 
             max_fit = np.argmax(self.fitness)
             if self.verbose:
