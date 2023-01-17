@@ -42,8 +42,8 @@ params = {
     "generator": "rpg",
     "config": "012",
     "window_size": 440,  # size of the two averaging windows. fitness function runs for 220 time units
-    "period_min":  264000,  # integer time units
-    "period_max": ,  # integer time units
+    "period_max": 264000,  # integer time units
+    "period_min": 100000,  # integer time units
     # "learn_rate": 0.1000000,
     # "conv_rate": 0.00001000,
     # "init_flux": 0.1,  # params identified for generator:rpg, size:3, config:0, fitness ~0.234
