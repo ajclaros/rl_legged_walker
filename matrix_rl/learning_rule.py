@@ -60,12 +60,12 @@ class LRule:
         #     size=new_period[0].size,
         # )
         # using normal distribution for period
-        flux_period_center = (self.period_max + self.period_min) / 2
-        dev = (self.period_max - self.period_min) / 4
+        flux_period_center = (self.period_max[0, 0] + self.period_min[0, 0]) / 2
+        dev = (self.period_max[0, 0] - self.period_min[0, 0]) / 4
 
         self.periods[new_period] = np.random.normal(
-            loc=flux_period_center[new_period],
-            scale=dev[new_period],
+            loc=flux_period_center,
+            scale=dev,
             size=new_period[0].size,
         )
 

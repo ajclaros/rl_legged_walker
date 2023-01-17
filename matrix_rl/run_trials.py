@@ -33,17 +33,17 @@ indices = [
 num_genomes = len(indices)
 plot_vars = ["avg window_b_track", "flux_mat"]
 params = {
-    "duration": 792000,
+    "duration": 7920000,
     "size": 3,
     "delay": 330,  # changes in performance are observed in the averaging windows ~200 time units after the real time performance
     # compare end performance using delay \in [250, 350] with delay=0 to test learning efficacy
     # effect prominant as task becomes more difficult (from 3n rpg, [0] -> 3n cpg [0,1,2] )
     # on the simplist task, agent can still learn with 0 delay.
-    "generator": "rpg",
+    "generator": "RPG",
     "config": "012",
     "window_size": 440,  # size of the two averaging windows. fitness function runs for 220 time units
     "period_max": 264000,  # integer time units
-    "period_min": 100000,  # integer time units
+    "period_min": 10000,  # integer time units
     # "learn_rate": 0.1000000,
     # "conv_rate": 0.00001000,
     # "init_flux": 0.1,  # params identified for generator:rpg, size:3, config:0, fitness ~0.234
@@ -72,20 +72,20 @@ params = {
     # -------------------------------------------------------------------------------------------------
     # parameters for reward below a value
     "tolerance": 0.000,  # ignore abs(reward) below tolerance and only update moment (and subsequently update extended weights)
-    "performance_bias": 0.004,  # penalize for reward below value -> increase amplitude if reward below value
+    "performance_bias": 0.000,  # penalize for reward below value -> increase amplitude if reward below value
     # -------------------------------------------------------------------------------------------------
     "fit_range": (0.2, 0.4),  # select genomes within (min, max) fitness range
     "index": 0,  # given all genomes matching "$generator/$size/$configuration"
     # choose the file at specified index position
     "stepsize": 0.1,
-    "record_every": 1000,  # not currently implemented. when logging data, records every n time steps
+    "record_every": 10000,  # not currently implemented. when logging data, records every n time steps
 }
 
 pathname = f"./evolved/{params['generator']}/{params['size']}/{params['config']}"
 if not os.path.exists(pathname):
     os.makedirs(pathname)
 checkdir(
-    pathname, fit_range=params["fit_range"], min_files=10, num_processes=num_processes
+    pathname, fit_range=params["fit_range"], min_files=1, num_processes=num_processes
 )
 files = os.listdir(pathname)
 genome_list = []
@@ -287,7 +287,7 @@ def learn(
 
 
 results = []
-verbose = -1
+verbose = 0.0001
 plots = []
 with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as executor:
     for ix, g in enumerate(genomes):
@@ -383,7 +383,8 @@ def create_plot(plot_vars, means, a=4, plotmean=False):
     ax[0].set_ylabel("Time")
     ax[1].set_title("Flux")
     ax[1].legend()
-    plt.show()
 
+
+plt.savefig(f"performance-vs-time.png")
 
 create_plot(plot_vars, means, a=1, plotmean=False)
